@@ -5,7 +5,7 @@ import (
 	"github.com/olive-io/bpmn/sequence_flow"
 )
 
-type Action interface {
+type IAction interface {
 	action()
 }
 
@@ -19,7 +19,7 @@ type ProbeAction struct {
 
 func (action ProbeAction) action() {}
 
-type ActionTransformer func(sequenceFlowId *schema.IdRef, action Action) Action
+type ActionTransformer func(sequenceFlowId *schema.IdRef, action IAction) IAction
 type Terminate func(sequenceFlowId *schema.IdRef) chan bool
 
 type FlowAction struct {

@@ -6,12 +6,12 @@ import (
 	"github.com/olive-io/bpmn/sequence_flow"
 )
 
-type Outgoing interface {
-	NextAction(flow flow_interface.T) chan Action
+type IOutgoing interface {
+	NextAction(flow flow_interface.T) chan IAction
 }
 
-type FlowNodeInterface interface {
-	Outgoing
+type IFlowNode interface {
+	IOutgoing
 	Element() schema.FlowNodeInterface
 }
 

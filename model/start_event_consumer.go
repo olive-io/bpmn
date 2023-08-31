@@ -17,16 +17,16 @@ type startEventConsumer struct {
 	parallel             bool
 	ctx                  context.Context
 	consumptionLock      sync.Mutex
-	tracer               tracing.Tracer
-	events               [][]event.Event
+	tracer               tracing.ITracer
+	events               [][]event.IEvent
 	element              schema.CatchEventInterface
 	satisfier            *logic.CatchEventSatisfier
-	eventInstanceBuilder event.DefinitionInstanceBuilder
+	eventInstanceBuilder event.IDefinitionInstanceBuilder
 }
 
 func (s *startEventConsumer) NewEventDefinitionInstance(
 	def schema.EventDefinitionInterface,
-) (definitionInstance event.DefinitionInstance, err error) {
+) (definitionInstance event.IDefinitionInstance, err error) {
 	instances := s.satisfier.EventDefinitionInstances()
 	for i := range *instances {
 		if schema.Equal((*instances)[i].EventDefinition(), def) {
@@ -39,16 +39,16 @@ func (s *startEventConsumer) NewEventDefinitionInstance(
 
 func newStartEventConsumer(
 	ctx context.Context,
-	tracer tracing.Tracer,
+	tracer tracing.ITracer,
 	process *process.Process,
 	startEvent *schema.StartEvent,
-	eventDefinitionInstanceBuilder event.DefinitionInstanceBuilder) *startEventConsumer {
+	eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder) *startEventConsumer {
 	consumer := &startEventConsumer{
 		ctx:                  ctx,
 		process:              process,
 		parallel:             startEvent.ParallelMultiple(),
 		tracer:               tracer,
-		events:               make([][]event.Event, 0, len(startEvent.EventDefinitions())),
+		events:               make([][]event.IEvent, 0, len(startEvent.EventDefinitions())),
 		element:              startEvent,
 		satisfier:            logic.NewCatchEventSatisfier(startEvent, eventDefinitionInstanceBuilder),
 		eventInstanceBuilder: eventDefinitionInstanceBuilder,
@@ -56,7 +56,7 @@ func newStartEventConsumer(
 	return consumer
 }
 
-func (s *startEventConsumer) ConsumeEvent(ev event.Event) (result event.ConsumptionResult, err error) {
+func (s *startEventConsumer) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	s.consumptionLock.Lock()
 	defer s.consumptionLock.Unlock()
 	defer s.tracer.Trace(EventInstantiationAttemptedTrace{Event: ev, Element: s.element})
@@ -64,7 +64,7 @@ func (s *startEventConsumer) ConsumeEvent(ev event.Event) (result event.Consumpt
 	if satisfied, chain := s.satisfier.Satisfy(ev); satisfied {
 		// If it's a new chain, add new event buffer
 		if chain > len(s.events)-1 {
-			s.events = append(s.events, []event.Event{ev})
+			s.events = append(s.events, []event.IEvent{ev})
 		}
 		var inst *instance.Instance
 		inst, err = s.process.Instantiate(
@@ -93,7 +93,7 @@ func (s *startEventConsumer) ConsumeEvent(ev event.Event) (result event.Consumpt
 		// If there was a match
 		// If it's a new chain, add new event buffer
 		if chain > len(s.events)-1 {
-			s.events = append(s.events, []event.Event{ev})
+			s.events = append(s.events, []event.IEvent{ev})
 		} else {
 			s.events[chain] = append(s.events[chain], ev)
 		}

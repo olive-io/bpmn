@@ -11,13 +11,13 @@ type runnerMessage interface {
 }
 
 type getMessage struct {
-	channel chan Item
+	channel chan IItem
 }
 
 func (g getMessage) implementsRunnerMessage() {}
 
 type putMessage struct {
-	item    Item
+	item    IItem
 	channel chan struct{}
 }
 
@@ -26,7 +26,7 @@ func (p putMessage) implementsRunnerMessage() {}
 type Container struct {
 	schema.ItemAwareInterface
 	runnerChannel chan runnerMessage
-	item          Item
+	item          IItem
 }
 
 func NewContainer(ctx context.Context, itemAware schema.ItemAwareInterface) *Container {
@@ -59,8 +59,8 @@ func (c *Container) run(ctx context.Context) {
 	}
 }
 
-func (c *Container) Get(ctx context.Context) <-chan Item {
-	ch := make(chan Item)
+func (c *Container) Get(ctx context.Context) <-chan IItem {
+	ch := make(chan IItem)
 	select {
 	case c.runnerChannel <- getMessage{channel: ch}:
 		return ch
@@ -69,7 +69,7 @@ func (c *Container) Get(ctx context.Context) <-chan Item {
 	}
 }
 
-func (c *Container) Put(ctx context.Context, item Item) <-chan struct{} {
+func (c *Container) Put(ctx context.Context, item IItem) <-chan struct{} {
 	ch := make(chan struct{})
 	select {
 	case c.runnerChannel <- putMessage{item: item, channel: ch}:

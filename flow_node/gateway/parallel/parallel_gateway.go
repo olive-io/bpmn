@@ -15,7 +15,7 @@ type message interface {
 }
 
 type nextActionMessage struct {
-	response chan flow_node.Action
+	response chan flow_node.IAction
 	flow     flow_interface.T
 }
 
@@ -26,7 +26,7 @@ type Node struct {
 	element               *schema.ParallelGateway
 	runnerChannel         chan message
 	reportedIncomingFlows int
-	awaitingActions       []chan flow_node.Action
+	awaitingActions       []chan flow_node.IAction
 	noOfIncomingFlows     int
 }
 
@@ -36,7 +36,7 @@ func New(ctx context.Context, wiring *flow_node.Wiring, parallelGateway *schema.
 		element:               parallelGateway,
 		runnerChannel:         make(chan message, len(wiring.Incoming)*2+1),
 		reportedIncomingFlows: 0,
-		awaitingActions:       make([]chan flow_node.Action, 0),
+		awaitingActions:       make([]chan flow_node.IAction, 0),
 		noOfIncomingFlows:     len(wiring.Incoming),
 	}
 	sender := node.Tracer.RegisterSender()
@@ -48,14 +48,14 @@ func (node *Node) flowWhenReady() {
 	if node.reportedIncomingFlows == node.noOfIncomingFlows {
 		node.reportedIncomingFlows = 0
 		awaitingActions := node.awaitingActions
-		node.awaitingActions = make([]chan flow_node.Action, 0)
+		node.awaitingActions = make([]chan flow_node.IAction, 0)
 		sequenceFlows := flow_node.AllSequenceFlows(&node.Outgoing)
 		gateway.DistributeFlows(awaitingActions, sequenceFlows)
 	}
 
 }
 
-func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
+func (node *Node) runner(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -76,8 +76,8 @@ func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
 	}
 }
 
-func (node *Node) NextAction(flow flow_interface.T) chan flow_node.Action {
-	response := make(chan flow_node.Action)
+func (node *Node) NextAction(flow flow_interface.T) chan flow_node.IAction {
+	response := make(chan flow_node.IAction)
 	node.runnerChannel <- nextActionMessage{response: response, flow: flow}
 	return response
 }

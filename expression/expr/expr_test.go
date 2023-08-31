@@ -11,7 +11,7 @@ import (
 )
 
 func TestExpr(t *testing.T) {
-	var engine expression.Engine = New(context.Background())
+	var engine expression.IEngine = New(context.Background())
 	compiled, err := engine.CompileExpression("a > 1")
 	assert.Nil(t, err)
 	result, err := engine.EvaluateExpression(compiled, map[string]interface{}{
@@ -21,14 +21,14 @@ func TestExpr(t *testing.T) {
 	assert.True(t, result.(bool))
 }
 
-type dataObjects map[string]data.ItemAware
+type dataObjects map[string]data.IItemAware
 
-func (d dataObjects) FindItemAwareById(id schema.IdRef) (itemAware data.ItemAware, found bool) {
+func (d dataObjects) FindItemAwareById(id schema.IdRef) (itemAware data.IItemAware, found bool) {
 	itemAware, found = d[id]
 	return
 }
 
-func (d dataObjects) FindItemAwareByName(name string) (itemAware data.ItemAware, found bool) {
+func (d dataObjects) FindItemAwareByName(name string) (itemAware data.IItemAware, found bool) {
 	itemAware, found = d[name]
 	return
 }
@@ -37,7 +37,7 @@ func TestExpr_getDataObject(t *testing.T) {
 	var engine = New(context.Background())
 	container := data.NewContainer(context.Background(), nil)
 	container.Put(context.Background(), 1)
-	var objs dataObjects = map[string]data.ItemAware{
+	var objs dataObjects = map[string]data.IItemAware{
 		"dataObject": container,
 	}
 	engine.SetItemAwareLocator(objs)

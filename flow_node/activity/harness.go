@@ -22,7 +22,7 @@ type message interface {
 
 type nextActionMessage struct {
 	flow     flow_interface.T
-	response chan chan flow_node.Action
+	response chan chan flow_node.IAction
 }
 
 func (m nextActionMessage) message() {}
@@ -34,11 +34,11 @@ type Harness struct {
 	activity           Activity
 	active             int32
 	cancellation       sync.Once
-	eventConsumers     []event.Consumer
+	eventConsumers     []event.IConsumer
 	eventConsumersLock sync.RWMutex
 }
 
-func (node *Harness) ConsumeEvent(ev event.Event) (result event.ConsumptionResult, err error) {
+func (node *Harness) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	node.eventConsumersLock.RLock()
 	defer node.eventConsumersLock.RUnlock()
 	if atomic.LoadInt32(&node.active) == 1 {
@@ -47,7 +47,7 @@ func (node *Harness) ConsumeEvent(ev event.Event) (result event.ConsumptionResul
 	return
 }
 
-func (node *Harness) RegisterEventConsumer(consumer event.Consumer) (err error) {
+func (node *Harness) RegisterEventConsumer(consumer event.IConsumer) (err error) {
 	node.eventConsumersLock.Lock()
 	defer node.eventConsumersLock.Unlock()
 	node.eventConsumers = append(node.eventConsumers, consumer)
@@ -63,9 +63,9 @@ type Constructor = func(*flow_node.Wiring) (node Activity, err error)
 func NewHarness(ctx context.Context,
 	wiring *flow_node.Wiring,
 	element *schema.FlowNode,
-	idGenerator id.Generator,
+	idGenerator id.IGenerator,
 	constructor Constructor,
-	itemAwareLocator data.ItemAwareLocator,
+	itemAwareLocator data.IItemAwareLocator,
 ) (node *Harness, err error) {
 	var activity Activity
 	activity, err = constructor(wiring)
@@ -111,7 +111,7 @@ func NewHarness(ctx context.Context,
 		} else {
 			var actionTransformer flow_node.ActionTransformer
 			if boundaryEvent.CancelActivity() {
-				actionTransformer = func(sequenceFlowId *schema.IdRef, action flow_node.Action) flow_node.Action {
+				actionTransformer = func(sequenceFlowId *schema.IdRef, action flow_node.IAction) flow_node.IAction {
 					node.cancellation.Do(func() {
 						<-node.activity.Cancel()
 					})
@@ -128,7 +128,7 @@ func NewHarness(ctx context.Context,
 	return
 }
 
-func (node *Harness) runner(ctx context.Context, sender tracing.SenderHandle) {
+func (node *Harness) runner(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -139,7 +139,7 @@ func (node *Harness) runner(ctx context.Context, sender tracing.SenderHandle) {
 				atomic.StoreInt32(&node.active, 1)
 				node.Tracer.Trace(ActiveBoundaryTrace{Start: true, Node: node.activity.Element()})
 				in := node.activity.NextAction(m.flow)
-				out := make(chan flow_node.Action)
+				out := make(chan flow_node.IAction)
 				go func(ctx context.Context) {
 					select {
 					case out <- <-in:
@@ -159,8 +159,8 @@ func (node *Harness) runner(ctx context.Context, sender tracing.SenderHandle) {
 	}
 }
 
-func (node *Harness) NextAction(flow flow_interface.T) chan flow_node.Action {
-	response := make(chan chan flow_node.Action)
+func (node *Harness) NextAction(flow flow_interface.T) chan flow_node.IAction {
+	response := make(chan chan flow_node.IAction)
 	node.runnerChannel <- nextActionMessage{flow: flow, response: response}
 	return <-response
 }

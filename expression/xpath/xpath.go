@@ -19,11 +19,11 @@ import (
 //
 // Implementation details and limitations as per https://github.com/antchfx/xpath
 type XPath struct {
-	itemAwareLocator data.ItemAwareLocator
+	itemAwareLocator data.IItemAwareLocator
 	ctx              context.Context
 }
 
-func (engine *XPath) SetItemAwareLocator(itemAwareLocator data.ItemAwareLocator) {
+func (engine *XPath) SetItemAwareLocator(itemAwareLocator data.IItemAwareLocator) {
 	engine.itemAwareLocator = itemAwareLocator
 }
 
@@ -36,7 +36,7 @@ func New(ctx context.Context) *XPath {
 	return &engine
 }
 
-func (engine *XPath) CompileExpression(source string) (result expression.CompiledExpression, err error) {
+func (engine *XPath) CompileExpression(source string) (result expression.ICompiledExpression, err error) {
 	compiled, err := grammar.Build(source)
 	if err == nil {
 		result = &compiled
@@ -44,9 +44,9 @@ func (engine *XPath) CompileExpression(source string) (result expression.Compile
 	return
 }
 
-func (engine *XPath) EvaluateExpression(e expression.CompiledExpression,
+func (engine *XPath) EvaluateExpression(e expression.ICompiledExpression,
 	datum interface{},
-) (result expression.Result, err error) {
+) (result expression.IResult, err error) {
 	if expr, ok := e.(*grammar.Grammar); ok {
 		// Here, in order to save some prototyping type,
 		// instead of implementing `parser.Parser` for `interface{}`,
@@ -98,7 +98,7 @@ func (engine *XPath) EvaluateExpression(e expression.CompiledExpression,
 	return
 }
 
-var asXMLType = reflect.TypeOf(new(data.AsXML)).Elem()
+var asXMLType = reflect.TypeOf(new(data.IAsXML)).Elem()
 
 func (engine *XPath) getDataObject() func(context exec.Context, args ...exec.Result) (exec.Result, error) {
 	return func(context exec.Context, args ...exec.Result) (exec.Result, error) {
@@ -138,7 +138,7 @@ func (engine *XPath) getDataObject() func(context exec.Context, args ...exec.Res
 				// on xsel's parser and datum.AsXML interface. This is not very efficient,
 				// but should do for now
 				if reflect.TypeOf(item).Implements(asXMLType) {
-					p := parser.ReadXml(bytes.NewReader(item.(data.AsXML).AsXML()))
+					p := parser.ReadXml(bytes.NewReader(item.(data.IAsXML).AsXML()))
 					cursor, err := store.CreateInMemory(p)
 					if err != nil {
 						return nil, err
@@ -156,7 +156,7 @@ func (engine *XPath) getDataObject() func(context exec.Context, args ...exec.Res
 }
 
 func init() {
-	expression.RegisterEngine("http://www.w3.org/1999/XPath", func(ctx context.Context) expression.Engine {
+	expression.RegisterEngine("http://www.w3.org/1999/XPath", func(ctx context.Context) expression.IEngine {
 		return New(ctx)
 	})
 }

@@ -10,23 +10,23 @@ import (
 // and obtain a determination whether all conditions were satisfied.
 type CatchEventSatisfier struct {
 	schema.CatchEventInterface
-	eventDefinitionInstances []event.DefinitionInstance
+	eventDefinitionInstances []event.IDefinitionInstance
 	len                      uint
 	chains                   []*bitset.BitSet
 }
 
-func (satisfier *CatchEventSatisfier) EventDefinitionInstances() *[]event.DefinitionInstance {
+func (satisfier *CatchEventSatisfier) EventDefinitionInstances() *[]event.IDefinitionInstance {
 	return &satisfier.eventDefinitionInstances
 }
 
-func NewCatchEventSatisfier(catchEventElement schema.CatchEventInterface, eventDefinitionInstanceBuilder event.DefinitionInstanceBuilder) *CatchEventSatisfier {
+func NewCatchEventSatisfier(catchEventElement schema.CatchEventInterface, eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder) *CatchEventSatisfier {
 	satisfier := &CatchEventSatisfier{
 		CatchEventInterface: catchEventElement,
 		chains:              make([]*bitset.BitSet, 0, 1),
 		len:                 uint(len(catchEventElement.EventDefinitions())),
 	}
 
-	satisfier.eventDefinitionInstances = make([]event.DefinitionInstance, len(catchEventElement.EventDefinitions()))
+	satisfier.eventDefinitionInstances = make([]event.IDefinitionInstance, len(catchEventElement.EventDefinitions()))
 	for k := range catchEventElement.EventDefinitions() {
 		satisfier.eventDefinitionInstances[k], _ = eventDefinitionInstanceBuilder.NewEventDefinitionInstance(catchEventElement.EventDefinitions()[k])
 	}
@@ -57,7 +57,7 @@ const EventDidNotMatch = -1
 // Please note that Satisfy is NOT goroutine-safe and if you need to use
 // it from multiple goroutines, wrap its usage with appropriate level of
 // synchronization.
-func (satisfier *CatchEventSatisfier) Satisfy(ev event.Event) (matched bool, chain int) {
+func (satisfier *CatchEventSatisfier) Satisfy(ev event.IEvent) (matched bool, chain int) {
 	chain = EventDidNotMatch
 	for i := range satisfier.eventDefinitionInstances {
 		if ev.MatchesEventInstance(satisfier.eventDefinitionInstances[i]) {

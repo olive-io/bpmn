@@ -16,13 +16,13 @@ type message interface {
 }
 
 type nextActionMessage struct {
-	response chan flow_node.Action
+	response chan flow_node.IAction
 }
 
 func (m nextActionMessage) message() {}
 
 type processEventMessage struct {
-	event event.Event
+	event event.IEvent
 }
 
 func (m processEventMessage) message() {}
@@ -32,7 +32,7 @@ type Node struct {
 	element         *schema.CatchEvent
 	runnerChannel   chan message
 	activated       bool
-	awaitingActions []chan flow_node.Action
+	awaitingActions []chan flow_node.IAction
 	satisfier       *logic.CatchEventSatisfier
 }
 
@@ -42,7 +42,7 @@ func New(ctx context.Context, wiring *flow_node.Wiring, catchEvent *schema.Catch
 		element:         catchEvent,
 		runnerChannel:   make(chan message, len(wiring.Incoming)*2+1),
 		activated:       false,
-		awaitingActions: make([]chan flow_node.Action, 0),
+		awaitingActions: make([]chan flow_node.IAction, 0),
 		satisfier:       logic.NewCatchEventSatisfier(catchEvent, wiring.EventDefinitionInstanceBuilder),
 	}
 	sender := node.Tracer.RegisterSender()
@@ -54,7 +54,7 @@ func New(ctx context.Context, wiring *flow_node.Wiring, catchEvent *schema.Catch
 	return
 }
 
-func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
+func (node *Node) runner(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -69,7 +69,7 @@ func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
 						for _, actionChan := range awaitingActions {
 							actionChan <- flow_node.FlowAction{SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing)}
 						}
-						node.awaitingActions = make([]chan flow_node.Action, 0)
+						node.awaitingActions = make([]chan flow_node.IAction, 0)
 						node.activated = false
 					}
 				}
@@ -88,14 +88,14 @@ func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
 	}
 }
 
-func (node *Node) ConsumeEvent(ev event.Event) (result event.ConsumptionResult, err error) {
+func (node *Node) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	node.runnerChannel <- processEventMessage{event: ev}
 	result = event.Consumed
 	return
 }
 
-func (node *Node) NextAction(flow_interface.T) chan flow_node.Action {
-	response := make(chan flow_node.Action)
+func (node *Node) NextAction(flow_interface.T) chan flow_node.IAction {
+	response := make(chan flow_node.IAction)
 	node.runnerChannel <- nextActionMessage{response: response}
 	return response
 }

@@ -6,12 +6,12 @@ import (
 	"github.com/olive-io/bpmn/schema"
 )
 
-// Item is an abstract interface for a piece of data
-type Item interface{}
+// IItem is an abstract interface for a piece of data
+type IItem interface{}
 
-// IteratorStopper stops Collection iterator and releases resources
+// IIteratorStopper stops Collection iterator and releases resources
 // associated with it
-type IteratorStopper interface {
+type IIteratorStopper interface {
 	// Stop does the actual stopping
 	Stop()
 }
@@ -32,8 +32,8 @@ func (c channelIteratorStopper) Stop() {
 	c.ch <- struct{}{}
 }
 
-type Collection interface {
-	Item
+type ICollection interface {
+	IItem
 	// ItemIterator returns a channel that iterates over collection's
 	// items and an IteratorStopper that must be used if iterator was
 	// not exhausted, otherwise there'll be a memory leak in a form
@@ -41,13 +41,13 @@ type Collection interface {
 	//
 	// The iterator will also clean itself up and terminate upon
 	// context termination.
-	ItemIterator(ctx context.Context) (chan Item, IteratorStopper)
+	ItemIterator(ctx context.Context) (chan IItem, IIteratorStopper)
 }
 
-type SliceIterator []Item
+type SliceIterator []IItem
 
-func (s *SliceIterator) ItemIterator(ctx context.Context) (items chan Item, stop IteratorStopper) {
-	items = make(chan Item)
+func (s *SliceIterator) ItemIterator(ctx context.Context) (items chan IItem, stop IIteratorStopper) {
+	items = make(chan IItem)
 	stopper := makeChannelIteratorStopper()
 	stop = stopper
 	go func() {
@@ -71,7 +71,7 @@ func (s *SliceIterator) ItemIterator(ctx context.Context) (items chan Item, stop
 // the same item if only one item is given and SliceIterator
 // if more than one item is given. SliceIterator implements
 // Collection and, therefore, also implements Item.
-func ItemOrCollection(items ...Item) (item Item) {
+func ItemOrCollection(items ...IItem) (item IItem) {
 	switch len(items) {
 	case 0:
 	case 1:
@@ -82,8 +82,8 @@ func ItemOrCollection(items ...Item) (item Item) {
 	return
 }
 
-// ItemAware provides basic interface of accessing data items
-type ItemAware interface {
+// IItemAware provides basic interface of accessing data items
+type IItemAware interface {
 	// Unavailable returns true if the data item is an unavailable state
 	Unavailable() bool
 	// Get returns a channel that will eventually return the data item
@@ -93,7 +93,7 @@ type ItemAware interface {
 	//
 	// If context is cancelled while sending in a request for data,
 	// a nil channel will be returned.
-	Get(ctx context.Context) <-chan Item
+	Get(ctx context.Context) <-chan IItem
 	// Put sends a request to update the item
 	//
 	// If item is in an unavailable state (see Unavailable),
@@ -102,13 +102,13 @@ type ItemAware interface {
 	//
 	// If context is cancelled while sending in a request for data,
 	// a nil channel will be returned.
-	Put(ctx context.Context, item Item) <-chan struct{}
+	Put(ctx context.Context, item IItem) <-chan struct{}
 }
 
-// ItemAwareLocator interface describes a way to find ItemAware
-type ItemAwareLocator interface {
+// IItemAwareLocator interface describes a way to find IItemAware
+type IItemAwareLocator interface {
 	// FindItemAwareById finds ItemAware by its schema.Id
-	FindItemAwareById(id schema.IdRef) (itemAware ItemAware, found bool)
+	FindItemAwareById(id schema.IdRef) (itemAware IItemAware, found bool)
 	// FindItemAwareByName finds ItemAware by its name (where applicable)
-	FindItemAwareByName(name string) (itemAware ItemAware, found bool)
+	FindItemAwareByName(name string) (itemAware IItemAware, found bool)
 }

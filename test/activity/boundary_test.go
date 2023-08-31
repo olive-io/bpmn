@@ -42,7 +42,7 @@ func TestNonInterruptingEvent(t *testing.T) {
 	}, event.NewSignalEvent("sig2"))
 }
 
-func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[string]bool), events ...event.Event) {
+func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[string]bool), events ...event.IEvent) {
 	processElement := (*testDoc.Processes())[0]
 	proc := process.New(&processElement, &testDoc)
 	ready := make(chan bool)
@@ -50,7 +50,7 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 	// explicit tracer
 	tracer := tracing.NewTracer(context.Background())
 	// this gives us some room when instance starts up
-	traces := tracer.SubscribeChannel(make(chan tracing.Trace, 32))
+	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 32))
 
 	if inst, err := proc.Instantiate(instance.WithTracer(tracer)); err == nil {
 		if node, found := testDoc.FindBy(schema.ExactId("task")); found {
@@ -58,7 +58,7 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 				ResolveElementToFlowNode(node.(schema.FlowNodeInterface)); found {
 				harness := taskNode.(*activity.Harness)
 				aTask := harness.Activity().(*task.Task)
-				aTask.SetBody(func(task *task.Task, ctx context.Context) flow_node.Action {
+				aTask.SetBody(func(task *task.Task, ctx context.Context) flow_node.IAction {
 					select {
 					case <-ready:
 						return flow_node.FlowAction{SequenceFlows: flow_node.AllSequenceFlows(&task.Wiring.Outgoing)}

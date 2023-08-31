@@ -6,15 +6,15 @@ import (
 )
 
 var enginesLock sync.RWMutex
-var enginesMap = make(map[string]func(ctx context.Context) Engine)
+var enginesMap = make(map[string]func(ctx context.Context) IEngine)
 
-func RegisterEngine(url string, engine func(ctx context.Context) Engine) {
+func RegisterEngine(url string, engine func(ctx context.Context) IEngine) {
 	enginesLock.Lock()
 	defer enginesLock.Unlock()
 	enginesMap[url] = engine
 }
 
-func GetEngine(ctx context.Context, url string) (engine Engine) {
+func GetEngine(ctx context.Context, url string) (engine IEngine) {
 	enginesLock.RLock()
 	defer enginesLock.RUnlock()
 	if engineConstructor, ok := enginesMap[url]; ok {

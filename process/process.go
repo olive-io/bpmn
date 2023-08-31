@@ -14,38 +14,38 @@ type Process struct {
 	Element                        *schema.Process
 	Definitions                    *schema.Definitions
 	instances                      []*instance.Instance
-	EventIngress                   event.Consumer
-	EventEgress                    event.Source
-	idGeneratorBuilder             id.GeneratorBuilder
-	eventDefinitionInstanceBuilder event.DefinitionInstanceBuilder
-	Tracer                         tracing.Tracer
-	subTracerMaker                 func() tracing.Tracer
+	EventIngress                   event.IConsumer
+	EventEgress                    event.ISource
+	idGeneratorBuilder             id.IGeneratorBuilder
+	eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder
+	Tracer                         tracing.ITracer
+	subTracerMaker                 func() tracing.ITracer
 }
 
 type Option func(context.Context, *Process) context.Context
 
-func WithIdGenerator(builder id.GeneratorBuilder) Option {
+func WithIdGenerator(builder id.IGeneratorBuilder) Option {
 	return func(ctx context.Context, process *Process) context.Context {
 		process.idGeneratorBuilder = builder
 		return ctx
 	}
 }
 
-func WithEventIngress(consumer event.Consumer) Option {
+func WithEventIngress(consumer event.IConsumer) Option {
 	return func(ctx context.Context, process *Process) context.Context {
 		process.EventIngress = consumer
 		return ctx
 	}
 }
 
-func WithEventEgress(source event.Source) Option {
+func WithEventEgress(source event.ISource) Option {
 	return func(ctx context.Context, process *Process) context.Context {
 		process.EventEgress = source
 		return ctx
 	}
 }
 
-func WithEventDefinitionInstanceBuilder(builder event.DefinitionInstanceBuilder) Option {
+func WithEventDefinitionInstanceBuilder(builder event.IDefinitionInstanceBuilder) Option {
 	return func(ctx context.Context, process *Process) context.Context {
 		process.eventDefinitionInstanceBuilder = builder
 		return ctx
@@ -53,7 +53,7 @@ func WithEventDefinitionInstanceBuilder(builder event.DefinitionInstanceBuilder)
 }
 
 // WithTracer overrides process's tracer
-func WithTracer(tracer tracing.Tracer) Option {
+func WithTracer(tracer tracing.ITracer) Option {
 	return func(ctx context.Context, process *Process) context.Context {
 		process.Tracer = tracer
 		return ctx
@@ -99,10 +99,10 @@ func Make(element *schema.Process, definitions *schema.Definitions, options ...O
 		process.Tracer = tracing.NewTracer(ctx)
 	}
 
-	process.subTracerMaker = func() tracing.Tracer {
+	process.subTracerMaker = func() tracing.ITracer {
 		subTracer := tracing.NewTracer(ctx)
-		tracing.NewRelay(ctx, subTracer, process.Tracer, func(trace tracing.Trace) []tracing.Trace {
-			return []tracing.Trace{Trace{
+		tracing.NewRelay(ctx, subTracer, process.Tracer, func(trace tracing.ITrace) []tracing.ITrace {
+			return []tracing.ITrace{Trace{
 				Process: process.Element,
 				Trace:   trace,
 			}}

@@ -16,17 +16,17 @@ import (
 // https://github.com/antonmedv/expr
 type Expr struct {
 	env              map[string]interface{}
-	itemAwareLocator data.ItemAwareLocator
+	itemAwareLocator data.IItemAwareLocator
 }
 
-func (engine *Expr) SetItemAwareLocator(itemAwareLocator data.ItemAwareLocator) {
+func (engine *Expr) SetItemAwareLocator(itemAwareLocator data.IItemAwareLocator) {
 	engine.itemAwareLocator = itemAwareLocator
 }
 
 func New(ctx context.Context) *Expr {
 	engine := &Expr{}
 	engine.env = map[string]interface{}{
-		"getDataObject": func(args ...string) data.Item {
+		"getDataObject": func(args ...string) data.IItem {
 			var name string
 			if len(args) == 1 {
 				name = args[0]
@@ -50,14 +50,14 @@ func New(ctx context.Context) *Expr {
 	return engine
 }
 
-func (engine *Expr) CompileExpression(source string) (result expression.CompiledExpression, err error) {
+func (engine *Expr) CompileExpression(source string) (result expression.ICompiledExpression, err error) {
 	result, err = expr.Compile(source, expr.Env(engine.env), expr.AllowUndefinedVariables())
 	return
 }
 
-func (engine *Expr) EvaluateExpression(e expression.CompiledExpression,
+func (engine *Expr) EvaluateExpression(e expression.ICompiledExpression,
 	data interface{},
-) (result expression.Result, err error) {
+) (result expression.IResult, err error) {
 	actualData := data
 	if data == nil {
 		actualData = engine.env
@@ -81,7 +81,7 @@ func (engine *Expr) EvaluateExpression(e expression.CompiledExpression,
 }
 
 func init() {
-	expression.RegisterEngine("https://github.com/antonmedv/expr", func(ctx context.Context) expression.Engine {
+	expression.RegisterEngine("https://github.com/antonmedv/expr", func(ctx context.Context) expression.IEngine {
 		return New(ctx)
 	})
 }

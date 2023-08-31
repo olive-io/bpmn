@@ -20,15 +20,15 @@ import (
 type Flow struct {
 	id                id.Id
 	definitions       *schema.Definitions
-	current           flow_node.FlowNodeInterface
-	tracer            tracing.Tracer
+	current           flow_node.IFlowNode
+	tracer            tracing.ITracer
 	flowNodeMapping   *flow_node.FlowNodeMapping
 	flowWaitGroup     *sync.WaitGroup
-	idGenerator       id.Generator
+	idGenerator       id.IGenerator
 	actionTransformer flow_node.ActionTransformer
 	terminate         flow_node.Terminate
 	sequenceFlowId    *string
-	itemAwareLocator  data.ItemAwareLocator
+	itemAwareLocator  data.IItemAwareLocator
 }
 
 func (flow *Flow) SequenceFlow() *sequence_flow.SequenceFlow {
@@ -57,10 +57,10 @@ func (flow *Flow) SetTerminate(terminate flow_node.Terminate) {
 //
 // The flow does nothing until it is explicitly started.
 func New(definitions *schema.Definitions,
-	current flow_node.FlowNodeInterface, tracer tracing.Tracer,
+	current flow_node.IFlowNode, tracer tracing.ITracer,
 	flowNodeMapping *flow_node.FlowNodeMapping, flowWaitGroup *sync.WaitGroup,
-	idGenerator id.Generator, actionTransformer flow_node.ActionTransformer,
-	itemAwareLocator data.ItemAwareLocator,
+	idGenerator id.IGenerator, actionTransformer flow_node.ActionTransformer,
+	itemAwareLocator data.IItemAwareLocator,
 ) *Flow {
 	return &Flow{
 		id:                idGenerator.New(),
@@ -75,7 +75,7 @@ func New(definitions *schema.Definitions,
 	}
 }
 
-func (flow *Flow) testSequenceFlow(ctx context.Context, sequenceFlow *sequence_flow.SequenceFlow, unconditional bool) (result bool, err error) {
+func (flow *Flow) executeSequenceFlow(ctx context.Context, sequenceFlow *sequence_flow.SequenceFlow, unconditional bool) (result bool, err error) {
 	if unconditional {
 		result = true
 		return
@@ -94,14 +94,14 @@ func (flow *Flow) testSequenceFlow(ctx context.Context, sequenceFlow *sequence_f
 			engine := expression.GetEngine(ctx, lang)
 			engine.SetItemAwareLocator(flow.itemAwareLocator)
 			source := strings.Trim(*e.TextPayload(), " \n")
-			var compiled expression.CompiledExpression
+			var compiled expression.ICompiledExpression
 			compiled, err = engine.CompileExpression(source)
 			if err != nil {
 				result = false
 				flow.tracer.Trace(tracing.ErrorTrace{Error: err})
 				return
 			}
-			var abstractResult expression.Result
+			var abstractResult expression.IResult
 			abstractResult, err = engine.EvaluateExpression(compiled, nil)
 			if err != nil {
 				result = false
@@ -133,7 +133,7 @@ func (flow *Flow) testSequenceFlow(ctx context.Context, sequenceFlow *sequence_f
 
 func (flow *Flow) handleSequenceFlow(ctx context.Context, sequenceFlow *sequence_flow.SequenceFlow, unconditional bool,
 	actionTransformer flow_node.ActionTransformer, terminate flow_node.Terminate) (flowed bool) {
-	ok, err := flow.testSequenceFlow(ctx, sequenceFlow, unconditional)
+	ok, err := flow.executeSequenceFlow(ctx, sequenceFlow, unconditional)
 	if err != nil {
 		flow.tracer.Trace(tracing.ErrorTrace{Error: err})
 		return
@@ -143,28 +143,30 @@ func (flow *Flow) handleSequenceFlow(ctx context.Context, sequenceFlow *sequence
 	}
 
 	target, err := sequenceFlow.Target()
-	if err == nil {
-		if flowNode, found := flow.flowNodeMapping.ResolveElementToFlowNode(target); found {
-			if idPtr, present := sequenceFlow.Id(); present {
-				flow.sequenceFlowId = idPtr
-			} else {
-				flow.tracer.Trace(tracing.ErrorTrace{
-					Error: errors.NotFoundError{Expected: fmt.Sprintf("id for sequence flow %#v", sequenceFlow)},
-				})
-			}
-			flow.current = flowNode
-			flow.terminate = terminate
-			flow.tracer.Trace(VisitTrace{Node: flow.current.Element()})
-			flow.actionTransformer = actionTransformer
-			flowed = true
+	if err != nil {
+		flow.tracer.Trace(tracing.ErrorTrace{Error: err})
+		return
+	}
+
+	if flowNode, found := flow.flowNodeMapping.ResolveElementToFlowNode(target); found {
+		if idPtr, present := sequenceFlow.Id(); present {
+			flow.sequenceFlowId = idPtr
 		} else {
 			flow.tracer.Trace(tracing.ErrorTrace{
-				Error: errors.NotFoundError{Expected: fmt.Sprintf("flow node for element %#v", target)},
+				Error: errors.NotFoundError{Expected: fmt.Sprintf("id for sequence flow %#v", sequenceFlow)},
 			})
 		}
-	} else {
-		flow.tracer.Trace(tracing.ErrorTrace{Error: err})
+		flow.current = flowNode
+		flow.terminate = terminate
+		flow.tracer.Trace(VisitTrace{Node: flow.current.Element()})
+		flow.actionTransformer = actionTransformer
+		flowed = true
+		return
 	}
+
+	flow.tracer.Trace(tracing.ErrorTrace{
+		Error: errors.NotFoundError{Expected: fmt.Sprintf("flow node for element %#v", target)},
+	})
 	return
 }
 
@@ -182,7 +184,7 @@ func (flow *Flow) handleSequenceFlow(ctx context.Context, sequenceFlow *sequence
 func (flow *Flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow *sequence_flow.SequenceFlow,
 	unconditional bool, actionTransformer flow_node.ActionTransformer,
 	terminate flow_node.Terminate) (flowId id.Id, f func(), flowed bool) {
-	ok, err := flow.testSequenceFlow(ctx, sequenceFlow, unconditional)
+	ok, err := flow.executeSequenceFlow(ctx, sequenceFlow, unconditional)
 	if err != nil {
 		flow.tracer.Trace(tracing.ErrorTrace{Error: err})
 		return
@@ -223,9 +225,8 @@ func (flow *Flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow
 func (flow *Flow) termination() chan bool {
 	if flow.terminate == nil {
 		return nil
-	} else {
-		return flow.terminate(flow.sequenceFlowId)
 	}
+	return flow.terminate(flow.sequenceFlowId)
 }
 
 // Start starts the flow
@@ -263,7 +264,7 @@ func (flow *Flow) Start(ctx context.Context) {
 				case flow_node.ProbeAction:
 					results := make([]int, 0)
 					for i, seqFlow := range a.SequenceFlows {
-						if result, err := flow.testSequenceFlow(ctx, seqFlow, false); err == nil {
+						if result, err := flow.executeSequenceFlow(ctx, seqFlow, false); err == nil {
 							if result {
 								results = append(results, i)
 							}

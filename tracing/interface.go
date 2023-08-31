@@ -1,47 +1,47 @@
 package tracing
 
-// Trace is an interface for actual data traces
-type Trace interface {
+// ITrace is an interface for actual data traces
+type ITrace interface {
 	TraceInterface()
 }
 
-// SenderHandle is an interface for registered senders
-type SenderHandle interface {
+// ISenderHandle is an interface for registered senders
+type ISenderHandle interface {
 	// Done indicates that the sender has terminated
 	Done()
 }
 
-type Tracer interface {
+type ITracer interface {
 	// Subscribe creates a new unbuffered channel and subscribes it to
 	// traces from the Tracer
 	//
 	// Note that this channel should be continuously read from until unsubscribed
 	// from, otherwise, the Tracer will block.
-	Subscribe() chan Trace
+	Subscribe() chan ITrace
 
 	// SubscribeChannel subscribe a channel to traces from the Tracer
 	//
 	// Note that this channel should be continuously read from (modulo buffering),
 	// otherwise, the Tracer will block.
-	SubscribeChannel(channel chan Trace) chan Trace
+	SubscribeChannel(channel chan ITrace) chan ITrace
 
 	// Unsubscribe removes channel from subscription list
-	Unsubscribe(channel chan Trace)
+	Unsubscribe(channel chan ITrace)
 
 	// Trace sends in a trace to a tracer
-	Trace(trace Trace)
+	Trace(trace ITrace)
 
 	// RegisterSender register a sender for terminate purposes
 	//
 	// Once Sender is being terminated, before closing subscription channels,
 	// it'll wait until all senders call SenderHandle.Done
-	RegisterSender() SenderHandle
+	RegisterSender() ISenderHandle
 
 	// Done returns a channel that is closed when the tracer is done and terminated
 	Done() chan struct{}
 }
 
-// WrappedTrace is a trace that wraps another trace.
+// IWrappedTrace is a trace that wraps another trace.
 //
 // The purpose of it is to allow components to produce traces that will
 // be wrapped into additional context, without being aware of it.
@@ -51,17 +51,17 @@ type Tracer interface {
 //
 // Consumers looking for individual traces should use Unwrap to retrieve
 // the original trace (as opposed to the wrapped one)
-type WrappedTrace interface {
-	Trace
+type IWrappedTrace interface {
+	ITrace
 	// Unwrap returns a wrapped trace
-	Unwrap() Trace
+	Unwrap() ITrace
 }
 
 // Unwrap will recursively unwrap a trace if wrapped,
 // or return the trace as is if it isn't wrapped.
-func Unwrap(trace Trace) Trace {
+func Unwrap(trace ITrace) ITrace {
 	for {
-		if unwrapped, ok := trace.(WrappedTrace); ok {
+		if unwrapped, ok := trace.(IWrappedTrace); ok {
 			trace = unwrapped.Unwrap()
 		} else {
 			return trace

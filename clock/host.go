@@ -42,7 +42,7 @@ func (h *host) Changes() <-chan time.Time {
 
 // Host is a clock source that uses time package as a source
 // of time.
-func Host(ctx context.Context) (c Clock, err error) {
+func Host(ctx context.Context) (c IClock, err error) {
 	changes := make(chan time.Time)
 	c = &host{changes: changes}
 	err = changeMonitor(ctx, changes)

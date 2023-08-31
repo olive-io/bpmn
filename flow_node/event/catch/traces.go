@@ -15,7 +15,7 @@ func (t ActiveListeningTrace) TraceInterface() {}
 // has been in fact observed by the node
 type EventObservedTrace struct {
 	Node  *schema.CatchEvent
-	Event event.Event
+	Event event.IEvent
 }
 
 func (t EventObservedTrace) TraceInterface() {}

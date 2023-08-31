@@ -30,7 +30,7 @@ type message interface {
 }
 
 type nextActionMessage struct {
-	response chan flow_node.Action
+	response chan flow_node.IAction
 	flow     flow_interface.T
 }
 
@@ -49,7 +49,7 @@ type Node struct {
 	runnerChannel           chan message
 	defaultSequenceFlow     *sequence_flow.SequenceFlow
 	nonDefaultSequenceFlows []*sequence_flow.SequenceFlow
-	probing                 map[id.Id]*chan flow_node.Action
+	probing                 map[id.Id]*chan flow_node.IAction
 }
 
 func New(ctx context.Context, wiring *flow_node.Wiring, exclusiveGateway *schema.ExclusiveGateway) (node *Node, err error) {
@@ -86,14 +86,14 @@ func New(ctx context.Context, wiring *flow_node.Wiring, exclusiveGateway *schema
 		runnerChannel:           make(chan message, len(wiring.Incoming)*2+1),
 		nonDefaultSequenceFlows: nonDefaultSequenceFlows,
 		defaultSequenceFlow:     defaultSequenceFlow,
-		probing:                 make(map[id.Id]*chan flow_node.Action),
+		probing:                 make(map[id.Id]*chan flow_node.IAction),
 	}
 	sender := node.Tracer.RegisterSender()
 	go node.runner(ctx, sender)
 	return
 }
 
-func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
+func (node *Node) runner(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -179,8 +179,8 @@ func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
 	}
 }
 
-func (node *Node) NextAction(flow flow_interface.T) chan flow_node.Action {
-	response := make(chan flow_node.Action)
+func (node *Node) NextAction(flow flow_interface.T) chan flow_node.IAction {
+	response := make(chan flow_node.IAction)
 	node.runnerChannel <- nextActionMessage{response: response, flow: flow}
 	return response
 }

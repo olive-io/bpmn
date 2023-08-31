@@ -15,7 +15,7 @@ type message interface {
 }
 
 type nextActionMessage struct {
-	response chan flow_node.Action
+	response chan flow_node.IAction
 }
 
 func (m nextActionMessage) message() {}
@@ -31,7 +31,7 @@ type Task struct {
 	element       *schema.Task
 	runnerChannel chan message
 	bodyLock      sync.RWMutex
-	body          func(*Task, context.Context) flow_node.Action
+	body          func(*Task, context.Context) flow_node.IAction
 	cancel        context.CancelFunc
 }
 
@@ -39,7 +39,7 @@ type Task struct {
 //
 // Since Task implements Abstract Task, it does nothing by default.
 // This allows to add an implementation. Primarily used for testing.
-func (node *Task) SetBody(body func(*Task, context.Context) flow_node.Action) {
+func (node *Task) SetBody(body func(*Task, context.Context) flow_node.IAction) {
 	node.bodyLock.Lock()
 	defer node.bodyLock.Unlock()
 	node.body = body
@@ -47,7 +47,8 @@ func (node *Task) SetBody(body func(*Task, context.Context) flow_node.Action) {
 
 func NewTask(ctx context.Context, startEvent *schema.Task) activity.Constructor {
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
-		ctx, cancel := context.WithCancel(ctx)
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithCancel(ctx)
 		taskNode := &Task{
 			Wiring:        wiring,
 			element:       startEvent,
@@ -70,7 +71,7 @@ func (node *Task) runner(ctx context.Context) {
 				m.response <- true
 			case nextActionMessage:
 				go func() {
-					var action flow_node.Action
+					var action flow_node.IAction
 					action = flow_node.FlowAction{SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing)}
 					if node.body != nil {
 						node.bodyLock.RLock()
@@ -87,8 +88,8 @@ func (node *Task) runner(ctx context.Context) {
 	}
 }
 
-func (node *Task) NextAction(flow_interface.T) chan flow_node.Action {
-	response := make(chan flow_node.Action)
+func (node *Task) NextAction(flow_interface.T) chan flow_node.IAction {
+	response := make(chan flow_node.IAction)
 	node.runnerChannel <- nextActionMessage{response: response}
 	return response
 }

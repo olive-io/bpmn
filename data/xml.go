@@ -1,6 +1,6 @@
 package data
 
-type AsXML interface {
+type IAsXML interface {
 	AsXML() []byte
 }
 

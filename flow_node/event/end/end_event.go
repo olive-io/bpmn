@@ -15,7 +15,7 @@ type message interface {
 }
 
 type nextActionMessage struct {
-	response chan flow_node.Action
+	response chan flow_node.IAction
 }
 
 func (m nextActionMessage) message() {}
@@ -43,7 +43,7 @@ func New(ctx context.Context, wiring *flow_node.Wiring, endEvent *schema.EndEven
 	return
 }
 
-func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
+func (node *Node) runner(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -77,8 +77,8 @@ func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
 	}
 }
 
-func (node *Node) NextAction(flow_interface.T) chan flow_node.Action {
-	response := make(chan flow_node.Action)
+func (node *Node) NextAction(flow_interface.T) chan flow_node.IAction {
+	response := make(chan flow_node.IAction)
 	node.runnerChannel <- nextActionMessage{response: response}
 	return response
 }

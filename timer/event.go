@@ -13,10 +13,10 @@ type eventDefinitionInstanceBuilder struct {
 	// context here keeps context from the creation of the instance builder
 	// It is not a final decision, but it currently seems to make more sense
 	// to "attach" it to this context instead of the context that can be passed
-	// through event.DefinitionInstance.NewEventDefinitionInstance. Time will tell.
+	// through event.IDefinitionInstance.NewEventDefinitionInstance. Time will tell.
 	context      context.Context
-	eventIngress event.Consumer
-	tracer       tracing.Tracer
+	eventIngress event.IConsumer
+	tracer       tracing.ITracer
 }
 
 type eventDefinitionInstance struct {
@@ -27,9 +27,9 @@ func (e *eventDefinitionInstance) EventDefinition() schema.EventDefinitionInterf
 	return &e.definition
 }
 
-func (e *eventDefinitionInstanceBuilder) NewEventDefinitionInstance(def schema.EventDefinitionInterface) (definitionInstance event.DefinitionInstance, err error) {
+func (e *eventDefinitionInstanceBuilder) NewEventDefinitionInstance(def schema.EventDefinitionInterface) (definitionInstance event.IDefinitionInstance, err error) {
 	if timerEventDefinition, ok := def.(*schema.TimerEventDefinition); ok {
-		var c clock.Clock
+		var c clock.IClock
 		c, err = clock.FromContext(e.context)
 		if err != nil {
 			return
@@ -62,9 +62,9 @@ func (e *eventDefinitionInstanceBuilder) NewEventDefinitionInstance(def schema.E
 
 func EventDefinitionInstanceBuilder(
 	ctx context.Context,
-	eventIngress event.Consumer,
-	tracer tracing.Tracer,
-) event.DefinitionInstanceBuilder {
+	eventIngress event.IConsumer,
+	tracer tracing.ITracer,
+) event.IDefinitionInstanceBuilder {
 	return &eventDefinitionInstanceBuilder{
 		context:      ctx,
 		eventIngress: eventIngress,

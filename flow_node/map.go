@@ -8,13 +8,13 @@ import (
 )
 
 type FlowNodeMapping struct {
-	mapping map[string]FlowNodeInterface
+	mapping map[string]IFlowNode
 	lock    sync.RWMutex
 }
 
 func NewLockedFlowNodeMapping() *FlowNodeMapping {
 	mapping := &FlowNodeMapping{
-		mapping: make(map[string]FlowNodeInterface),
+		mapping: make(map[string]IFlowNode),
 		lock:    sync.RWMutex{},
 	}
 	mapping.lock.Lock()
@@ -22,7 +22,7 @@ func NewLockedFlowNodeMapping() *FlowNodeMapping {
 }
 
 func (mapping *FlowNodeMapping) RegisterElementToFlowNode(element schema.FlowNodeInterface,
-	flowNode FlowNodeInterface) (err error) {
+	flowNode IFlowNode) (err error) {
 	if id, present := element.Id(); present {
 		mapping.mapping[*id] = flowNode
 	} else {
@@ -40,7 +40,7 @@ func (mapping *FlowNodeMapping) Finalize() {
 
 func (mapping *FlowNodeMapping) ResolveElementToFlowNode(
 	element schema.FlowNodeInterface,
-) (flowNode FlowNodeInterface, found bool) {
+) (flowNode IFlowNode, found bool) {
 	mapping.lock.RLock()
 	if id, present := element.Id(); present {
 		flowNode, found = mapping.mapping[*id]

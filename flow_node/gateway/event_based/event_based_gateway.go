@@ -17,7 +17,7 @@ type message interface {
 }
 
 type nextActionMessage struct {
-	response chan flow_node.Action
+	response chan flow_node.IAction
 	flow     flow_interface.T
 }
 
@@ -42,7 +42,7 @@ func New(ctx context.Context, wiring *flow_node.Wiring, eventBasedGateway *schem
 	return
 }
 
-func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
+func (node *Node) runner(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -68,7 +68,7 @@ func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
 						return terminationChannels[*sequenceFlowId]
 					},
 					SequenceFlows: sequenceFlows,
-					ActionTransformer: func(sequenceFlowId *schema.IdRef, action flow_node.Action) flow_node.Action {
+					ActionTransformer: func(sequenceFlowId *schema.IdRef, action flow_node.IAction) flow_node.IAction {
 						// only first one is to flow
 						if atomic.CompareAndSwapInt32(&first, 0, 1) {
 							node.Tracer.Trace(DeterminationMadeTrace{Element: node.element})
@@ -96,8 +96,8 @@ func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
 	}
 }
 
-func (node *Node) NextAction(flow flow_interface.T) chan flow_node.Action {
-	response := make(chan flow_node.Action)
+func (node *Node) NextAction(flow flow_interface.T) chan flow_node.IAction {
+	response := make(chan flow_node.IAction)
 	node.runnerChannel <- nextActionMessage{response: response, flow: flow}
 	return response
 }

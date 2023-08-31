@@ -16,22 +16,22 @@ type Model struct {
 	Element                        *schema.Definitions
 	processes                      []process.Process
 	eventConsumersLock             sync.RWMutex
-	eventConsumers                 []event.Consumer
-	idGeneratorBuilder             id.GeneratorBuilder
-	eventDefinitionInstanceBuilder event.DefinitionInstanceBuilder
-	tracer                         tracing.Tracer
+	eventConsumers                 []event.IConsumer
+	idGeneratorBuilder             id.IGeneratorBuilder
+	eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder
+	tracer                         tracing.ITracer
 }
 
 type Option func(context.Context, *Model) context.Context
 
-func WithIdGenerator(builder id.GeneratorBuilder) Option {
+func WithIdGenerator(builder id.IGeneratorBuilder) Option {
 	return func(ctx context.Context, model *Model) context.Context {
 		model.idGeneratorBuilder = builder
 		return ctx
 	}
 }
 
-func WithEventDefinitionInstanceBuilder(builder event.DefinitionInstanceBuilder) Option {
+func WithEventDefinitionInstanceBuilder(builder event.IDefinitionInstanceBuilder) Option {
 	return func(ctx context.Context, model *Model) context.Context {
 		model.eventDefinitionInstanceBuilder = builder
 		return ctx
@@ -47,7 +47,7 @@ func WithContext(newCtx context.Context) Option {
 }
 
 // WithTracer overrides model's tracer
-func WithTracer(tracer tracing.Tracer) Option {
+func WithTracer(tracer tracing.ITracer) Option {
 	return func(ctx context.Context, model *Model) context.Context {
 		model.tracer = tracer
 		return ctx
@@ -130,7 +130,7 @@ func (model *Model) FindProcessBy(f func(*process.Process) bool) (result *proces
 	return
 }
 
-func (model *Model) ConsumeEvent(ev event.Event) (result event.ConsumptionResult, err error) {
+func (model *Model) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	model.eventConsumersLock.RLock()
 	// We're copying the list of consumers here to ensure that
 	// new consumers can subscribe during event forwarding
@@ -140,14 +140,14 @@ func (model *Model) ConsumeEvent(ev event.Event) (result event.ConsumptionResult
 	return
 }
 
-func (model *Model) RegisterEventConsumer(ev event.Consumer) (err error) {
+func (model *Model) RegisterEventConsumer(ev event.IConsumer) (err error) {
 	model.eventConsumersLock.Lock()
 	defer model.eventConsumersLock.Unlock()
 	model.eventConsumers = append(model.eventConsumers, ev)
 	return
 }
 
-func (model *Model) NewEventDefinitionInstance(def schema.EventDefinitionInterface) (event.DefinitionInstance, error) {
+func (model *Model) NewEventDefinitionInstance(def schema.EventDefinitionInterface) (event.IDefinitionInstance, error) {
 	if model.eventDefinitionInstanceBuilder != nil {
 		return model.eventDefinitionInstanceBuilder.NewEventDefinitionInstance(def)
 	} else {

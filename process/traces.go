@@ -8,10 +8,10 @@ import (
 // Trace wraps any trace within a given process
 type Trace struct {
 	Process *schema.Process
-	Trace   tracing.Trace
+	Trace   tracing.ITrace
 }
 
-func (t Trace) Unwrap() tracing.Trace {
+func (t Trace) Unwrap() tracing.ITrace {
 	return t.Trace
 }
 

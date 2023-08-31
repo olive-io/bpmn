@@ -5,7 +5,7 @@ import (
 	"github.com/olive-io/bpmn/sequence_flow"
 )
 
-func DistributeFlows(awaitingActions []chan flow_node.Action, sequenceFlows []*sequence_flow.SequenceFlow) {
+func DistributeFlows(awaitingActions []chan flow_node.IAction, sequenceFlows []*sequence_flow.SequenceFlow) {
 	indices := make([]int, len(sequenceFlows))
 	for i := range indices {
 		indices[i] = i

@@ -10,7 +10,7 @@ import (
 	"github.com/qri-io/iso8601"
 )
 
-func New(ctx context.Context, clock clock.Clock, definition schema.TimerEventDefinition) (ch chan schema.TimerEventDefinition, err error) {
+func New(ctx context.Context, clock clock.IClock, definition schema.TimerEventDefinition) (ch chan schema.TimerEventDefinition, err error) {
 	timeDate, timeDatePresent := definition.TimeDate()
 	timeCycle, timeCyclePresent := definition.TimeCycle()
 	timeDuration, timeDurationPresent := definition.TimeDuration()
@@ -63,7 +63,7 @@ func New(ctx context.Context, clock clock.Clock, definition schema.TimerEventDef
 	return
 }
 
-func recurringTimer(ctx context.Context, clock clock.Clock, interval iso8601.RepeatingInterval, f func(), final func()) {
+func recurringTimer(ctx context.Context, clock clock.IClock, interval iso8601.RepeatingInterval, f func(), final func()) {
 	if interval.Interval.Start == nil {
 		panic("shouldn't happen, has to be always set, explicitly or by timer.New")
 	}
@@ -115,7 +115,7 @@ func recurringTimer(ctx context.Context, clock clock.Clock, interval iso8601.Rep
 	}
 }
 
-func dateTimeTimer(ctx context.Context, clock clock.Clock, t time.Time, f func()) {
+func dateTimeTimer(ctx context.Context, clock clock.IClock, t time.Time, f func()) {
 	for {
 		timer := clock.Until(t)
 		select {

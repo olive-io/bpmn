@@ -21,13 +21,13 @@ type Wiring struct {
 	Definitions                    *schema.Definitions
 	Incoming                       []sequence_flow.SequenceFlow
 	Outgoing                       []sequence_flow.SequenceFlow
-	EventIngress                   event.Consumer
-	EventEgress                    event.Source
-	Tracer                         tracing.Tracer
+	EventIngress                   event.IConsumer
+	EventEgress                    event.ISource
+	Tracer                         tracing.ITracer
 	Process                        *schema.Process
 	FlowNodeMapping                *FlowNodeMapping
 	FlowWaitGroup                  *sync.WaitGroup
-	EventDefinitionInstanceBuilder event.DefinitionInstanceBuilder
+	EventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder
 }
 
 func sequenceFlows(process *schema.Process,
@@ -55,12 +55,12 @@ func NewWiring(
 	process *schema.Process,
 	definitions *schema.Definitions,
 	flowNode *schema.FlowNode,
-	eventIngress event.Consumer,
-	eventEgress event.Source,
-	tracer tracing.Tracer,
+	eventIngress event.IConsumer,
+	eventEgress event.ISource,
+	tracer tracing.ITracer,
 	flowNodeMapping *FlowNodeMapping,
 	flowWaitGroup *sync.WaitGroup,
-	eventDefinitionInstanceBuilder event.DefinitionInstanceBuilder,
+	eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder,
 ) (node *Wiring, err error) {
 	incoming, err := sequenceFlows(process, definitions, flowNode.Incomings())
 	if err != nil {

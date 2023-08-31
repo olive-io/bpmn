@@ -31,7 +31,7 @@ func TestEventBasedGateway(t *testing.T) {
 	}, event.NewMessageEvent("Msg1", nil))
 }
 
-func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...event.Event) {
+func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...event.IEvent) {
 	processElement := (*testDoc.Processes())[0]
 	proc := process.New(&processElement, &testDoc)
 	if instance, err := proc.Instantiate(); err == nil {

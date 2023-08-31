@@ -1,11 +1,11 @@
 package event
 
-type Source interface {
-	RegisterEventConsumer(Consumer) error
+type ISource interface {
+	RegisterEventConsumer(IConsumer) error
 }
 
 type VoidSource struct{}
 
-func (t VoidSource) RegisterEventConsumer(consumer Consumer) (err error) {
+func (t VoidSource) RegisterEventConsumer(consumer IConsumer) (err error) {
 	return
 }

@@ -38,7 +38,7 @@ func TestCancellation(t *testing.T) {
 		process := New(proc.(*schema.Process), &defaultDefinitions, WithContext(ctx))
 
 		tracer := tracing.NewTracer(ctx)
-		traces := tracer.SubscribeChannel(make(chan tracing.Trace, 128))
+		traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))
 
 		inst, err := process.Instantiate(instance.WithContext(ctx), instance.WithTracer(tracer))
 		assert.Nil(t, err)

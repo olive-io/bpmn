@@ -6,33 +6,33 @@ import (
 )
 
 type subscription struct {
-	channel chan Trace
+	channel chan ITrace
 	ok      chan struct{}
 }
 
 type unSubscription struct {
-	channel chan Trace
+	channel chan ITrace
 	ok      chan struct{}
 }
 
 type tracer struct {
-	traces         chan Trace
+	traces         chan ITrace
 	subscription   chan subscription
 	unSubscription chan unSubscription
 	terminate      chan struct{}
 	done           chan struct{}
-	subscribers    []chan Trace
+	subscribers    []chan ITrace
 	senders        sync.WaitGroup
 }
 
-func NewTracer(ctx context.Context) Tracer {
+func NewTracer(ctx context.Context) ITracer {
 	t := tracer{
-		traces:         make(chan Trace),
+		traces:         make(chan ITrace),
 		subscription:   make(chan subscription),
 		unSubscription: make(chan unSubscription),
 		terminate:      make(chan struct{}),
 		done:           make(chan struct{}),
-		subscribers:    make([]chan Trace, 0),
+		subscribers:    make([]chan ITrace, 0),
 	}
 	go t.runner(ctx)
 	return &t
@@ -90,11 +90,11 @@ func (t *tracer) runner(ctx context.Context) {
 	}
 }
 
-func (t *tracer) Subscribe() chan Trace {
-	return t.SubscribeChannel(make(chan Trace))
+func (t *tracer) Subscribe() chan ITrace {
+	return t.SubscribeChannel(make(chan ITrace))
 }
 
-func (t *tracer) SubscribeChannel(channel chan Trace) chan Trace {
+func (t *tracer) SubscribeChannel(channel chan ITrace) chan ITrace {
 	okCh := make(chan struct{})
 	sub := subscription{channel: channel, ok: okCh}
 	t.subscription <- sub
@@ -102,7 +102,7 @@ func (t *tracer) SubscribeChannel(channel chan Trace) chan Trace {
 	return channel
 }
 
-func (t *tracer) Unsubscribe(channel chan Trace) {
+func (t *tracer) Unsubscribe(channel chan ITrace) {
 	okChan := make(chan struct{})
 	unsub := unSubscription{channel: channel, ok: okChan}
 loop:
@@ -121,11 +121,11 @@ loop:
 	}
 }
 
-func (t *tracer) Trace(trace Trace) {
+func (t *tracer) Trace(trace ITrace) {
 	t.traces <- trace
 }
 
-func (t *tracer) RegisterSender() SenderHandle {
+func (t *tracer) RegisterSender() ISenderHandle {
 	t.senders.Add(1)
 	return &t.senders
 }

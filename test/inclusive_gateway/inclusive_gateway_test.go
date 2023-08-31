@@ -26,7 +26,7 @@ func TestInclusiveGateway(t *testing.T) {
 	processElement := (*testInclusiveGateway.Processes())[0]
 	proc := process.New(&processElement, &testInclusiveGateway)
 	tracer := tracing.NewTracer(context.Background())
-	traces := tracer.SubscribeChannel(make(chan tracing.Trace, 32))
+	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 32))
 	if inst, err := proc.Instantiate(instance.WithTracer(tracer)); err == nil {
 		err := inst.StartAll(context.Background())
 		if err != nil {
@@ -82,7 +82,7 @@ func TestInclusiveGatewayDefault(t *testing.T) {
 	processElement := (*testInclusiveGatewayDefault.Processes())[0]
 	proc := process.New(&processElement, &testInclusiveGatewayDefault)
 	tracer := tracing.NewTracer(context.Background())
-	traces := tracer.SubscribeChannel(make(chan tracing.Trace, 32))
+	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 32))
 	if inst, err := proc.Instantiate(instance.WithTracer(tracer)); err == nil {
 		err := inst.StartAll(context.Background())
 		if err != nil {

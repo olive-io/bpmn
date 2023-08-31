@@ -6,12 +6,12 @@ import (
 	"github.com/olive-io/bpmn/tracing"
 )
 
-type GeneratorBuilder interface {
-	NewIdGenerator(ctx context.Context, tracer tracing.Tracer) (Generator, error)
-	RestoreIdGenerator(ctx context.Context, serialized []byte, tracer tracing.Tracer) (Generator, error)
+type IGeneratorBuilder interface {
+	NewIdGenerator(ctx context.Context, tracer tracing.ITracer) (IGenerator, error)
+	RestoreIdGenerator(ctx context.Context, serialized []byte, tracer tracing.ITracer) (IGenerator, error)
 }
 
-type Generator interface {
+type IGenerator interface {
 	Snapshot() ([]byte, error)
 	New() Id
 }
@@ -21,4 +21,4 @@ type Id interface {
 	String() string
 }
 
-var DefaultIdGeneratorBuilder GeneratorBuilder
+var DefaultIdGeneratorBuilder IGeneratorBuilder

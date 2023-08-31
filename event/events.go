@@ -5,8 +5,8 @@ import (
 	"github.com/olive-io/bpmn/schema"
 )
 
-type Event interface {
-	MatchesEventInstance(DefinitionInstance) bool
+type IEvent interface {
+	MatchesEventInstance(IDefinitionInstance) bool
 }
 
 // EndEvent Process has ended
@@ -18,7 +18,7 @@ func MakeEndEvent(element *schema.EndEvent) EndEvent {
 	return EndEvent{Element: element}
 }
 
-func (ev EndEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev EndEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	// always false because there's no event definition that matches
 	return false
 }
@@ -30,7 +30,7 @@ func MakeNoneEvent() NoneEvent {
 	return NoneEvent{}
 }
 
-func (ev NoneEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev NoneEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	// always false because there's no event definition that matches
 	return false
 }
@@ -38,19 +38,19 @@ func (ev NoneEvent) MatchesEventInstance(instance DefinitionInstance) bool {
 // SignalEvent Signal event
 type SignalEvent struct {
 	signalRef string
-	item      data.Item
+	item      data.IItem
 }
 
-func MakeSignalEvent(signalRef string, items ...data.Item) SignalEvent {
+func MakeSignalEvent(signalRef string, items ...data.IItem) SignalEvent {
 	return SignalEvent{signalRef: signalRef, item: data.ItemOrCollection(items)}
 }
 
-func NewSignalEvent(signalRef string, items ...data.Item) *SignalEvent {
+func NewSignalEvent(signalRef string, items ...data.IItem) *SignalEvent {
 	event := MakeSignalEvent(signalRef, items)
 	return &event
 }
 
-func (ev *SignalEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev *SignalEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	definition, ok := instance.EventDefinition().(*schema.SignalEventDefinition)
 	if !ok {
 		return false
@@ -73,7 +73,7 @@ func MakeCancelEvent() CancelEvent {
 	return CancelEvent{}
 }
 
-func (ev CancelEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev CancelEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	_, ok := instance.EventDefinition().(*schema.CancelEventDefinition)
 	return ok
 }
@@ -85,7 +85,7 @@ func MakeTerminateEvent() TerminateEvent {
 	return TerminateEvent{}
 }
 
-func (ev TerminateEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev TerminateEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	_, ok := instance.EventDefinition().(*schema.TerminateEventDefinition)
 	return ok
 }
@@ -99,7 +99,7 @@ func MakeCompensationEvent(activityRef string) CompensationEvent {
 	return CompensationEvent{activityRef: activityRef}
 }
 
-func (ev *CompensationEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev *CompensationEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	// always false because there's no event definition that matches
 	return false
 }
@@ -112,10 +112,10 @@ func (ev *CompensationEvent) ActivityRef() *string {
 type MessageEvent struct {
 	messageRef   string
 	operationRef *string
-	item         data.Item
+	item         data.IItem
 }
 
-func MakeMessageEvent(messageRef string, operationRef *string, items ...data.Item) MessageEvent {
+func MakeMessageEvent(messageRef string, operationRef *string, items ...data.IItem) MessageEvent {
 	return MessageEvent{
 		messageRef:   messageRef,
 		operationRef: operationRef,
@@ -123,12 +123,12 @@ func MakeMessageEvent(messageRef string, operationRef *string, items ...data.Ite
 	}
 }
 
-func NewMessageEvent(messageRef string, operationRef *string, items ...data.Item) *MessageEvent {
+func NewMessageEvent(messageRef string, operationRef *string, items ...data.IItem) *MessageEvent {
 	event := MakeMessageEvent(messageRef, operationRef, items...)
 	return &event
 }
 
-func (ev *MessageEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev *MessageEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	definition, ok := instance.EventDefinition().(*schema.MessageEventDefinition)
 	if !ok {
 		return false
@@ -169,14 +169,14 @@ func (ev *MessageEvent) OperationRef() (result *string, present bool) {
 // EscalationEvent Escalation event
 type EscalationEvent struct {
 	escalationRef string
-	item          data.Item
+	item          data.IItem
 }
 
-func MakeEscalationEvent(escalationRef string, items ...data.Item) EscalationEvent {
+func MakeEscalationEvent(escalationRef string, items ...data.IItem) EscalationEvent {
 	return EscalationEvent{escalationRef: escalationRef, item: data.ItemOrCollection(items)}
 }
 
-func (ev *EscalationEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev *EscalationEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	definition, ok := instance.EventDefinition().(*schema.EscalationEventDefinition)
 	if !ok {
 		return false
@@ -205,7 +205,7 @@ func MakeLinkEvent(sources []string, target *string) LinkEvent {
 	}
 }
 
-func (ev *LinkEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev *LinkEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	definition, ok := instance.EventDefinition().(*schema.LinkEventDefinition)
 	if !ok {
 		return false
@@ -261,14 +261,14 @@ func (ev *LinkEvent) Target() (result *string, present bool) {
 // ErrorEvent Error event
 type ErrorEvent struct {
 	errorRef string
-	item     data.Item
+	item     data.IItem
 }
 
-func MakeErrorEvent(errorRef string, items ...data.Item) ErrorEvent {
+func MakeErrorEvent(errorRef string, items ...data.IItem) ErrorEvent {
 	return ErrorEvent{errorRef: errorRef, item: data.ItemOrCollection(items)}
 }
 
-func (ev *ErrorEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev *ErrorEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	definition, ok := instance.EventDefinition().(*schema.ErrorEventDefinition)
 	if !ok {
 		return false
@@ -287,35 +287,35 @@ func (ev *ErrorEvent) ErrorRef() *string {
 // TimerEvent represents an event that occurs when a certain timer
 // is triggered.
 type TimerEvent struct {
-	instance DefinitionInstance
+	instance IDefinitionInstance
 }
 
-func MakeTimerEvent(instance DefinitionInstance) TimerEvent {
+func MakeTimerEvent(instance IDefinitionInstance) TimerEvent {
 	return TimerEvent{instance: instance}
 }
 
-func (ev TimerEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev TimerEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	return instance == ev.instance
 }
 
-func (ev TimerEvent) Instance() DefinitionInstance {
+func (ev TimerEvent) Instance() IDefinitionInstance {
 	return ev.instance
 }
 
 // ConditionalEvent represents an event that occurs when a certain timer
 // is triggered.
 type ConditionalEvent struct {
-	instance DefinitionInstance
+	instance IDefinitionInstance
 }
 
-func MakeConditionalEvent(instance DefinitionInstance) ConditionalEvent {
+func MakeConditionalEvent(instance IDefinitionInstance) ConditionalEvent {
 	return ConditionalEvent{instance: instance}
 }
 
-func (ev *ConditionalEvent) MatchesEventInstance(instance DefinitionInstance) bool {
+func (ev *ConditionalEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	return instance == ev.instance
 }
 
-func (ev *ConditionalEvent) Instance() DefinitionInstance {
+func (ev *ConditionalEvent) Instance() IDefinitionInstance {
 	return ev.instance
 }

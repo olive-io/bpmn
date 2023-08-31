@@ -25,15 +25,15 @@ const (
 	DropEventConsumer
 )
 
-// Consumer Process event consumer interface
-type Consumer interface {
-	ConsumeEvent(Event) (ConsumptionResult, error)
+// IConsumer Process event consumer interface
+type IConsumer interface {
+	ConsumeEvent(IEvent) (ConsumptionResult, error)
 }
 
 // VoidConsumer Process event consumer that does nothing and returns EventConsumed result
 type VoidConsumer struct{}
 
-func (t VoidConsumer) ConsumeEvent(ev Event) (result ConsumptionResult, err error) {
+func (t VoidConsumer) ConsumeEvent(ev IEvent) (result ConsumptionResult, err error) {
 	result = Consumed
 	return
 }
@@ -44,7 +44,7 @@ func (t VoidConsumer) ConsumeEvent(ev Event) (result ConsumptionResult, err erro
 // If none of them errors out, the result will be EventConsumed.
 // If some do, the result will be EventPartiallyConsumed and err will be *multierror.Errors
 // If all do, the result will be EventConsumptionError and err will be *multierror.Errors
-func ForwardEvent(ev Event, eventConsumers *[]Consumer) (result ConsumptionResult, err error) {
+func ForwardEvent(ev IEvent, eventConsumers *[]IConsumer) (result ConsumptionResult, err error) {
 	var errors *multierror.Error
 	for _, consumer := range *eventConsumers {
 		result, consumerError := consumer.ConsumeEvent(ev)

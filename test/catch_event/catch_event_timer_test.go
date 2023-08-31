@@ -31,10 +31,10 @@ func TestCatchEvent_Timer(t *testing.T) {
 	c := clock.NewMock()
 	ctx := clock.ToContext(context.Background(), c)
 	tracer := tracing.NewTracer(ctx)
-	eventInstanceBuilder := event.DefinitionInstanceBuildingChain(
+	eventInstanceBuilder := event.IDefinitionInstanceBuildingChain(
 		timer.EventDefinitionInstanceBuilder(ctx, fanOut, tracer),
 	)
-	traces := tracer.SubscribeChannel(make(chan tracing.Trace, 128))
+	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))
 	if i, err := proc.Instantiate(
 		instance.WithTracer(tracer),
 		instance.WithEventDefinitionInstanceBuilder(eventInstanceBuilder),

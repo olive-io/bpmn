@@ -15,10 +15,10 @@ func (i InstantiationTrace) TraceInterface() {}
 // Trace wraps any trace with process instance id
 type Trace struct {
 	InstanceId id.Id
-	Trace      tracing.Trace
+	Trace      tracing.ITrace
 }
 
-func (t Trace) Unwrap() tracing.Trace {
+func (t Trace) Unwrap() tracing.ITrace {
 	return t.Trace
 }
 

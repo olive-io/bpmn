@@ -27,30 +27,30 @@ import (
 type Instance struct {
 	id                             id.Id
 	process                        *schema.Process
-	Tracer                         tracing.Tracer
+	Tracer                         tracing.ITracer
 	flowNodeMapping                *flow_node.FlowNodeMapping
 	flowWaitGroup                  sync.WaitGroup
 	complete                       sync.RWMutex
-	idGenerator                    id.Generator
-	dataObjectsByName              map[string]data.ItemAware
-	dataObjects                    map[schema.Id]data.ItemAware
-	dataObjectReferencesByName     map[string]data.ItemAware
-	dataObjectReferences           map[schema.Id]data.ItemAware
-	propertiesByName               map[string]data.ItemAware
-	properties                     map[schema.Id]data.ItemAware
-	EventIngress                   event.Consumer
-	EventEgress                    event.Source
-	idGeneratorBuilder             id.GeneratorBuilder
-	eventDefinitionInstanceBuilder event.DefinitionInstanceBuilder
+	idGenerator                    id.IGenerator
+	dataObjectsByName              map[string]data.IItemAware
+	dataObjects                    map[schema.Id]data.IItemAware
+	dataObjectReferencesByName     map[string]data.IItemAware
+	dataObjectReferences           map[schema.Id]data.IItemAware
+	propertiesByName               map[string]data.IItemAware
+	properties                     map[schema.Id]data.IItemAware
+	EventIngress                   event.IConsumer
+	EventEgress                    event.ISource
+	idGeneratorBuilder             id.IGeneratorBuilder
+	eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder
 	eventConsumersLock             sync.RWMutex
-	eventConsumers                 []event.Consumer
+	eventConsumers                 []event.IConsumer
 }
 
 func (instance *Instance) Id() id.Id {
 	return instance.id
 }
 
-func (instance *Instance) ConsumeEvent(ev event.Event) (result event.ConsumptionResult, err error) {
+func (instance *Instance) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	instance.eventConsumersLock.RLock()
 	// We're copying the list of consumers here to ensure that
 	// new consumers can subscribe during event forwarding
@@ -60,14 +60,14 @@ func (instance *Instance) ConsumeEvent(ev event.Event) (result event.Consumption
 	return
 }
 
-func (instance *Instance) RegisterEventConsumer(ev event.Consumer) (err error) {
+func (instance *Instance) RegisterEventConsumer(ev event.IConsumer) (err error) {
 	instance.eventConsumersLock.Lock()
 	defer instance.eventConsumersLock.Unlock()
 	instance.eventConsumers = append(instance.eventConsumers, ev)
 	return
 }
 
-func (instance *Instance) FindItemAwareById(id schema.IdRef) (itemAware data.ItemAware, found bool) {
+func (instance *Instance) FindItemAwareById(id schema.IdRef) (itemAware data.IItemAware, found bool) {
 	for k := range instance.dataObjects {
 		if k == id {
 			found = true
@@ -93,7 +93,7 @@ ready:
 	return
 }
 
-func (instance *Instance) FindItemAwareByName(name string) (itemAware data.ItemAware, found bool) {
+func (instance *Instance) FindItemAwareByName(name string) (itemAware data.IItemAware, found bool) {
 	for k := range instance.dataObjectsByName {
 		if k == name {
 			found = true
@@ -127,7 +127,7 @@ ready:
 type Option func(ctx context.Context, instance *Instance) context.Context
 
 // WithTracer overrides instance's tracer
-func WithTracer(tracer tracing.Tracer) Option {
+func WithTracer(tracer tracing.ITracer) Option {
 	return func(ctx context.Context, instance *Instance) context.Context {
 		instance.Tracer = tracer
 		return ctx
@@ -142,28 +142,28 @@ func WithContext(newCtx context.Context) Option {
 	}
 }
 
-func WithIdGenerator(builder id.GeneratorBuilder) Option {
+func WithIdGenerator(builder id.IGeneratorBuilder) Option {
 	return func(ctx context.Context, instance *Instance) context.Context {
 		instance.idGeneratorBuilder = builder
 		return ctx
 	}
 }
 
-func WithEventIngress(consumer event.Consumer) Option {
+func WithEventIngress(consumer event.IConsumer) Option {
 	return func(ctx context.Context, instance *Instance) context.Context {
 		instance.EventIngress = consumer
 		return ctx
 	}
 }
 
-func WithEventEgress(source event.Source) Option {
+func WithEventEgress(source event.ISource) Option {
 	return func(ctx context.Context, instance *Instance) context.Context {
 		instance.EventEgress = source
 		return ctx
 	}
 }
 
-func WithEventDefinitionInstanceBuilder(builder event.DefinitionInstanceBuilder) Option {
+func WithEventDefinitionInstanceBuilder(builder event.IDefinitionInstanceBuilder) Option {
 	return func(ctx context.Context, instance *Instance) context.Context {
 		instance.eventDefinitionInstanceBuilder = builder
 		return ctx
@@ -178,12 +178,12 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 	instance = &Instance{
 		process:                    element,
 		flowNodeMapping:            flow_node.NewLockedFlowNodeMapping(),
-		dataObjectsByName:          make(map[string]data.ItemAware),
-		dataObjectReferencesByName: make(map[string]data.ItemAware),
-		propertiesByName:           make(map[string]data.ItemAware),
-		dataObjects:                make(map[string]data.ItemAware),
-		dataObjectReferences:       make(map[string]data.ItemAware),
-		properties:                 make(map[string]data.ItemAware),
+		dataObjectsByName:          make(map[string]data.IItemAware),
+		dataObjectReferencesByName: make(map[string]data.IItemAware),
+		propertiesByName:           make(map[string]data.IItemAware),
+		dataObjects:                make(map[string]data.IItemAware),
+		dataObjectReferences:       make(map[string]data.IItemAware),
+		properties:                 make(map[string]data.IItemAware),
 	}
 
 	ctx := context.Background()
@@ -201,7 +201,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		instance.idGeneratorBuilder = id.DefaultIdGeneratorBuilder
 	}
 
-	var idGenerator id.Generator
+	var idGenerator id.IGenerator
 	idGenerator, err = instance.idGeneratorBuilder.NewIdGenerator(ctx, instance.Tracer)
 	if err != nil {
 		return
@@ -241,7 +241,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		} else {
 			name = idGenerator.New().String()
 		}
-		var container data.ItemAware
+		var container data.IItemAware
 		if dataObjPtr, present := dataObjectReference.DataObjectRef(); present {
 			for dataObjectId := range instance.dataObjects {
 				if dataObjectId == *dataObjPtr {
@@ -287,8 +287,8 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 
 	subTracer := tracing.NewTracer(ctx)
 
-	tracing.NewRelay(ctx, subTracer, instance.Tracer, func(trace tracing.Trace) []tracing.Trace {
-		return []tracing.Trace{Trace{
+	tracing.NewRelay(ctx, subTracer, instance.Tracer, func(trace tracing.ITrace) []tracing.ITrace {
+		return []tracing.ITrace{Trace{
 			InstanceId: instance.id,
 			Trace:      trace,
 		}}
@@ -505,13 +505,13 @@ func (instance *Instance) StartAll(ctx context.Context) (err error) {
 	return
 }
 
-func (instance *Instance) ceaseFlowMonitor(tracer tracing.Tracer) func(ctx context.Context, sender tracing.SenderHandle) {
+func (instance *Instance) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.Context, sender tracing.ISenderHandle) {
 	// Subscribing to traces early as otherwise events produced
 	// after the goroutine below is started are not going to be
 	// sent to it.
 	traces := tracer.Subscribe()
 	instance.complete.Lock()
-	return func(ctx context.Context, sender tracing.SenderHandle) {
+	return func(ctx context.Context, sender tracing.ISenderHandle) {
 		defer sender.Done()
 		defer instance.complete.Unlock()
 

@@ -51,7 +51,7 @@ func (e eventInstance) EventDefinition() schema.EventDefinitionInterface {
 
 type eventDefinitionInstanceBuilder struct{}
 
-func (e eventDefinitionInstanceBuilder) NewEventDefinitionInstance(def schema.EventDefinitionInterface) (event.DefinitionInstance, error) {
+func (e eventDefinitionInstanceBuilder) NewEventDefinitionInstance(def schema.EventDefinitionInterface) (event.IDefinitionInstance, error) {
 	switch d := def.(type) {
 	case *schema.TimerEventDefinition:
 		id, _ := d.Id()
@@ -76,14 +76,14 @@ func TestConditionalEvent(t *testing.T) {
 	testEvent(t, "sample/catch_event/intermediate_catch_event.bpmn", "conditionalCatch", &b, false, event.MakeTimerEvent(i))
 }
 
-func testEvent(t *testing.T, filename string, nodeId string, eventDefinitionInstanceBuilder event.DefinitionInstanceBuilder, eventObservationOnly bool, events ...event.Event) {
+func testEvent(t *testing.T, filename string, nodeId string, eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder, eventObservationOnly bool, events ...event.IEvent) {
 	var testDoc schema.Definitions
 	test.LoadTestFile(filename, &testDoc)
 	processElement := (*testDoc.Processes())[0]
 	proc := process.New(&processElement, &testDoc, process.WithEventDefinitionInstanceBuilder(eventDefinitionInstanceBuilder))
 
 	tracer := tracing.NewTracer(context.Background())
-	traces := tracer.SubscribeChannel(make(chan tracing.Trace, 64))
+	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 64))
 
 	if inst, err := proc.Instantiate(instance.WithTracer(tracer)); err == nil {
 		err := inst.StartAll(context.Background())

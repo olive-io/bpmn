@@ -2,20 +2,20 @@ package expression
 
 import "github.com/olive-io/bpmn/data"
 
-type Compiler interface {
-	CompileExpression(source string) (CompiledExpression, error)
+type ICompiler interface {
+	CompileExpression(source string) (ICompiledExpression, error)
 }
 
-type CompiledExpression interface{}
+type ICompiledExpression interface{}
 
-type Evaluator interface {
-	EvaluateExpression(expr CompiledExpression, data interface{}) (Result, error)
+type IEvaluator interface {
+	EvaluateExpression(expr ICompiledExpression, data interface{}) (IResult, error)
 }
 
-type Result interface{}
+type IResult interface{}
 
-type Engine interface {
-	Compiler
-	Evaluator
-	SetItemAwareLocator(itemAwareLocator data.ItemAwareLocator)
+type IEngine interface {
+	ICompiler
+	IEvaluator
+	SetItemAwareLocator(itemAwareLocator data.IItemAwareLocator)
 }

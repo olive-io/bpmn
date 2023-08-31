@@ -31,7 +31,7 @@ type message interface {
 }
 
 type nextActionMessage struct {
-	response chan flow_node.Action
+	response chan flow_node.IAction
 	flow     flow_interface.T
 }
 
@@ -45,7 +45,7 @@ type probingReport struct {
 func (m probingReport) message() {}
 
 type flowSync struct {
-	response chan flow_node.Action
+	response chan flow_node.IAction
 	flow     flow_interface.T
 }
 
@@ -55,11 +55,11 @@ type Node struct {
 	runnerChannel           chan message
 	defaultSequenceFlow     *sequence_flow.SequenceFlow
 	nonDefaultSequenceFlows []*sequence_flow.SequenceFlow
-	probing                 *chan flow_node.Action
+	probing                 *chan flow_node.IAction
 	activated               *flowSync
 	awaiting                []id.Id
 	arrived                 []id.Id
-	sync                    []chan flow_node.Action
+	sync                    []chan flow_node.IAction
 	*flowTracker
 	synchronized bool
 }
@@ -105,7 +105,7 @@ func New(ctx context.Context, wiring *flow_node.Wiring, inclusiveGateway *schema
 	return
 }
 
-func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
+func (node *Node) runner(ctx context.Context, sender tracing.ISenderHandle) {
 	defer node.flowTracker.shutdown()
 	activity := node.flowTracker.activity()
 
@@ -162,7 +162,7 @@ func (node *Node) runner(ctx context.Context, sender tracing.SenderHandle) {
 						node.activated = &flowSync{response: m.response, flow: m.flow}
 						node.awaiting = node.flowTracker.activeFlowsInCohort(m.flow.Id())
 						node.arrived = []id.Id{m.flow.Id()}
-						node.sync = make([]chan flow_node.Action, 0)
+						node.sync = make([]chan flow_node.IAction, 0)
 					} else {
 						// Already activated
 						node.arrived = append(node.arrived, m.flow.Id())
@@ -214,8 +214,8 @@ func (node *Node) trySync() {
 	}
 }
 
-func (node *Node) NextAction(flow flow_interface.T) chan flow_node.Action {
-	response := make(chan flow_node.Action)
+func (node *Node) NextAction(flow flow_interface.T) chan flow_node.IAction {
+	response := make(chan flow_node.IAction)
 	node.runnerChannel <- nextActionMessage{response: response, flow: flow}
 	return response
 }

@@ -6,7 +6,7 @@ import (
 )
 
 type EventInstantiationAttemptedTrace struct {
-	Event   event.Event
+	Event   event.IEvent
 	Element schema.FlowNodeInterface
 }
 

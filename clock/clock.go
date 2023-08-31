@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// Clock is a generic interface for clocks
-type Clock interface {
+// IClock is a generic interface for clocks
+type IClock interface {
 	// Now returns current time
 	Now() time.Time
 	// After returns a channel that will send one and only one
@@ -39,16 +39,16 @@ func (c contextKey) String() string {
 // FromContext retrieves a Clock from a given context,
 // if there's any. If there's none, it'll create a Host
 // clock
-func FromContext(ctx context.Context) (c Clock, err error) {
+func FromContext(ctx context.Context) (c IClock, err error) {
 	val := ctx.Value(contextKey("clock"))
 	if val == nil {
 		return Host(ctx)
 	}
-	c = val.(Clock)
+	c = val.(IClock)
 	return
 }
 
 // ToContext saves Clock into a given context, returning a new one
-func ToContext(ctx context.Context, clock Clock) context.Context {
+func ToContext(ctx context.Context, clock IClock) context.Context {
 	return context.WithValue(ctx, contextKey("clock"), clock)
 }
