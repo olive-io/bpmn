@@ -1,0 +1,104 @@
+# github.com/ChrisTrenkamp/xsel v0.9.11
+## explicit; go 1.20
+github.com/ChrisTrenkamp/xsel/exec
+github.com/ChrisTrenkamp/xsel/grammar
+github.com/ChrisTrenkamp/xsel/grammar/lexer
+github.com/ChrisTrenkamp/xsel/grammar/parser
+github.com/ChrisTrenkamp/xsel/grammar/parser/bsr
+github.com/ChrisTrenkamp/xsel/grammar/parser/slot
+github.com/ChrisTrenkamp/xsel/grammar/parser/symbols
+github.com/ChrisTrenkamp/xsel/grammar/sppf
+github.com/ChrisTrenkamp/xsel/grammar/token
+github.com/ChrisTrenkamp/xsel/node
+github.com/ChrisTrenkamp/xsel/parser
+github.com/ChrisTrenkamp/xsel/store
+# github.com/Chronokeeper/anyxml v0.0.0-20160530174208-54457d8e98c6
+## explicit
+github.com/Chronokeeper/anyxml
+# github.com/antonmedv/expr v1.14.3
+## explicit; go 1.13
+github.com/antonmedv/expr
+github.com/antonmedv/expr/ast
+github.com/antonmedv/expr/builtin
+github.com/antonmedv/expr/checker
+github.com/antonmedv/expr/compiler
+github.com/antonmedv/expr/conf
+github.com/antonmedv/expr/file
+github.com/antonmedv/expr/optimizer
+github.com/antonmedv/expr/parser
+github.com/antonmedv/expr/parser/lexer
+github.com/antonmedv/expr/parser/operator
+github.com/antonmedv/expr/parser/utils
+github.com/antonmedv/expr/vm
+github.com/antonmedv/expr/vm/runtime
+# github.com/bits-and-blooms/bitset v1.8.0
+## explicit; go 1.16
+github.com/bits-and-blooms/bitset
+# github.com/davecgh/go-spew v1.1.1
+## explicit
+github.com/davecgh/go-spew/spew
+# github.com/goccmack/goutil v1.2.3
+## explicit; go 1.13
+github.com/goccmack/goutil/ioutil
+# github.com/hashicorp/errwrap v1.0.0
+## explicit
+github.com/hashicorp/errwrap
+# github.com/hashicorp/go-multierror v1.1.1
+## explicit; go 1.13
+github.com/hashicorp/go-multierror
+# github.com/json-iterator/go v1.1.12
+## explicit; go 1.12
+github.com/json-iterator/go
+# github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421
+## explicit
+github.com/modern-go/concurrent
+# github.com/modern-go/reflect2 v1.0.2
+## explicit; go 1.12
+github.com/modern-go/reflect2
+# github.com/muyo/sno v1.2.1
+## explicit; go 1.14
+github.com/muyo/sno
+github.com/muyo/sno/internal
+# github.com/pkg/errors v0.9.1
+## explicit
+github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+## explicit
+github.com/pmezard/go-difflib/difflib
+# github.com/qri-io/iso8601 v0.1.0
+## explicit; go 1.12
+github.com/qri-io/iso8601
+# github.com/stretchr/testify v1.8.4
+## explicit; go 1.20
+github.com/stretchr/testify/assert
+github.com/stretchr/testify/require
+# golang.org/x/net v0.14.0
+## explicit; go 1.17
+golang.org/x/net/html
+golang.org/x/net/html/atom
+golang.org/x/net/html/charset
+# golang.org/x/sys v0.11.0
+## explicit; go 1.17
+golang.org/x/sys/unix
+# golang.org/x/text v0.12.0
+## explicit; go 1.17
+golang.org/x/text/encoding
+golang.org/x/text/encoding/charmap
+golang.org/x/text/encoding/htmlindex
+golang.org/x/text/encoding/internal
+golang.org/x/text/encoding/internal/identifier
+golang.org/x/text/encoding/japanese
+golang.org/x/text/encoding/korean
+golang.org/x/text/encoding/simplifiedchinese
+golang.org/x/text/encoding/traditionalchinese
+golang.org/x/text/encoding/unicode
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/tag
+golang.org/x/text/internal/utf8internal
+golang.org/x/text/language
+golang.org/x/text/runes
+golang.org/x/text/transform
+# gopkg.in/yaml.v3 v3.0.1
+## explicit
+gopkg.in/yaml.v3
