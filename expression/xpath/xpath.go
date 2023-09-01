@@ -19,12 +19,12 @@ import (
 //
 // Implementation details and limitations as per https://github.com/antchfx/xpath
 type XPath struct {
-	itemAwareLocator data.IItemAwareLocator
-	ctx              context.Context
+	ctx               context.Context
+	itemAwareLocators map[string]data.IItemAwareLocator
 }
 
-func (engine *XPath) SetItemAwareLocator(itemAwareLocator data.IItemAwareLocator) {
-	engine.itemAwareLocator = itemAwareLocator
+func (engine *XPath) SetItemAwareLocator(name string, itemAwareLocator data.IItemAwareLocator) {
+	engine.itemAwareLocators[name] = itemAwareLocator
 }
 
 func Make(ctx context.Context) XPath {
@@ -64,7 +64,7 @@ func (engine *XPath) EvaluateExpression(e expression.ICompiledExpression,
 		p := parser.ReadXml(bytes.NewBuffer(serialized))
 
 		contextSettings := func(c *exec.ContextSettings) {
-			if engine.itemAwareLocator != nil {
+			if engine.itemAwareLocators != nil {
 				c.FunctionLibrary[exec.Name("", "getDataObject")] = engine.getDataObject()
 			}
 		}
@@ -109,46 +109,49 @@ func (engine *XPath) getDataObject() func(context exec.Context, args ...exec.Res
 		case 2:
 			return nil, errors.NotSupportedError{
 				What:   "two-argument getDataObject",
-				Reason: "BPXE doesn't support sub-processes yet",
+				Reason: "doesn't support sub-processes yet",
 			}
 		case 1:
 			name = args[0].String()
 		}
-		itemAware, found := engine.itemAwareLocator.FindItemAwareByName(name)
+		var itemAware data.IItemAware
+		found := false
+		for _, locator := range engine.itemAwareLocators {
+			itemAware, found = locator.FindItemAwareByName(name)
+			if !found {
+				break
+			}
+		}
+
 		if !found {
 			return exec.NodeSet{}, nil
 		}
-		ch := itemAware.Get(engine.ctx)
-		if ch == nil {
+		item := itemAware.Get()
+		if item == nil {
 			return nil, nil
 		}
-		select {
-		case <-engine.ctx.Done():
-			return nil, nil
-		case item := <-ch:
-			switch item := item.(type) {
-			case string:
-				return exec.String(item), nil
-			case float64:
-				return exec.Number(item), nil
-			case bool:
-				return exec.Bool(item), nil
-			default:
-				// Until we have own data type to represent XML nodes, we'll piggy-back
-				// on xsel's parser and datum.AsXML interface. This is not very efficient,
-				// but should do for now
-				if reflect.TypeOf(item).Implements(asXMLType) {
-					p := parser.ReadXml(bytes.NewReader(item.(data.IAsXML).AsXML()))
-					cursor, err := store.CreateInMemory(p)
-					if err != nil {
-						return nil, err
-					}
-					return exec.NodeSet{cursor}, nil
-				} else {
-					return nil, errors.InvalidArgumentError{
-						Expected: "XML-serializable value (string, float64 or Node)",
-						Actual:   item,
-					}
+		switch tt := item.(type) {
+		case string:
+			return exec.String(tt), nil
+		case float64:
+			return exec.Number(tt), nil
+		case bool:
+			return exec.Bool(tt), nil
+		default:
+			// Until we have own data type to represent XML nodes, we'll piggy-back
+			// on xsel's parser and datum.AsXML interface. This is not very efficient,
+			// but should do for now
+			if reflect.TypeOf(item).Implements(asXMLType) {
+				p := parser.ReadXml(bytes.NewReader(item.(data.IAsXML).AsXML()))
+				cursor, err := store.CreateInMemory(p)
+				if err != nil {
+					return nil, err
+				}
+				return exec.NodeSet{cursor}, nil
+			} else {
+				return nil, errors.InvalidArgumentError{
+					Expected: "XML-serializable value (string, float64 or Node)",
+					Actual:   item,
 				}
 			}
 		}

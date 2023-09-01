@@ -12,7 +12,7 @@ func TestCatchEventSatisfier_MatchSingle(t *testing.T) {
 	catchEvent := schema.DefaultCatchEvent()
 
 	sig1 := schema.DefaultSignalEventDefinition()
-	sig1name := "sig1"
+	sig1name := schema.QName("sig1")
 	sig1.SetSignalRef(&sig1name)
 
 	catchEvent.SetSignalEventDefinitions([]schema.SignalEventDefinition{sig1})
@@ -26,7 +26,7 @@ func TestCatchEventSatisfier_MatchSingle(t *testing.T) {
 	assert.False(t, satisfied)
 	assert.Equal(t, EventDidNotMatch, chain)
 
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig1name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig1name)))
 	assert.True(t, satisfied)
 	assert.Equal(t, 0, chain)
 }
@@ -35,11 +35,11 @@ func TestCatchEventSatisfier_MatchMultiple(t *testing.T) {
 	catchEvent := schema.DefaultCatchEvent()
 
 	sig1 := schema.DefaultSignalEventDefinition()
-	sig1name := "sig1"
+	sig1name := schema.QName("sig1")
 	sig1.SetSignalRef(&sig1name)
 
 	sig2 := schema.DefaultSignalEventDefinition()
-	sig2name := "sig2"
+	sig2name := schema.QName("sig2")
 	sig2.SetSignalRef(&sig2name)
 
 	catchEvent.SetSignalEventDefinitions([]schema.SignalEventDefinition{sig1, sig2})
@@ -53,10 +53,10 @@ func TestCatchEventSatisfier_MatchMultiple(t *testing.T) {
 	assert.False(t, satisfied)
 	assert.Equal(t, EventDidNotMatch, chain)
 
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig1name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig1name)))
 	assert.True(t, satisfied)
 	assert.Equal(t, 0, chain)
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig2name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig2name)))
 	assert.True(t, satisfied)
 	assert.Equal(t, 0, chain)
 
@@ -69,11 +69,11 @@ func TestCatchEventSatisfier_MatchParallelMultiple(t *testing.T) {
 	catchEvent := schema.DefaultCatchEvent()
 
 	sig1 := schema.DefaultSignalEventDefinition()
-	sig1name := "sig1"
+	sig1name := schema.QName("sig1")
 	sig1.SetSignalRef(&sig1name)
 
 	sig2 := schema.DefaultSignalEventDefinition()
-	sig2name := "sig2"
+	sig2name := schema.QName("sig2")
 	sig2.SetSignalRef(&sig2name)
 
 	parallelMultiple := true
@@ -89,18 +89,18 @@ func TestCatchEventSatisfier_MatchParallelMultiple(t *testing.T) {
 	assert.False(t, satisfied)
 	assert.Equal(t, EventDidNotMatch, chain)
 
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig1name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig1name)))
 	assert.False(t, satisfied)
 	assert.Equal(t, 0, chain)
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig2name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig2name)))
 	assert.True(t, satisfied)
 	assert.Equal(t, 0, chain)
 
 	// Let's try this again, in a different order
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig2name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig2name)))
 	assert.False(t, satisfied)
 	assert.Equal(t, 0, chain)
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig1name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig1name)))
 	assert.True(t, satisfied)
 	assert.Equal(t, 0, chain)
 
@@ -111,18 +111,18 @@ func TestCatchEventSatisfier_MatchParallelMultiple(t *testing.T) {
 	// Now, let's supply two series of matching events but coming in partial
 	// sequences
 
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig1name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig1name)))
 	assert.False(t, satisfied)
 	assert.Equal(t, 0, chain)
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig1name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig1name)))
 	assert.False(t, satisfied)
 	assert.Equal(t, 1, chain)
 
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig2name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig2name)))
 	assert.True(t, satisfied)
 	assert.Equal(t, 0, chain)
 
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig2name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig2name)))
 	assert.True(t, satisfied)
 	// the reason why chain here becomes 0 is that because that chain was satisfied
 	// and removed, therefore this chain become indexed at 0
@@ -138,7 +138,7 @@ func TestCatchEventSatisfier_MatchParallelMultipleSingleEvent(t *testing.T) {
 	catchEvent := schema.DefaultCatchEvent()
 
 	sig1 := schema.DefaultSignalEventDefinition()
-	sig1name := "sig1"
+	sig1name := schema.QName("sig1")
 	sig1.SetSignalRef(&sig1name)
 
 	parallelMultiple := true
@@ -154,11 +154,11 @@ func TestCatchEventSatisfier_MatchParallelMultipleSingleEvent(t *testing.T) {
 	assert.False(t, satisfied)
 	assert.Equal(t, EventDidNotMatch, chain)
 
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig1name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig1name)))
 	assert.True(t, satisfied)
 	assert.Equal(t, 0, chain)
 
-	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(sig1name))
+	satisfied, chain = satisfier.Satisfy(event.NewSignalEvent(string(sig1name)))
 	assert.True(t, satisfied)
 	assert.Equal(t, 0, chain)
 

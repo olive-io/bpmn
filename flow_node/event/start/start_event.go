@@ -36,16 +36,16 @@ func (m eventMessage) message() {}
 
 type Node struct {
 	*flow_node.Wiring
-	element          *schema.StartEvent
-	runnerChannel    chan message
-	activated        bool
-	idGenerator      id.IGenerator
-	itemAwareLocator data.IItemAwareLocator
-	satisfier        *logic.CatchEventSatisfier
+	element           *schema.StartEvent
+	runnerChannel     chan message
+	activated         bool
+	idGenerator       id.IGenerator
+	itemAwareLocators map[string]data.IItemAwareLocator
+	satisfier         *logic.CatchEventSatisfier
 }
 
 func New(ctx context.Context, wiring *flow_node.Wiring, startEvent *schema.StartEvent,
-	idGenerator id.IGenerator, itemAwareLocator data.IItemAwareLocator,
+	idGenerator id.IGenerator, itemAwareLocators map[string]data.IItemAwareLocator,
 ) (node *Node, err error) {
 	eventDefinitions := startEvent.EventDefinitions()
 	eventInstances := make([]event.IDefinitionInstance, len(eventDefinitions))
@@ -60,13 +60,13 @@ func New(ctx context.Context, wiring *flow_node.Wiring, startEvent *schema.Start
 	}
 
 	node = &Node{
-		Wiring:           wiring,
-		element:          startEvent,
-		runnerChannel:    make(chan message, len(wiring.Incoming)*2+1),
-		activated:        false,
-		idGenerator:      idGenerator,
-		itemAwareLocator: itemAwareLocator,
-		satisfier:        logic.NewCatchEventSatisfier(startEvent, wiring.EventDefinitionInstanceBuilder),
+		Wiring:            wiring,
+		element:           startEvent,
+		runnerChannel:     make(chan message, len(wiring.Incoming)*2+1),
+		activated:         false,
+		idGenerator:       idGenerator,
+		itemAwareLocators: itemAwareLocators,
+		satisfier:         logic.NewCatchEventSatisfier(startEvent, wiring.EventDefinitionInstanceBuilder),
 	}
 	sender := node.Tracer.RegisterSender()
 	go node.runner(ctx, sender)
@@ -111,7 +111,7 @@ func (node *Node) runner(ctx context.Context, sender tracing.ISenderHandle) {
 func (node *Node) flow(ctx context.Context) {
 	newFlow := flow.New(node.Wiring.Definitions, node, node.Wiring.Tracer,
 		node.Wiring.FlowNodeMapping, node.Wiring.FlowWaitGroup, node.idGenerator, nil,
-		node.itemAwareLocator,
+		node.itemAwareLocators,
 	)
 	newFlow.Start(ctx)
 }

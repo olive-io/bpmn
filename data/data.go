@@ -84,31 +84,42 @@ func ItemOrCollection(items ...IItem) (item IItem) {
 
 // IItemAware provides basic interface of accessing data items
 type IItemAware interface {
-	// Unavailable returns true if the data item is an unavailable state
-	Unavailable() bool
 	// Get returns a channel that will eventually return the data item
-	//
-	// If item is in an unavailable state (see Unavailable),
-	// this channel will not send anything until the item becomes available.
-	//
-	// If context is cancelled while sending in a request for data,
-	// a nil channel will be returned.
-	Get(ctx context.Context) <-chan IItem
-	// Put sends a request to update the item
-	//
-	// If item is in an unavailable state (see Unavailable),
-	// the data will not update until the item becomes available,
-	// at which time, the returned channel will be closed.
-	//
-	// If context is cancelled while sending in a request for data,
-	// a nil channel will be returned.
-	Put(ctx context.Context, item IItem) <-chan struct{}
+	Get() IItem
+	// Put puts to update the item
+	Put(item IItem)
 }
 
-// IItemAwareLocator interface describes a way to find IItemAware
+// IItemAwareLocator interface describes a way to find and put IItemAware
 type IItemAwareLocator interface {
 	// FindItemAwareById finds ItemAware by its schema.Id
 	FindItemAwareById(id schema.IdRef) (itemAware IItemAware, found bool)
 	// FindItemAwareByName finds ItemAware by its name (where applicable)
 	FindItemAwareByName(name string) (itemAware IItemAware, found bool)
+	// PutItemAwareById put ItemAware by its schema.Id
+	PutItemAwareById(id schema.IdRef, itemAware IItemAware)
+	// PutItemAwareByName put ItemAware by its name (where applicable)
+	PutItemAwareByName(name string, itemAware IItemAware)
+	// Clone clones all IItem to the specified target
+	Clone() map[string]IItem
 }
+
+type DefaultItemAwareLocator struct{}
+
+func (d DefaultItemAwareLocator) FindItemAwareById(id schema.IdRef) (itemAware IItemAware, found bool) {
+	return
+}
+
+func (d DefaultItemAwareLocator) FindItemAwareByName(name string) (itemAware IItemAware, found bool) {
+	return
+}
+
+func (d DefaultItemAwareLocator) PutItemAwareById(id schema.IdRef, itemAware IItemAware) {
+	return
+}
+
+func (d DefaultItemAwareLocator) PutItemAwareByName(name string, itemAware IItemAware) {
+	return
+}
+
+func (d DefaultItemAwareLocator) Clone() map[string]IItem { return map[string]IItem{} }

@@ -15,37 +15,43 @@ import (
 //
 // https://github.com/antonmedv/expr
 type Expr struct {
-	env              map[string]interface{}
-	itemAwareLocator data.IItemAwareLocator
+	ctx               context.Context
+	itemAwareLocators map[string]data.IItemAwareLocator
+	env               map[string]interface{}
 }
 
-func (engine *Expr) SetItemAwareLocator(itemAwareLocator data.IItemAwareLocator) {
-	engine.itemAwareLocator = itemAwareLocator
+func (engine *Expr) SetItemAwareLocator(name string, itemAwareLocator data.IItemAwareLocator) {
+	engine.itemAwareLocators[name] = itemAwareLocator
+}
+
+func (engine *Expr) fetchItem(pool string) func(args ...string) data.IItem {
+	return func(args ...string) data.IItem {
+		var name string
+		if len(args) == 1 {
+			name = args[0]
+		}
+		locator, ok := engine.itemAwareLocators[pool]
+		if !ok {
+			return nil
+		}
+
+		itemAware, found := locator.FindItemAwareByName(name)
+		if !found {
+			return nil
+		}
+		item := itemAware.Get()
+		return item
+	}
 }
 
 func New(ctx context.Context) *Expr {
-	engine := &Expr{}
+	engine := &Expr{
+		ctx:               ctx,
+		itemAwareLocators: map[string]data.IItemAwareLocator{},
+	}
 	engine.env = map[string]interface{}{
-		"getDataObject": func(args ...string) data.IItem {
-			var name string
-			if len(args) == 1 {
-				name = args[0]
-			}
-			itemAware, found := engine.itemAwareLocator.FindItemAwareByName(name)
-			if !found {
-				return nil
-			}
-			ch := itemAware.Get(ctx)
-			if ch == nil {
-				return nil
-			}
-			select {
-			case <-ctx.Done():
-				return nil
-			case item := <-ch:
-				return item
-			}
-		},
+		"$": engine.fetchItem("$"),
+		"#": engine.fetchItem("#"),
 	}
 	return engine
 }

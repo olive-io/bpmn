@@ -17,5 +17,5 @@ type IResult interface{}
 type IEngine interface {
 	ICompiler
 	IEvaluator
-	SetItemAwareLocator(itemAwareLocator data.IItemAwareLocator)
+	SetItemAwareLocator(name string, itemAwareLocator data.IItemAwareLocator)
 }

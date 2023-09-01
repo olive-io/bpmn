@@ -31,7 +31,7 @@ func TestCatchEvent_Timer(t *testing.T) {
 	c := clock.NewMock()
 	ctx := clock.ToContext(context.Background(), c)
 	tracer := tracing.NewTracer(ctx)
-	eventInstanceBuilder := event.IDefinitionInstanceBuildingChain(
+	eventInstanceBuilder := event.DefinitionInstanceBuildingChain(
 		timer.EventDefinitionInstanceBuilder(ctx, fanOut, tracer),
 	)
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))

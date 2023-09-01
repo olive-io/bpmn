@@ -59,7 +59,7 @@ func (ev *SignalEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	if !present {
 		return false
 	}
-	return *signalRef == ev.signalRef
+	return string(*signalRef) == ev.signalRef
 }
 
 func (ev *SignalEvent) SignalRef() *string {
@@ -137,7 +137,7 @@ func (ev *MessageEvent) MatchesEventInstance(instance IDefinitionInstance) bool 
 	if !present {
 		return false
 	}
-	if *messageRef != ev.messageRef {
+	if string(*messageRef) != ev.messageRef {
 		return false
 	}
 	if ev.operationRef == nil {
@@ -150,7 +150,7 @@ func (ev *MessageEvent) MatchesEventInstance(instance IDefinitionInstance) bool 
 		if !present {
 			return false
 		}
-		return *operationRef == *ev.operationRef
+		return string(*operationRef) == *ev.operationRef
 	}
 }
 
@@ -185,7 +185,7 @@ func (ev *EscalationEvent) MatchesEventInstance(instance IDefinitionInstance) bo
 	if !present {
 		return false
 	}
-	return ev.escalationRef == *escalationRef
+	return ev.escalationRef == string(*escalationRef)
 }
 
 func (ev *EscalationEvent) EscalationRef() *string {
@@ -221,7 +221,7 @@ func (ev *LinkEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 			return false
 		}
 
-		if *target != *ev.target {
+		if string(*target) != *ev.target {
 			return false
 		}
 
@@ -238,7 +238,7 @@ func (ev *LinkEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	}
 
 	for i := range ev.sources {
-		if ev.sources[i] != (*sources)[i] {
+		if ev.sources[i] != string((*sources)[i]) {
 			return false
 		}
 	}
@@ -277,7 +277,7 @@ func (ev *ErrorEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
 	if !present {
 		return false
 	}
-	return *errorRef == ev.errorRef
+	return string(*errorRef) == ev.errorRef
 }
 
 func (ev *ErrorEvent) ErrorRef() *string {

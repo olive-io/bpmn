@@ -15,7 +15,7 @@ func TestParseSample(t *testing.T) {
 	processes := sampleDoc.Processes()
 	assert.Equal(t, 1, len(*processes))
 
-	out, err := xml.MarshalIndent(sampleDoc, "", " ")
+	out, err := xml.MarshalIndent(&sampleDoc, "", " ")
 	if !assert.NoError(t, err) {
 		return
 	}

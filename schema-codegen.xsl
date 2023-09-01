@@ -118,13 +118,13 @@
             </xsl:choose>
         </xsl:for-each>
         <xsl:if test="local:struct-case($type/@name) = 'ExtensionElements'">
-            <xsl:text>TaskDefinitionField *TaskDefinition</xsl:text>
+            <xsl:text>TaskDefinitionField *TaskDefinition `xml:"http://olive.io/spec/BPMN/MODEL taskDefinition"`</xsl:text>
             <xsl:text xml:space="preserve">
             </xsl:text>
-            <xsl:text>TaskHeaderField *TaskHeader</xsl:text>
+            <xsl:text>TaskHeaderField *TaskHeader `xml:"http://olive.io/spec/BPMN/MODEL taskHeaders"`</xsl:text>
             <xsl:text xml:space="preserve">
             </xsl:text>
-            <xsl:text>PropertiesField *Properties</xsl:text>
+            <xsl:text>PropertiesField *Properties `xml:"http://olive.io/spec/BPMN/MODEL properties"`</xsl:text>
             <xsl:text xml:space="preserve">
             </xsl:text>
         </xsl:if>

@@ -28,7 +28,7 @@ type Flow struct {
 	actionTransformer flow_node.ActionTransformer
 	terminate         flow_node.Terminate
 	sequenceFlowId    *string
-	itemAwareLocator  data.IItemAwareLocator
+	itemAwareLocators map[string]data.IItemAwareLocator
 }
 
 func (flow *Flow) SequenceFlow() *sequence_flow.SequenceFlow {
@@ -60,7 +60,7 @@ func New(definitions *schema.Definitions,
 	current flow_node.IFlowNode, tracer tracing.ITracer,
 	flowNodeMapping *flow_node.FlowNodeMapping, flowWaitGroup *sync.WaitGroup,
 	idGenerator id.IGenerator, actionTransformer flow_node.ActionTransformer,
-	itemAwareLocator data.IItemAwareLocator,
+	itemAwareLocators map[string]data.IItemAwareLocator,
 ) *Flow {
 	return &Flow{
 		id:                idGenerator.New(),
@@ -71,7 +71,7 @@ func New(definitions *schema.Definitions,
 		flowWaitGroup:     flowWaitGroup,
 		idGenerator:       idGenerator,
 		actionTransformer: actionTransformer,
-		itemAwareLocator:  itemAwareLocator,
+		itemAwareLocators: itemAwareLocators,
 	}
 }
 
@@ -91,8 +91,15 @@ func (flow *Flow) executeSequenceFlow(ctx context.Context, sequenceFlow *sequenc
 				lang = *flow.definitions.ExpressionLanguage()
 			}
 
+			dataSets := map[string]data.IItem{}
 			engine := expression.GetEngine(ctx, lang)
-			engine.SetItemAwareLocator(flow.itemAwareLocator)
+			for name, locator := range flow.itemAwareLocators {
+				if name == "@" {
+					dataSets = locator.Clone()
+					continue
+				}
+				engine.SetItemAwareLocator(name, locator)
+			}
 			source := strings.Trim(*e.TextPayload(), " \n")
 			var compiled expression.ICompiledExpression
 			compiled, err = engine.CompileExpression(source)
@@ -102,7 +109,7 @@ func (flow *Flow) executeSequenceFlow(ctx context.Context, sequenceFlow *sequenc
 				return
 			}
 			var abstractResult expression.IResult
-			abstractResult, err = engine.EvaluateExpression(compiled, nil)
+			abstractResult, err = engine.EvaluateExpression(compiled, dataSets)
 			if err != nil {
 				result = false
 				flow.tracer.Trace(tracing.ErrorTrace{Error: err})
@@ -201,7 +208,7 @@ func (flow *Flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow
 		flowId = flow.idGenerator.New()
 		f = func() {
 			newFlow := New(flow.definitions, flowNode, flow.tracer, flow.flowNodeMapping, flow.flowWaitGroup,
-				flow.idGenerator, actionTransformer, flow.itemAwareLocator)
+				flow.idGenerator, actionTransformer, flow.itemAwareLocators)
 			newFlow.id = flowId // important: override id with pre-generated one
 			if idPtr, present := sequenceFlow.Id(); present {
 				newFlow.sequenceFlowId = idPtr

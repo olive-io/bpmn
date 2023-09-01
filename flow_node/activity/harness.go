@@ -65,7 +65,7 @@ func NewHarness(ctx context.Context,
 	element *schema.FlowNode,
 	idGenerator id.IGenerator,
 	constructor Constructor,
-	itemAwareLocator data.IItemAwareLocator,
+	itemAwareLocators map[string]data.IItemAwareLocator,
 ) (node *Harness, err error) {
 	var activity Activity
 	activity, err = constructor(wiring)
@@ -77,7 +77,7 @@ func NewHarness(ctx context.Context,
 
 	for i := range *wiring.Process.BoundaryEvents() {
 		boundaryEvent := &(*wiring.Process.BoundaryEvents())[i]
-		if *boundaryEvent.AttachedToRef() == wiring.FlowNodeId {
+		if string(*boundaryEvent.AttachedToRef()) == wiring.FlowNodeId {
 			boundaryEvents = append(boundaryEvents, boundaryEvent)
 		}
 	}
@@ -119,7 +119,7 @@ func NewHarness(ctx context.Context,
 				}
 			}
 			newFlow := flow.New(node.Definitions, catchEvent, node.Tracer,
-				node.FlowNodeMapping, node.FlowWaitGroup, idGenerator, actionTransformer, itemAwareLocator)
+				node.FlowNodeMapping, node.FlowWaitGroup, idGenerator, actionTransformer, itemAwareLocators)
 			newFlow.Start(ctx)
 		}
 	}

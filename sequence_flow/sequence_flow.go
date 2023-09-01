@@ -79,7 +79,7 @@ func (sequenceFlow *SequenceFlow) TargetIndex() (index int, err error) {
 	ownId, _ := sequenceFlow.SequenceFlow.Id()
 	incomings := target.Incomings()
 	for i := range *incomings {
-		if (*incomings)[i] == *ownId {
+		if string((*incomings)[i]) == *ownId {
 			index = i
 			return
 		}

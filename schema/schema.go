@@ -2,15 +2,26 @@ package schema
 
 import (
 	"encoding/xml"
-	"io"
 	"reflect"
+	"strconv"
 	"strings"
+
+	json "github.com/json-iterator/go"
 )
 
 // Base types
 
 // QName XML qualified name (http://books.xmlschemata.org/relaxng/ch19-77287.html)
-type QName = string
+type QName string
+
+func (t *QName) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	out := QName(*t)
+	start.Name = xml.Name{
+		Local: "bpmn:" + start.Name.Local,
+	}
+
+	return e.EncodeElement(out, start)
+}
 
 // Id Identifier (http://books.xmlschemata.org/relaxng/ch19-77151.html)
 type Id = string
@@ -192,14 +203,39 @@ func Equal(e1, e2 Element) bool {
 const Namespace = "bpmn:"
 
 func PreMarshal(element Element, encoder *xml.Encoder, start *xml.StartElement) {
-	if !strings.HasPrefix(start.Name.Local, Namespace) {
-		start.Name.Local = Namespace + start.Name.Local
+	if start.Name.Space == "http://www.omg.org/spec/BPMN/20100524/MODEL" {
+		start.Name.Space = ""
+		start.Name.Local = "bpmn:" + start.Name.Local
+	}
+	if start.Name.Space == "http://olive.io/spec/BPMN/MODEL" {
+		start.Name.Space = ""
+		start.Name.Local = "olive:" + start.Name.Local
 	}
 
-	if _, ok := element.(FlowNodeInterface); ok {
-		for _, attr := range start.Attr {
-			_ = attr
-		}
+	if _, ok := element.(*Definitions); ok {
+		start.Name.Local = Namespace + "definitions"
+		start.Attr = append(start.Attr,
+			xml.Attr{
+				Name:  xml.Name{Local: "xmlns:bpmn"},
+				Value: "http://www.omg.org/spec/BPMN/20100524/MODEL",
+			},
+			xml.Attr{
+				Name:  xml.Name{Local: "xmlns:bpmndi"},
+				Value: "http://www.omg.org/spec/BPMN/20100524/DI",
+			},
+			xml.Attr{
+				Name:  xml.Name{Local: "xmlns:dc"},
+				Value: "http://www.omg.org/spec/DD/20100524/DC",
+			},
+			xml.Attr{
+				Name:  xml.Name{Local: "xmlns:di"},
+				Value: "http://www.omg.org/spec/DD/20100524/DI",
+			},
+			xml.Attr{
+				Name:  xml.Name{Local: "xmlns:olive"},
+				Value: "http://olive.io/spec/BPMN/MODEL",
+			},
+		)
 	}
 }
 
@@ -217,20 +253,40 @@ type TaskDefinition struct {
 	Type string `xml:"type,attr"`
 }
 
-func (t *TaskDefinition) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	for _, attr := range start.Attr {
-		if attr.Name.Local == "type" {
-			t.Type = attr.Value
-		}
+func (t *TaskDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	out := TaskDefinition(*t)
+	start.Name = xml.Name{
+		Local: "olive:taskDefinition",
 	}
 
-	return nil
+	return e.EncodeElement(out, start)
 }
 
 type Item struct {
 	Key   string   `xml:"key,attr"`
 	Value string   `xml:"value,attr"`
 	Type  ItemType `xml:"type,attr"`
+}
+
+func (i *Item) ValueFor() any {
+	switch i.Type {
+	case ItemTypeString:
+		return i.Value
+	case ItemTypeInteger:
+		integer, _ := strconv.ParseInt(i.Value, 10, 64)
+		return int(integer)
+	case ItemTypeBoolean:
+		return i.Value == "true"
+	case ItemTypeFloat:
+		f, _ := strconv.ParseFloat(i.Value, 64)
+		return f
+	case ItemTypeObject:
+		obj := map[string]interface{}{}
+		_ = json.Unmarshal([]byte(i.Value), &obj)
+		return obj
+	default:
+		return nil
+	}
 }
 
 func (i *Item) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -243,7 +299,7 @@ func (i *Item) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 }
 
 type TaskHeader struct {
-	ItemFields []*Item
+	ItemFields []*Item `xml:"http://olive.io/spec/BPMN/MODEL item"`
 }
 
 func (h *TaskHeader) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -255,37 +311,8 @@ func (h *TaskHeader) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (h *TaskHeader) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	h.ItemFields = make([]*Item, 0)
-	for {
-		tok, err := d.Token()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		switch tt := tok.(type) {
-		case xml.StartElement:
-			fname := strings.Join([]string{tt.Name.Space, tt.Name.Local}, ":")
-			if fname == "olive:item" {
-				item := &Item{}
-				_ = d.DecodeElement(item, &tt)
-				h.ItemFields = append(h.ItemFields, item)
-			}
-		case xml.EndElement:
-			if tt == start.End() {
-				return nil
-			}
-		}
-	}
-
-	return nil
-}
-
 type Properties struct {
-	ItemFields []*Item
+	ItemFields []*Item `xml:"http://olive.io/spec/BPMN/MODEL item"`
 }
 
 func (p *Properties) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -295,71 +322,6 @@ func (p *Properties) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	return e.EncodeElement(out, start)
-}
-
-func (p *Properties) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	p.ItemFields = make([]*Item, 0)
-	for {
-		tok, err := d.Token()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		switch tt := tok.(type) {
-		case xml.StartElement:
-			fname := strings.Join([]string{tt.Name.Space, tt.Name.Local}, ":")
-			if fname == "olive:item" {
-				item := &Item{}
-				_ = d.DecodeElement(item, &tt)
-				p.ItemFields = append(p.ItemFields, item)
-			}
-		case xml.EndElement:
-			if tt == start.End() {
-				return nil
-			}
-		}
-	}
-
-	return nil
-}
-
-func (t *ExtensionElements) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	for {
-		tok, err := d.Token()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		switch tt := tok.(type) {
-		case xml.StartElement:
-			fname := strings.Join([]string{tt.Name.Space, tt.Name.Local}, ":")
-			if fname == "olive:taskDefinition" {
-				t.TaskDefinitionField = &TaskDefinition{}
-				_ = t.TaskDefinitionField.UnmarshalXML(d, tt)
-			}
-			if fname == "olive:taskHeaders" {
-				t.TaskHeaderField = &TaskHeader{}
-				_ = t.TaskHeaderField.UnmarshalXML(d, tt)
-			}
-			if fname == "olive:properties" {
-				t.PropertiesField = &Properties{}
-				_ = t.PropertiesField.UnmarshalXML(d, tt)
-			}
-		case xml.EndElement:
-			if tt == start.End() {
-				return nil
-			}
-		}
-
-	}
-
-	return nil
 }
 
 // Generate schema files:

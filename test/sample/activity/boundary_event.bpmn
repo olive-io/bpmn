@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_19bb10c" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.7.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.14.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:olive="http://olive.io/spec/BPMN/MODEL" id="Definitions_19bb10c"
+                  targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.7.0"
+                  modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.14.0">
   <bpmn:process id="Process_0r565a0" isExecutable="true">
     <bpmn:startEvent id="start">
       <bpmn:outgoing>Flow_02vwd78</bpmn:outgoing>
@@ -7,6 +12,16 @@
     <bpmn:task id="task" name="task">
       <bpmn:incoming>Flow_02vwd78</bpmn:incoming>
       <bpmn:outgoing>Flow_01oa3b2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <olive:taskDefinition type="service"/>
+        <olive:taskHeaders>
+          <olive:item key="contentType" value="aplication/json" type="string"/>
+        </olive:taskHeaders>
+        <olive:properties>
+          <olive:item key="a" value="1" type="integer"/>
+          <olive:item key="b" value="{&#34;a&#34;: &#34;b&#34;}" type="object"/>
+        </olive:properties>
+      </bpmn:extensionElements>
     </bpmn:task>
     <bpmn:sequenceFlow id="Flow_02vwd78" sourceRef="start" targetRef="task" />
     <bpmn:endEvent id="end">

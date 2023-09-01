@@ -32,12 +32,7 @@ type Instance struct {
 	flowWaitGroup                  sync.WaitGroup
 	complete                       sync.RWMutex
 	idGenerator                    id.IGenerator
-	dataObjectsByName              map[string]data.IItemAware
-	dataObjects                    map[schema.Id]data.IItemAware
-	dataObjectReferencesByName     map[string]data.IItemAware
-	dataObjectReferences           map[schema.Id]data.IItemAware
-	propertiesByName               map[string]data.IItemAware
-	properties                     map[schema.Id]data.IItemAware
+	dataObjectLocator              *DataObjectContainer
 	EventIngress                   event.IConsumer
 	EventEgress                    event.ISource
 	idGeneratorBuilder             id.IGeneratorBuilder
@@ -64,58 +59,6 @@ func (instance *Instance) RegisterEventConsumer(ev event.IConsumer) (err error) 
 	instance.eventConsumersLock.Lock()
 	defer instance.eventConsumersLock.Unlock()
 	instance.eventConsumers = append(instance.eventConsumers, ev)
-	return
-}
-
-func (instance *Instance) FindItemAwareById(id schema.IdRef) (itemAware data.IItemAware, found bool) {
-	for k := range instance.dataObjects {
-		if k == id {
-			found = true
-			itemAware = instance.dataObjects[k]
-			goto ready
-		}
-	}
-	for k := range instance.dataObjectReferences {
-		if k == id {
-			found = true
-			itemAware = instance.dataObjectReferences[k]
-			goto ready
-		}
-	}
-	for k := range instance.properties {
-		if k == id {
-			found = true
-			itemAware = instance.properties[k]
-			goto ready
-		}
-	}
-ready:
-	return
-}
-
-func (instance *Instance) FindItemAwareByName(name string) (itemAware data.IItemAware, found bool) {
-	for k := range instance.dataObjectsByName {
-		if k == name {
-			found = true
-			itemAware = instance.dataObjectsByName[k]
-			goto ready
-		}
-	}
-	for k := range instance.dataObjectReferencesByName {
-		if k == name {
-			found = true
-			itemAware = instance.dataObjectReferencesByName[k]
-			goto ready
-		}
-	}
-	for k := range instance.propertiesByName {
-		if k == name {
-			found = true
-			itemAware = instance.propertiesByName[k]
-			goto ready
-		}
-	}
-ready:
 	return
 }
 
@@ -176,14 +119,8 @@ func (instance *Instance) FlowNodeMapping() *flow_node.FlowNodeMapping {
 
 func NewInstance(element *schema.Process, definitions *schema.Definitions, options ...Option) (instance *Instance, err error) {
 	instance = &Instance{
-		process:                    element,
-		flowNodeMapping:            flow_node.NewLockedFlowNodeMapping(),
-		dataObjectsByName:          make(map[string]data.IItemAware),
-		dataObjectReferencesByName: make(map[string]data.IItemAware),
-		propertiesByName:           make(map[string]data.IItemAware),
-		dataObjects:                make(map[string]data.IItemAware),
-		dataObjectReferences:       make(map[string]data.IItemAware),
-		properties:                 make(map[string]data.IItemAware),
+		process:         element,
+		flowNodeMapping: flow_node.NewLockedFlowNodeMapping(),
 	}
 
 	ctx := context.Background()
@@ -216,8 +153,11 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		return
 	}
 
+	locators := make(map[string]data.IItemAwareLocator)
 	// Item aware elements
-
+	dataObjectContainer := NewDataObjectContainer()
+	headerContainer := NewHeaderContainer()
+	propertyContainer := NewPropertyContainer()
 	for i := range *instance.process.DataObjects() {
 		dataObject := &(*instance.process.DataObjects())[i]
 		var name string
@@ -226,10 +166,10 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		} else {
 			name = idGenerator.New().String()
 		}
-		container := data.NewContainer(ctx, dataObject)
-		instance.dataObjectsByName[name] = container
+		container := data.NewContainer(dataObject)
+		dataObjectContainer.dataObjectsByName[name] = container
 		if idPtr, present := dataObject.Id(); present {
-			instance.dataObjects[*idPtr] = container
+			dataObjectContainer.dataObjects[*idPtr] = container
 		}
 	}
 
@@ -243,9 +183,9 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		}
 		var container data.IItemAware
 		if dataObjPtr, present := dataObjectReference.DataObjectRef(); present {
-			for dataObjectId := range instance.dataObjects {
+			for dataObjectId := range dataObjectContainer.dataObjects {
 				if dataObjectId == *dataObjPtr {
-					container = instance.dataObjects[dataObjectId]
+					container = dataObjectContainer.dataObjects[dataObjectId]
 					break
 				}
 			}
@@ -262,9 +202,9 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 			}
 			return
 		}
-		instance.dataObjectReferencesByName[name] = container
+		dataObjectContainer.dataObjectReferencesByName[name] = container
 		if idPtr, present := dataObjectReference.Id(); present {
-			instance.dataObjectReferences[*idPtr] = container
+			dataObjectContainer.dataObjectReferences[*idPtr] = container
 		}
 	}
 
@@ -276,12 +216,33 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		} else {
 			name = idGenerator.New().String()
 		}
-		container := data.NewContainer(ctx, property)
-		instance.propertiesByName[name] = container
+		container := data.NewContainer(property)
+		dataObjectContainer.propertiesByName[name] = container
 		if idPtr, present := property.Id(); present {
-			instance.properties[*idPtr] = container
+			dataObjectContainer.properties[*idPtr] = container
 		}
 	}
+
+	if extension := instance.process.ExtensionElementsField; extension != nil {
+		if header := extension.TaskHeaderField; header != nil {
+			for _, item := range header.ItemFields {
+				container := data.NewContainer(nil)
+				container.Put(item.ValueFor())
+				headerContainer.items[item.Key] = container
+			}
+		}
+		if properties := extension.PropertiesField; properties != nil {
+			for _, item := range properties.ItemFields {
+				container := data.NewContainer(nil)
+				container.Put(item.ValueFor())
+				propertyContainer.items[item.Key] = container
+			}
+		}
+	}
+
+	locators["$"] = dataObjectContainer
+	locators["#"] = headerContainer
+	locators["@"] = propertyContainer
 
 	// Flow nodes
 
@@ -325,7 +286,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var startEvent *start.Node
-		startEvent, err = start.New(ctx, wiring, element, idGenerator, instance)
+		startEvent, err = start.New(ctx, wiring, element, idGenerator, locators)
 		if err != nil {
 			return
 		}
@@ -377,7 +338,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		}
 		var aTask *activity.Harness
 		aTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode,
-			idGenerator, task.NewTask(ctx, element), instance,
+			idGenerator, task.NewTask(ctx, element), locators,
 		)
 		if err != nil {
 			return

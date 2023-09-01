@@ -36,7 +36,7 @@ func sequenceFlows(process *schema.Process,
 	result = make([]sequence_flow.SequenceFlow, len(*flows))
 	for i := range result {
 		identifier := (*flows)[i]
-		exactId := schema.ExactId(identifier)
+		exactId := schema.ExactId(string(identifier))
 		if element, found := process.FindBy(func(e schema.Element) bool {
 			_, ok := e.(*schema.SequenceFlow)
 			return ok && exactId(e)
