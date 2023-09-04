@@ -1,13 +1,31 @@
-package model
+package model_test
 
 import (
+	"embed"
+	"encoding/xml"
+	"log"
 	"testing"
 
+	"github.com/olive-io/bpmn/model"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
 	"github.com/stretchr/testify/assert"
 )
+
+//go:embed testdata
+var testdata embed.FS
+
+func LoadTestFile(filename string, definitions any) {
+	var err error
+	src, err := testdata.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Can't read file %s: %v", filename, err)
+	}
+	err = xml.Unmarshal(src, definitions)
+	if err != nil {
+		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+	}
+}
 
 func exactId(s string) func(p *process.Process) bool {
 	return func(p *process.Process) bool {
@@ -22,11 +40,11 @@ func exactId(s string) func(p *process.Process) bool {
 var sampleDoc schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/model/sample.bpmn", &sampleDoc)
+	LoadTestFile("testdata/sample.bpmn", &sampleDoc)
 }
 
 func TestFindProcess(t *testing.T) {
-	model := New(&sampleDoc)
+	model := model.New(&sampleDoc)
 	if proc, found := model.FindProcessBy(exactId("sample")); found {
 		if id, present := proc.Element.Id(); present {
 			assert.Equal(t, *id, "sample")

@@ -1,29 +1,46 @@
-package end_event
+package start_test
 
 import (
 	"context"
+	"embed"
+	"encoding/xml"
+	"log"
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
 	"github.com/olive-io/bpmn/tracing"
 	_ "github.com/stretchr/testify/assert"
 )
 
+//go:embed testdata
+var testdata embed.FS
+
+func LoadTestFile(filename string, definitions any) {
+	var err error
+	src, err := testdata.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Can't read file %s: %v", filename, err)
+	}
+	err = xml.Unmarshal(src, definitions)
+	if err != nil {
+		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+	}
+}
+
 var testDoc schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/end_event/start.bpmn", &testDoc)
+	LoadTestFile("testdata/start.bpmn", &testDoc)
 }
 
-func TestEndEvent(t *testing.T) {
+func TestStartEvent(t *testing.T) {
 	processElement := (*testDoc.Processes())[0]
 	proc := process.New(&processElement, &testDoc)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -31,9 +48,9 @@ func TestEndEvent(t *testing.T) {
 		for {
 			trace := tracing.Unwrap(<-traces)
 			switch trace := trace.(type) {
-			case flow.CompletionTrace:
-				if id, present := trace.Node.Id(); present {
-					if *id == "end" {
+			case flow.Trace:
+				if id, present := trace.Source.Id(); present {
+					if *id == "start" {
 						// success!
 						break loop
 					}

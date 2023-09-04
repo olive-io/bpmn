@@ -1,25 +1,42 @@
-package exclusive_gateway
+package exclusive_test
 
 import (
 	"context"
+	"embed"
+	"encoding/xml"
 	"errors"
+	"log"
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/gateway/exclusive"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/assert"
 
 	_ "github.com/olive-io/bpmn/expression/expr"
 )
 
+//go:embed testdata
+var testdata embed.FS
+
+func LoadTestFile(filename string, definitions any) {
+	var err error
+	src, err := testdata.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Can't read file %s: %v", filename, err)
+	}
+	err = xml.Unmarshal(src, definitions)
+	if err != nil {
+		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+	}
+}
+
 var testExclusiveGateway schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/exclusive_gateway/exclusive_gateway.bpmn", &testExclusiveGateway)
+	LoadTestFile("testdata/exclusive_gateway.bpmn", &testExclusiveGateway)
 }
 
 func TestExclusiveGateway(t *testing.T) {
@@ -27,7 +44,7 @@ func TestExclusiveGateway(t *testing.T) {
 	proc := process.New(&processElement, &testExclusiveGateway)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -68,7 +85,7 @@ func TestExclusiveGateway(t *testing.T) {
 var testExclusiveGatewayWithDefault schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/exclusive_gateway/exclusive_gateway_default.bpmn", &testExclusiveGatewayWithDefault)
+	LoadTestFile("testdata/exclusive_gateway_default.bpmn", &testExclusiveGatewayWithDefault)
 }
 
 func TestExclusiveGatewayWithDefault(t *testing.T) {
@@ -76,7 +93,7 @@ func TestExclusiveGatewayWithDefault(t *testing.T) {
 	proc := process.New(&processElement, &testExclusiveGatewayWithDefault)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -118,7 +135,7 @@ func TestExclusiveGatewayWithDefault(t *testing.T) {
 var testExclusiveGatewayWithNoDefault schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/exclusive_gateway/exclusive_gateway_no_default.bpmn", &testExclusiveGatewayWithNoDefault)
+	LoadTestFile("testdata/exclusive_gateway_no_default.bpmn", &testExclusiveGatewayWithNoDefault)
 }
 
 func TestExclusiveGatewayWithNoDefault(t *testing.T) {
@@ -126,7 +143,7 @@ func TestExclusiveGatewayWithNoDefault(t *testing.T) {
 	proc := process.New(&processElement, &testExclusiveGatewayWithNoDefault)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -170,7 +187,7 @@ func TestExclusiveGatewayWithNoDefault(t *testing.T) {
 var testExclusiveGatewayIncompleteJoin schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/exclusive_gateway/exclusive_gateway_multiple_incoming.bpmn", &testExclusiveGatewayIncompleteJoin)
+	LoadTestFile("testdata/exclusive_gateway_multiple_incoming.bpmn", &testExclusiveGatewayIncompleteJoin)
 }
 
 func TestExclusiveGatewayIncompleteJoin(t *testing.T) {
@@ -178,7 +195,7 @@ func TestExclusiveGatewayIncompleteJoin(t *testing.T) {
 	proc := process.New(&processElement, &testExclusiveGatewayIncompleteJoin)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

@@ -6,8 +6,8 @@ import (
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
-	"github.com/olive-io/bpmn/logic"
 	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/tools/logic"
 	"github.com/olive-io/bpmn/tracing"
 )
 

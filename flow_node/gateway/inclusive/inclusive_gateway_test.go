@@ -1,8 +1,11 @@
-package inclusive_gateway
+package inclusive_test
 
 import (
 	"context"
+	"embed"
+	"encoding/xml"
 	"errors"
+	"log"
 	"testing"
 
 	_ "github.com/olive-io/bpmn/expression/expr"
@@ -11,15 +14,29 @@ import (
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/assert"
 )
 
+//go:embed testdata
+var testdata embed.FS
+
+func LoadTestFile(filename string, definitions any) {
+	var err error
+	src, err := testdata.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Can't read file %s: %v", filename, err)
+	}
+	err = xml.Unmarshal(src, definitions)
+	if err != nil {
+		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+	}
+}
+
 var testInclusiveGateway schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/inclusive_gateway/inclusive_gateway.bpmn", &testInclusiveGateway)
+	LoadTestFile("testdata/inclusive_gateway.bpmn", &testInclusiveGateway)
 }
 
 func TestInclusiveGateway(t *testing.T) {
@@ -28,7 +45,7 @@ func TestInclusiveGateway(t *testing.T) {
 	tracer := tracing.NewTracer(context.Background())
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 32))
 	if inst, err := proc.Instantiate(instance.WithTracer(tracer)); err == nil {
-		err := inst.StartAll(context.Background())
+		err := inst.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -75,7 +92,7 @@ func TestInclusiveGateway(t *testing.T) {
 var testInclusiveGatewayDefault schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/inclusive_gateway/inclusive_gateway_default.bpmn", &testInclusiveGatewayDefault)
+	LoadTestFile("testdata/inclusive_gateway_default.bpmn", &testInclusiveGatewayDefault)
 }
 
 func TestInclusiveGatewayDefault(t *testing.T) {
@@ -84,7 +101,7 @@ func TestInclusiveGatewayDefault(t *testing.T) {
 	tracer := tracing.NewTracer(context.Background())
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 32))
 	if inst, err := proc.Instantiate(instance.WithTracer(tracer)); err == nil {
-		err := inst.StartAll(context.Background())
+		err := inst.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -132,7 +149,7 @@ func TestInclusiveGatewayDefault(t *testing.T) {
 var testInclusiveGatewayNoDefault schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/inclusive_gateway/inclusive_gateway_no_default.bpmn", &testInclusiveGatewayNoDefault)
+	LoadTestFile("testdata/inclusive_gateway_no_default.bpmn", &testInclusiveGatewayNoDefault)
 }
 
 func TestInclusiveGatewayNoDefault(t *testing.T) {
@@ -140,7 +157,7 @@ func TestInclusiveGatewayNoDefault(t *testing.T) {
 	proc := process.New(&processElement, &testInclusiveGatewayNoDefault)
 	if inst, err := proc.Instantiate(); err == nil {
 		traces := inst.Tracer.Subscribe()
-		err := inst.StartAll(context.Background())
+		err := inst.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

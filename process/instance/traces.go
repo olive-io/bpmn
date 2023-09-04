@@ -1,7 +1,7 @@
 package instance
 
 import (
-	"github.com/olive-io/bpmn/id"
+	"github.com/olive-io/bpmn/tools/id"
 	"github.com/olive-io/bpmn/tracing"
 )
 

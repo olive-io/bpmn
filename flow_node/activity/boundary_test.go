@@ -1,7 +1,10 @@
-package activity
+package activity_test
 
 import (
 	"context"
+	"embed"
+	"encoding/xml"
+	"log"
 	"testing"
 
 	"github.com/olive-io/bpmn/event"
@@ -13,17 +16,31 @@ import (
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/assert"
 
 	_ "github.com/stretchr/testify/assert"
 )
 
+//go:embed testdata
+var testdata embed.FS
+
+func LoadTestFile(filename string, definitions any) {
+	var err error
+	src, err := testdata.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Can't read file %s: %v", filename, err)
+	}
+	err = xml.Unmarshal(src, definitions)
+	if err != nil {
+		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+	}
+}
+
 var testDoc schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/activity/boundary_event.bpmn", &testDoc)
+	LoadTestFile("testdata/boundary_event.bpmn", &testDoc)
 }
 
 func TestInterruptingEvent(t *testing.T) {
@@ -73,7 +90,7 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 			t.Fatalf("failed to get the flow node element for `task`")
 		}
 
-		err = inst.StartAll(context.Background())
+		err = inst.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

@@ -23,14 +23,6 @@ func TestXPath(t *testing.T) {
 
 type dataObjects map[string]data.IItemAware
 
-func (d dataObjects) PutItemAwareById(id schema.IdRef, itemAware data.IItemAware) {
-	panic("implement me")
-}
-
-func (d dataObjects) PutItemAwareByName(name string, itemAware data.IItemAware) {
-	panic("implement me")
-}
-
 func (d dataObjects) FindItemAwareById(id schema.IdRef) (itemAware data.IItemAware, found bool) {
 	itemAware, found = d[id]
 	return
@@ -41,7 +33,7 @@ func (d dataObjects) FindItemAwareByName(name string) (itemAware data.IItemAware
 	return
 }
 
-func (d dataObjects) Clone() map[string]data.IItem {
+func (d dataObjects) Clone() map[string]any {
 	panic("implement me")
 }
 

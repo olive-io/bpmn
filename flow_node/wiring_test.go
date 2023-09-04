@@ -1,37 +1,55 @@
-package flow_node
+package flow_node_test
 
 import (
 	"context"
+	"embed"
+	"encoding/xml"
+	"log"
 	"sync"
 	"testing"
 
 	"github.com/olive-io/bpmn/event"
+	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/assert"
 )
+
+//go:embed testdata
+var testdata embed.FS
+
+func LoadTestFile(filename string, definitions any) {
+	var err error
+	src, err := testdata.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Can't read file %s: %v", filename, err)
+	}
+	err = xml.Unmarshal(src, definitions)
+	if err != nil {
+		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+	}
+}
 
 var defaultDefinitions = schema.DefaultDefinitions()
 
 var sampleDoc schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/flow_node/sample.bpmn", &sampleDoc)
+	LoadTestFile("testdata/sample.bpmn", &sampleDoc)
 }
 
 func TestNewWiring(t *testing.T) {
 	var waitGroup sync.WaitGroup
 	if proc, found := sampleDoc.FindBy(schema.ExactId("sample")); found {
 		if flowNode, found := sampleDoc.FindBy(schema.ExactId("either")); found {
-			node, err := NewWiring(
+			node, err := flow_node.NewWiring(
 				nil,
 				proc.(*schema.Process),
 				&defaultDefinitions,
 				&flowNode.(*schema.ParallelGateway).FlowNode,
 				event.VoidConsumer{},
 				event.VoidSource{},
-				tracing.NewTracer(context.Background()), NewLockedFlowNodeMapping(),
+				tracing.NewTracer(context.Background()), flow_node.NewLockedFlowNodeMapping(),
 				&waitGroup,
 				event.WrappingDefinitionInstanceBuilder,
 			)

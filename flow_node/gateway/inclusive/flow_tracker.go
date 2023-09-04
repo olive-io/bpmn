@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/id"
 	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/tools/id"
 	"github.com/olive-io/bpmn/tracing"
 )
 

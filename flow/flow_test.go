@@ -1,21 +1,39 @@
-package flow
+package flow_test
 
 import (
 	"context"
+	"embed"
+	"encoding/xml"
+	"log"
 	"testing"
 
 	_ "github.com/olive-io/bpmn/expression/expr"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
 	"github.com/olive-io/bpmn/tracing"
+	"github.com/stretchr/testify/require"
 )
+
+//go:embed testdata
+var testdata embed.FS
+
+func LoadTestFile(filename string, definitions any) {
+	var err error
+	src, err := testdata.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Can't read file %s: %v", filename, err)
+	}
+	err = xml.Unmarshal(src, definitions)
+	if err != nil {
+		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+	}
+}
 
 var testCondExpr schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/flow/condexpr.bpmn", &testCondExpr)
+	LoadTestFile("testdata/condexpr.bpmn", &testCondExpr)
 }
 
 func TestTrueFormalExpression(t *testing.T) {
@@ -23,7 +41,7 @@ func TestTrueFormalExpression(t *testing.T) {
 	proc := process.New(&processElement, &testCondExpr)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -54,7 +72,7 @@ func TestTrueFormalExpression(t *testing.T) {
 var testCondExprFalse schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/flow/condexpr_false.bpmn", &testCondExprFalse)
+	LoadTestFile("testdata/condexpr_false.bpmn", &testCondExprFalse)
 }
 
 func TestFalseFormalExpression(t *testing.T) {
@@ -62,7 +80,7 @@ func TestFalseFormalExpression(t *testing.T) {
 	proc := process.New(&processElement, &testCondExprFalse)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -94,7 +112,7 @@ func TestFalseFormalExpression(t *testing.T) {
 var testCondDataObject schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/flow/condexpr_dataobject.bpmn", &testCondDataObject)
+	LoadTestFile("testdata/condexpr_dataobject.bpmn", &testCondDataObject)
 }
 
 func TestCondDataObject(t *testing.T) {
@@ -106,12 +124,11 @@ func TestCondDataObject(t *testing.T) {
 				traces := instance.Tracer.Subscribe()
 				// Set all data objects to false by default, except for `cond`
 				for _, k := range []string{"cond1o", "cond2o"} {
-					_ = k
-					//itemAware, found := instance.FindItemAwareByName(k)
-					//require.True(t, found)
-					//itemAware.Put(context.Background(), k == cond)
+					itemAware, found := instance.DataObjectLocator.FindItemAwareByName(k)
+					require.True(t, found)
+					itemAware.Put(k == cond)
 				}
-				err := instance.StartAll(context.Background())
+				err := instance.StartAll(context.Background(), nil)
 				if err != nil {
 					t.Fatalf("failed to run the instance: %s", err)
 				}

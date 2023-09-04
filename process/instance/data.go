@@ -15,8 +15,6 @@
 package instance
 
 import (
-	"sync"
-
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/schema"
 )
@@ -96,7 +94,6 @@ ready:
 }
 
 type HeaderContainer struct {
-	mu sync.RWMutex
 	data.DefaultItemAwareLocator
 	items map[string]data.IItemAware
 }
@@ -112,8 +109,6 @@ func (h *HeaderContainer) FindItemAwareById(id schema.IdRef) (data.IItemAware, b
 }
 
 func (h *HeaderContainer) FindItemAwareByName(name string) (data.IItemAware, bool) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
 	item, ok := h.items[name]
 	if !ok {
 		return nil, false
@@ -122,19 +117,7 @@ func (h *HeaderContainer) FindItemAwareByName(name string) (data.IItemAware, boo
 	return item, true
 }
 
-func (h *HeaderContainer) PutItemAwareById(id schema.IdRef, itemAware data.IItemAware) {
-	return
-}
-
-func (h *HeaderContainer) PutItemAwareByName(name string, itemAware data.IItemAware) {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	h.items[name] = itemAware
-	return
-}
-
 type PropertyContainer struct {
-	mu sync.RWMutex
 	data.DefaultItemAwareLocator
 	items map[string]data.IItemAware
 }
@@ -150,8 +133,6 @@ func (p *PropertyContainer) FindItemAwareById(id schema.IdRef) (data.IItemAware,
 }
 
 func (p *PropertyContainer) FindItemAwareByName(name string) (data.IItemAware, bool) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
 	item, ok := p.items[name]
 	if !ok {
 		return nil, false
@@ -160,21 +141,8 @@ func (p *PropertyContainer) FindItemAwareByName(name string) (data.IItemAware, b
 	return item, true
 }
 
-func (p *PropertyContainer) PutItemAwareById(id schema.IdRef, itemAware data.IItemAware) {
-	return
-}
-
-func (p *PropertyContainer) PutItemAwareByName(name string, itemAware data.IItemAware) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.items[name] = itemAware
-	return
-}
-
-func (p *PropertyContainer) Clone() map[string]data.IItem {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-	out := make(map[string]data.IItem)
+func (p *PropertyContainer) Clone() map[string]any {
+	out := make(map[string]any)
 	for name, item := range p.items {
 		value := item.Get()
 		if value != nil {

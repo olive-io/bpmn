@@ -1,43 +1,60 @@
-package catch_event
+package catch_test
 
 import (
 	"context"
+	"embed"
+	"encoding/xml"
+	"log"
 	"testing"
 
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
-	ev "github.com/olive-io/bpmn/flow_node/event/catch"
+	"github.com/olive-io/bpmn/flow_node/event/catch"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
 	"github.com/olive-io/bpmn/tracing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+//go:embed testdata
+var testdata embed.FS
+
+func LoadTestFile(filename string, definitions any) {
+	var err error
+	src, err := testdata.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Can't read file %s: %v", filename, err)
+	}
+	err = xml.Unmarshal(src, definitions)
+	if err != nil {
+		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+	}
+}
+
 func TestSignalEvent(t *testing.T) {
-	testEvent(t, "sample/catch_event/intermediate_catch_event.bpmn", "signalCatch", nil, false, event.NewSignalEvent("global_sig1"))
+	testEvent(t, "testdata/intermediate_catch_event.bpmn", "signalCatch", nil, false, event.NewSignalEvent("global_sig1"))
 }
 
 func TestMessageEvent(t *testing.T) {
-	testEvent(t, "sample/catch_event/intermediate_catch_event.bpmn", "messageCatch", nil, false, event.NewMessageEvent("msg", nil))
+	testEvent(t, "testdata/intermediate_catch_event.bpmn", "messageCatch", nil, false, event.NewMessageEvent("msg", nil))
 }
 
 func TestMultipleEvent(t *testing.T) {
 	// either
-	testEvent(t, "sample/catch_event/intermediate_catch_event_multiple.bpmn", "multipleCatch", nil, false, event.NewMessageEvent("msg", nil))
+	testEvent(t, "testdata/intermediate_catch_event_multiple.bpmn", "multipleCatch", nil, false, event.NewMessageEvent("msg", nil))
 	// or
-	testEvent(t, "sample/catch_event/intermediate_catch_event_multiple.bpmn", "multipleCatch", nil, false, event.NewSignalEvent("global_sig1"))
+	testEvent(t, "testdata/intermediate_catch_event_multiple.bpmn", "multipleCatch", nil, false, event.NewSignalEvent("global_sig1"))
 }
 
 func TestMultipleParallelEvent(t *testing.T) {
 	// both
-	testEvent(t, "sample/catch_event/intermediate_catch_event_multiple_parallel.bpmn", "multipleParallelCatch",
+	testEvent(t, "testdata/intermediate_catch_event_multiple_parallel.bpmn", "multipleParallelCatch",
 		nil, false, event.NewMessageEvent("msg", nil), event.NewSignalEvent("global_sig1"))
 	// either
-	testEvent(t, "sample/catch_event/intermediate_catch_event_multiple_parallel.bpmn", "multipleParallelCatch", nil, true, event.NewMessageEvent("msg", nil))
-	testEvent(t, "sample/catch_event/intermediate_catch_event_multiple_parallel.bpmn", "multipleParallelCatch", nil, true, event.NewSignalEvent("global_sig1"))
+	testEvent(t, "testdata/intermediate_catch_event_multiple_parallel.bpmn", "multipleParallelCatch", nil, true, event.NewMessageEvent("msg", nil))
+	testEvent(t, "testdata/intermediate_catch_event_multiple_parallel.bpmn", "multipleParallelCatch", nil, true, event.NewSignalEvent("global_sig1"))
 }
 
 type eventInstance struct {
@@ -67,18 +84,18 @@ func (e eventDefinitionInstanceBuilder) NewEventDefinitionInstance(def schema.Ev
 func TestTimerEvent(t *testing.T) {
 	i := eventInstance{id: "timer_1"}
 	b := eventDefinitionInstanceBuilder{}
-	testEvent(t, "sample/catch_event/intermediate_catch_event.bpmn", "timerCatch", &b, false, event.MakeTimerEvent(i))
+	testEvent(t, "testdata/intermediate_catch_event.bpmn", "timerCatch", &b, false, event.MakeTimerEvent(i))
 }
 
 func TestConditionalEvent(t *testing.T) {
 	i := eventInstance{id: "conditional_1"}
 	b := eventDefinitionInstanceBuilder{}
-	testEvent(t, "sample/catch_event/intermediate_catch_event.bpmn", "conditionalCatch", &b, false, event.MakeTimerEvent(i))
+	testEvent(t, "testdata/intermediate_catch_event.bpmn", "conditionalCatch", &b, false, event.MakeTimerEvent(i))
 }
 
 func testEvent(t *testing.T, filename string, nodeId string, eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder, eventObservationOnly bool, events ...event.IEvent) {
 	var testDoc schema.Definitions
-	test.LoadTestFile(filename, &testDoc)
+	LoadTestFile(filename, &testDoc)
 	processElement := (*testDoc.Processes())[0]
 	proc := process.New(&processElement, &testDoc, process.WithEventDefinitionInstanceBuilder(eventDefinitionInstanceBuilder))
 
@@ -86,7 +103,7 @@ func testEvent(t *testing.T, filename string, nodeId string, eventDefinitionInst
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 64))
 
 	if inst, err := proc.Instantiate(instance.WithTracer(tracer)); err == nil {
-		err := inst.StartAll(context.Background())
+		err := inst.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -95,7 +112,7 @@ func testEvent(t *testing.T, filename string, nodeId string, eventDefinitionInst
 			for {
 				trace := tracing.Unwrap(<-traces)
 				switch trace := trace.(type) {
-				case ev.ActiveListeningTrace:
+				case catch.ActiveListeningTrace:
 					if id, present := trace.Node.Id(); present {
 						if *id == nodeId {
 							// listening
@@ -122,7 +139,7 @@ func testEvent(t *testing.T, filename string, nodeId string, eventDefinitionInst
 			for {
 				trace := tracing.Unwrap(<-traces)
 				switch trace := trace.(type) {
-				case ev.EventObservedTrace:
+				case catch.EventObservedTrace:
 					if eventObservationOnly {
 						for i := range eventsToObserve {
 							if eventsToObserve[i] == trace.Event {

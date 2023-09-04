@@ -1,15 +1,14 @@
-package model
+package model_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/olive-io/bpmn/clock"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/model"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
+	clock2 "github.com/olive-io/bpmn/tools/clock"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/require"
 )
@@ -17,12 +16,12 @@ import (
 var testTimerStartEventInstantiation schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/model/instantiate_timer_start_event.bpmn", &testTimerStartEventInstantiation)
+	LoadTestFile("testdata/instantiate_timer_start_event.bpmn", &testTimerStartEventInstantiation)
 }
 
 func TestTimerStartEventInstantiation(t *testing.T) {
-	c := clock.NewMock()
-	ctx := clock.ToContext(context.Background(), c)
+	c := clock2.NewMock()
+	ctx := clock2.ToContext(context.Background(), c)
 	tracer := tracing.NewTracer(ctx)
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))
 	m := model.New(&testTimerStartEventInstantiation, model.WithContext(ctx), model.WithTracer(tracer))
@@ -61,12 +60,12 @@ loop1:
 var testRecurringTimerStartEventInstantiation schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/model/instantiate_recurring_timer_start_event.bpmn", &testRecurringTimerStartEventInstantiation)
+	LoadTestFile("testdata/instantiate_recurring_timer_start_event.bpmn", &testRecurringTimerStartEventInstantiation)
 }
 
 func TestRecurringTimerStartEventInstantiation(t *testing.T) {
-	c := clock.NewMock()
-	ctx := clock.ToContext(context.Background(), c)
+	c := clock2.NewMock()
+	ctx := clock2.ToContext(context.Background(), c)
 	tracer := tracing.NewTracer(ctx)
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))
 	m := model.New(&testRecurringTimerStartEventInstantiation, model.WithContext(ctx), model.WithTracer(tracer))

@@ -10,9 +10,9 @@ import (
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/expression"
 	"github.com/olive-io/bpmn/flow_node"
-	"github.com/olive-io/bpmn/id"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/sequence_flow"
+	"github.com/olive-io/bpmn/tools/id"
 	"github.com/olive-io/bpmn/tracing"
 )
 
@@ -29,6 +29,7 @@ type Flow struct {
 	terminate         flow_node.Terminate
 	sequenceFlowId    *string
 	itemAwareLocators map[string]data.IItemAwareLocator
+	variables         map[string]data.IItem
 }
 
 func (flow *Flow) SequenceFlow() *sequence_flow.SequenceFlow {
@@ -61,6 +62,7 @@ func New(definitions *schema.Definitions,
 	flowNodeMapping *flow_node.FlowNodeMapping, flowWaitGroup *sync.WaitGroup,
 	idGenerator id.IGenerator, actionTransformer flow_node.ActionTransformer,
 	itemAwareLocators map[string]data.IItemAwareLocator,
+	variables map[string]data.IItem,
 ) *Flow {
 	return &Flow{
 		id:                idGenerator.New(),
@@ -72,6 +74,7 @@ func New(definitions *schema.Definitions,
 		idGenerator:       idGenerator,
 		actionTransformer: actionTransformer,
 		itemAwareLocators: itemAwareLocators,
+		variables:         variables,
 	}
 }
 
@@ -91,7 +94,7 @@ func (flow *Flow) executeSequenceFlow(ctx context.Context, sequenceFlow *sequenc
 				lang = *flow.definitions.ExpressionLanguage()
 			}
 
-			dataSets := map[string]data.IItem{}
+			dataSets := map[string]any{}
 			engine := expression.GetEngine(ctx, lang)
 			for name, locator := range flow.itemAwareLocators {
 				if name == "@" {
@@ -100,6 +103,10 @@ func (flow *Flow) executeSequenceFlow(ctx context.Context, sequenceFlow *sequenc
 				}
 				engine.SetItemAwareLocator(name, locator)
 			}
+			for key, item := range flow.variables {
+				dataSets[key] = item
+			}
+
 			source := strings.Trim(*e.TextPayload(), " \n")
 			var compiled expression.ICompiledExpression
 			compiled, err = engine.CompileExpression(source)
@@ -208,7 +215,7 @@ func (flow *Flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow
 		flowId = flow.idGenerator.New()
 		f = func() {
 			newFlow := New(flow.definitions, flowNode, flow.tracer, flow.flowNodeMapping, flow.flowWaitGroup,
-				flow.idGenerator, actionTransformer, flow.itemAwareLocators)
+				flow.idGenerator, actionTransformer, flow.itemAwareLocators, nil)
 			newFlow.id = flowId // important: override id with pre-generated one
 			if idPtr, present := sequenceFlow.Id(); present {
 				newFlow.sequenceFlowId = idPtr

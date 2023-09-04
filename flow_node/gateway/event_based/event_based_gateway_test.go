@@ -1,7 +1,10 @@
-package event_based
+package event_based_test
 
 import (
 	"context"
+	"embed"
+	"encoding/xml"
+	"log"
 	"testing"
 
 	"github.com/olive-io/bpmn/event"
@@ -9,15 +12,29 @@ import (
 	ev "github.com/olive-io/bpmn/flow_node/event/catch"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/assert"
 )
 
+//go:embed testdata
+var testdata embed.FS
+
+func LoadTestFile(filename string, definitions any) {
+	var err error
+	src, err := testdata.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Can't read file %s: %v", filename, err)
+	}
+	err = xml.Unmarshal(src, definitions)
+	if err != nil {
+		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+	}
+}
+
 var testDoc schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/event_based/event_based_gateway.bpmn", &testDoc)
+	LoadTestFile("testdata/event_based_gateway.bpmn", &testDoc)
 }
 
 func TestEventBasedGateway(t *testing.T) {
@@ -36,7 +53,7 @@ func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...ev
 	proc := process.New(&processElement, &testDoc)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Errorf("failed to run the instance: %s", err)
 			return

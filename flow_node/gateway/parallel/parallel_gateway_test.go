@@ -1,24 +1,41 @@
-package parallel_gateway
+package parallel_test
 
 import (
 	"context"
+	"embed"
+	"encoding/xml"
+	"log"
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/gateway/parallel"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/assert"
 
 	_ "github.com/olive-io/bpmn/expression/expr"
 )
 
+//go:embed testdata
+var testdata embed.FS
+
+func LoadTestFile(filename string, definitions any) {
+	var err error
+	src, err := testdata.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Can't read file %s: %v", filename, err)
+	}
+	err = xml.Unmarshal(src, definitions)
+	if err != nil {
+		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+	}
+}
+
 var testParallelGateway schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/parallel_gateway/parallel_gateway_fork_join.bpmn", &testParallelGateway)
+	LoadTestFile("testdata/parallel_gateway_fork_join.bpmn", &testParallelGateway)
 }
 
 func TestParallelGateway(t *testing.T) {
@@ -26,7 +43,7 @@ func TestParallelGateway(t *testing.T) {
 	proc := process.New(&processElement, &testParallelGateway)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -68,7 +85,7 @@ func TestParallelGateway(t *testing.T) {
 var testParallelGatewayMtoN schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/parallel_gateway/parallel_gateway_m_n.bpmn", &testParallelGatewayMtoN)
+	LoadTestFile("testdata/parallel_gateway_m_n.bpmn", &testParallelGatewayMtoN)
 }
 
 func TestParallelGatewayMtoN(t *testing.T) {
@@ -76,7 +93,7 @@ func TestParallelGatewayMtoN(t *testing.T) {
 	proc := process.New(&processElement, &testParallelGatewayMtoN)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -117,7 +134,7 @@ func TestParallelGatewayMtoN(t *testing.T) {
 var testParallelGatewayNtoM schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/parallel_gateway/parallel_gateway_n_m.bpmn", &testParallelGatewayNtoM)
+	LoadTestFile("testdata/parallel_gateway_n_m.bpmn", &testParallelGatewayNtoM)
 }
 
 func TestParallelGatewayNtoM(t *testing.T) {
@@ -125,7 +142,7 @@ func TestParallelGatewayNtoM(t *testing.T) {
 	proc := process.New(&processElement, &testParallelGatewayNtoM)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -167,7 +184,7 @@ func TestParallelGatewayNtoM(t *testing.T) {
 var testParallelGatewayIncompleteJoin schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/parallel_gateway/parallel_gateway_fork_incomplete_join.bpmn", &testParallelGatewayIncompleteJoin)
+	LoadTestFile("testdata/parallel_gateway_fork_incomplete_join.bpmn", &testParallelGatewayIncompleteJoin)
 }
 
 func TestParallelGatewayIncompleteJoin(t *testing.T) {
@@ -175,7 +192,7 @@ func TestParallelGatewayIncompleteJoin(t *testing.T) {
 	proc := process.New(&processElement, &testParallelGatewayIncompleteJoin)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err := instance.StartAll(context.Background(), nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

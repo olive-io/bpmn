@@ -1,4 +1,4 @@
-package model
+package model_test
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/model"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +15,7 @@ import (
 var testStartEventInstantiation schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/model/instantiate_start_event.bpmn", &testStartEventInstantiation)
+	LoadTestFile("testdata/instantiate_start_event.bpmn", &testStartEventInstantiation)
 }
 
 func TestStartEventInstantiation(t *testing.T) {

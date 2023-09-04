@@ -1,19 +1,18 @@
-package catch_event
+package catch_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/olive-io/bpmn/clock"
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/event/catch"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/test"
-	"github.com/olive-io/bpmn/timer"
+	clock2 "github.com/olive-io/bpmn/tools/clock"
+	"github.com/olive-io/bpmn/tools/timer"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/require"
 )
@@ -21,15 +20,15 @@ import (
 var timerDoc schema.Definitions
 
 func init() {
-	test.LoadTestFile("sample/catch_event/intermediate_catch_event_timer.bpmn", &timerDoc)
+	LoadTestFile("testdata/intermediate_catch_event_timer.bpmn", &timerDoc)
 }
 
 func TestCatchEvent_Timer(t *testing.T) {
 	processElement := (*timerDoc.Processes())[0]
 	proc := process.New(&processElement, &timerDoc)
 	fanOut := event.NewFanOut()
-	c := clock.NewMock()
-	ctx := clock.ToContext(context.Background(), c)
+	c := clock2.NewMock()
+	ctx := clock2.ToContext(context.Background(), c)
 	tracer := tracing.NewTracer(ctx)
 	eventInstanceBuilder := event.DefinitionInstanceBuildingChain(
 		timer.EventDefinitionInstanceBuilder(ctx, fanOut, tracer),
@@ -41,7 +40,7 @@ func TestCatchEvent_Timer(t *testing.T) {
 		instance.WithEventEgress(fanOut),
 		instance.WithEventIngress(fanOut),
 	); err == nil {
-		err := i.StartAll(ctx)
+		err := i.StartAll(ctx, nil)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

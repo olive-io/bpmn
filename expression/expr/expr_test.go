@@ -23,14 +23,6 @@ func TestExpr(t *testing.T) {
 
 type dataObjects map[string]data.IItemAware
 
-func (d dataObjects) PutItemAwareById(id schema.IdRef) (itemAware data.IItemAware, found bool) {
-	panic("implement me")
-}
-
-func (d dataObjects) PutItemAwareByName(name string) (itemAware data.IItemAware, found bool) {
-	panic("implement me")
-}
-
 func (d dataObjects) FindItemAwareById(id schema.IdRef) (itemAware data.IItemAware, found bool) {
 	itemAware, found = d[id]
 	return
@@ -39,6 +31,11 @@ func (d dataObjects) FindItemAwareById(id schema.IdRef) (itemAware data.IItemAwa
 func (d dataObjects) FindItemAwareByName(name string) (itemAware data.IItemAware, found bool) {
 	itemAware, found = d[name]
 	return
+}
+
+func (d dataObjects) Clone() map[string]any {
+	//TODO implement me
+	panic("implement me")
 }
 
 func TestExpr_getDataObject(t *testing.T) {

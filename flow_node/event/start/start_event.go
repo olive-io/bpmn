@@ -8,9 +8,9 @@ import (
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
-	"github.com/olive-io/bpmn/id"
-	"github.com/olive-io/bpmn/logic"
 	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/tools/id"
+	"github.com/olive-io/bpmn/tools/logic"
 	"github.com/olive-io/bpmn/tracing"
 )
 
@@ -41,6 +41,7 @@ type Node struct {
 	activated         bool
 	idGenerator       id.IGenerator
 	itemAwareLocators map[string]data.IItemAwareLocator
+	variables         map[string]data.IItem
 	satisfier         *logic.CatchEventSatisfier
 }
 
@@ -111,7 +112,7 @@ func (node *Node) runner(ctx context.Context, sender tracing.ISenderHandle) {
 func (node *Node) flow(ctx context.Context) {
 	newFlow := flow.New(node.Wiring.Definitions, node, node.Wiring.Tracer,
 		node.Wiring.FlowNodeMapping, node.Wiring.FlowWaitGroup, node.idGenerator, nil,
-		node.itemAwareLocators,
+		node.itemAwareLocators, node.variables,
 	)
 	newFlow.Start(ctx)
 }
@@ -122,7 +123,8 @@ func (node *Node) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult,
 	return
 }
 
-func (node *Node) Trigger() {
+func (node *Node) Trigger(variables map[string]data.IItem) {
+	node.variables = variables
 	node.runnerChannel <- startMessage{}
 }
 

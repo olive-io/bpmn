@@ -96,12 +96,8 @@ type IItemAwareLocator interface {
 	FindItemAwareById(id schema.IdRef) (itemAware IItemAware, found bool)
 	// FindItemAwareByName finds ItemAware by its name (where applicable)
 	FindItemAwareByName(name string) (itemAware IItemAware, found bool)
-	// PutItemAwareById put ItemAware by its schema.Id
-	PutItemAwareById(id schema.IdRef, itemAware IItemAware)
-	// PutItemAwareByName put ItemAware by its name (where applicable)
-	PutItemAwareByName(name string, itemAware IItemAware)
 	// Clone clones all IItem to the specified target
-	Clone() map[string]IItem
+	Clone() map[string]any
 }
 
 type DefaultItemAwareLocator struct{}
@@ -114,12 +110,4 @@ func (d DefaultItemAwareLocator) FindItemAwareByName(name string) (itemAware IIt
 	return
 }
 
-func (d DefaultItemAwareLocator) PutItemAwareById(id schema.IdRef, itemAware IItemAware) {
-	return
-}
-
-func (d DefaultItemAwareLocator) PutItemAwareByName(name string, itemAware IItemAware) {
-	return
-}
-
-func (d DefaultItemAwareLocator) Clone() map[string]IItem { return map[string]IItem{} }
+func (d DefaultItemAwareLocator) Clone() map[string]any { return map[string]any{} }

@@ -19,8 +19,8 @@ import (
 	"github.com/olive-io/bpmn/flow_node/gateway/exclusive"
 	"github.com/olive-io/bpmn/flow_node/gateway/inclusive"
 	"github.com/olive-io/bpmn/flow_node/gateway/parallel"
-	"github.com/olive-io/bpmn/id"
 	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/tools/id"
 	"github.com/olive-io/bpmn/tracing"
 )
 
@@ -32,7 +32,7 @@ type Instance struct {
 	flowWaitGroup                  sync.WaitGroup
 	complete                       sync.RWMutex
 	idGenerator                    id.IGenerator
-	dataObjectLocator              *DataObjectContainer
+	DataObjectLocator              *DataObjectContainer
 	EventIngress                   event.IConsumer
 	EventEgress                    event.ISource
 	idGeneratorBuilder             id.IGeneratorBuilder
@@ -243,6 +243,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 	locators["$"] = dataObjectContainer
 	locators["#"] = headerContainer
 	locators["@"] = propertyContainer
+	instance.DataObjectLocator = dataObjectContainer
 
 	// Flow nodes
 
@@ -338,7 +339,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		}
 		var aTask *activity.Harness
 		aTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode,
-			idGenerator, task.NewTask(ctx, element), locators,
+			idGenerator, task.NewTask(ctx, element), locators, nil,
 		)
 		if err != nil {
 			return
@@ -429,7 +430,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 }
 
 // StartWith explicitly starts the instance by triggering a given start event
-func (instance *Instance) StartWith(ctx context.Context, startEvent schema.StartEventInterface) (err error) {
+func (instance *Instance) StartWith(ctx context.Context, startEvent schema.StartEventInterface, variables map[string]data.IItem) (err error) {
 	flowNode, found := instance.flowNodeMapping.ResolveElementToFlowNode(startEvent)
 	elementId := "<unnamed>"
 	if idPtr, present := startEvent.Id(); present {
@@ -451,14 +452,14 @@ func (instance *Instance) StartWith(ctx context.Context, startEvent schema.Start
 		}
 		return
 	}
-	startEventNode.Trigger()
+	startEventNode.Trigger(variables)
 	return
 }
 
 // StartAll explicitly starts the instance by triggering all start events, if any
-func (instance *Instance) StartAll(ctx context.Context) (err error) {
+func (instance *Instance) StartAll(ctx context.Context, variables map[string]data.IItem) (err error) {
 	for i := range *instance.process.StartEvents() {
-		err = instance.StartWith(ctx, &(*instance.process.StartEvents())[i])
+		err = instance.StartWith(ctx, &(*instance.process.StartEvents())[i], variables)
 		if err != nil {
 			return
 		}
