@@ -25,7 +25,9 @@ import (
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
+	"github.com/olive-io/bpmn/flow_node/activity/service_task"
 	"github.com/olive-io/bpmn/flow_node/activity/task"
+	"github.com/olive-io/bpmn/flow_node/activity/user_task"
 	"github.com/olive-io/bpmn/flow_node/event/catch"
 	"github.com/olive-io/bpmn/flow_node/event/end"
 	"github.com/olive-io/bpmn/flow_node/event/start"
@@ -359,6 +361,46 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, aTask)
+		if err != nil {
+			return
+		}
+	}
+
+	for i := range *instance.process.ServiceTasks() {
+		element := &(*instance.process.ServiceTasks())[i]
+		wiring, err = wiringMaker(&element.FlowNode)
+		if err != nil {
+			return
+		}
+		var sTask *activity.Harness
+		taskElem := service_task.NewServiceTask(ctx, element)
+		sTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode,
+			idGenerator, taskElem, locators, nil,
+		)
+		if err != nil {
+			return
+		}
+		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, sTask)
+		if err != nil {
+			return
+		}
+	}
+
+	for i := range *instance.process.UserTasks() {
+		element := &(*instance.process.UserTasks())[i]
+		wiring, err = wiringMaker(&element.FlowNode)
+		if err != nil {
+			return
+		}
+		var sTask *activity.Harness
+		taskElem := user_task.NewUserTask(ctx, element)
+		sTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode,
+			idGenerator, taskElem, locators, nil,
+		)
+		if err != nil {
+			return
+		}
+		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, sTask)
 		if err != nil {
 			return
 		}

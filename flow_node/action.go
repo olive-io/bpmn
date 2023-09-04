@@ -15,6 +15,7 @@
 package flow_node
 
 import (
+	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/sequence_flow"
 )
@@ -37,16 +38,20 @@ type ActionTransformer func(sequenceFlowId *schema.IdRef, action IAction) IActio
 type Terminate func(sequenceFlowId *schema.IdRef) chan bool
 
 type FlowAction struct {
+	DataObjects map[string]data.IItem
+	Variables   map[string]data.IItem
+	Err         error
+
 	SequenceFlows []*sequence_flow.SequenceFlow
 	// Index of sequence flows that should flow without
 	// conditionExpression being evaluated
 	UnconditionalFlows []int
 	// The actions produced by the targets should be processed by
 	// this function
-	ActionTransformer
+	ActionTransformer ActionTransformer
 	// If supplied channel sends a function that returns true, the flow action
 	// is to be terminated if it wasn't already
-	Terminate
+	Terminate Terminate
 }
 
 func (action FlowAction) action() {}

@@ -49,15 +49,14 @@ type Flow struct {
 func (flow *Flow) SequenceFlow() *sequence_flow.SequenceFlow {
 	if flow.sequenceFlowId == nil {
 		return nil
-	} else {
-		seqFlow, present := flow.definitions.FindBy(schema.ExactId(*flow.sequenceFlowId).
-			And(schema.ElementType((*schema.SequenceFlow)(nil))))
-		if present {
-			return sequence_flow.New(seqFlow.(*schema.SequenceFlow), flow.definitions)
-		} else {
-			return nil
-		}
 	}
+	seqFlow, present := flow.definitions.FindBy(schema.ExactId(*flow.sequenceFlowId).
+		And(schema.ElementType((*schema.SequenceFlow)(nil))))
+	if present {
+		return sequence_flow.New(seqFlow.(*schema.SequenceFlow), flow.definitions)
+	}
+
+	return nil
 }
 
 func (flow *Flow) Id() id.Id {
@@ -66,6 +65,22 @@ func (flow *Flow) Id() id.Id {
 
 func (flow *Flow) SetTerminate(terminate flow_node.Terminate) {
 	flow.terminate = terminate
+}
+
+func (flow *Flow) CloneItems(locator string) map[string]any {
+	l, ok := flow.itemAwareLocators[locator]
+	if !ok {
+		return nil
+	}
+	return l.Clone()
+}
+
+func (flow *Flow) CloneVariables() map[string]any {
+	out := make(map[string]any)
+	for key, value := range flow.variables {
+		out[key] = value
+	}
+	return out
 }
 
 // New creates a new flow from a flow node
@@ -229,7 +244,7 @@ func (flow *Flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow
 		flowId = flow.idGenerator.New()
 		f = func() {
 			newFlow := New(flow.definitions, flowNode, flow.tracer, flow.flowNodeMapping, flow.flowWaitGroup,
-				flow.idGenerator, actionTransformer, flow.itemAwareLocators, nil)
+				flow.idGenerator, actionTransformer, flow.itemAwareLocators, flow.variables)
 			newFlow.id = flowId // important: override id with pre-generated one
 			if idPtr, present := sequenceFlow.Id(); present {
 				newFlow.sequenceFlowId = idPtr
@@ -302,6 +317,30 @@ func (flow *Flow) Start(ctx context.Context) {
 					}
 					a.ProbeReport(results)
 				case flow_node.FlowAction:
+					if len(a.DataObjects) > 0 {
+						locator, ok := flow.itemAwareLocators["$"]
+						if ok {
+							for name, do := range a.DataObjects {
+								aware, found := locator.FindItemAwareByName(name)
+								if !found {
+									container := data.NewContainer(nil)
+									container.Put(do)
+									locator.PutItemAwareByName(name, container)
+								} else {
+									aware.Put(do)
+								}
+							}
+						}
+					}
+					if len(a.Variables) > 0 {
+						if flow.variables == nil {
+							flow.variables = map[string]data.IItem{}
+						}
+						for key, value := range a.Variables {
+							flow.variables[key] = value
+						}
+					}
+
 					sequenceFlows := a.SequenceFlows
 					if len(a.SequenceFlows) > 0 {
 						unconditional := make([]bool, len(a.SequenceFlows))

@@ -15,6 +15,8 @@
 package instance
 
 import (
+	"sync"
+
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/schema"
 )
@@ -22,6 +24,7 @@ import (
 type DataObjectContainer struct {
 	data.DefaultItemAwareLocator
 
+	mu                         sync.RWMutex
 	dataObjectsByName          map[string]data.IItemAware
 	dataObjects                map[schema.Id]data.IItemAware
 	dataObjectReferencesByName map[string]data.IItemAware
@@ -42,6 +45,8 @@ func NewDataObjectContainer() *DataObjectContainer {
 }
 
 func (do *DataObjectContainer) FindItemAwareById(id schema.IdRef) (itemAware data.IItemAware, found bool) {
+	do.mu.RLock()
+	defer do.mu.RUnlock()
 	for k := range do.dataObjects {
 		if k == id {
 			found = true
@@ -68,6 +73,8 @@ ready:
 }
 
 func (do *DataObjectContainer) FindItemAwareByName(name string) (itemAware data.IItemAware, found bool) {
+	do.mu.RLock()
+	defer do.mu.RUnlock()
 	for k := range do.dataObjectsByName {
 		if k == name {
 			found = true
@@ -91,6 +98,29 @@ func (do *DataObjectContainer) FindItemAwareByName(name string) (itemAware data.
 	}
 ready:
 	return
+}
+
+func (do *DataObjectContainer) PutItemAwareByName(name string, itemAware data.IItemAware) {
+	do.mu.Lock()
+	defer do.mu.Unlock()
+	do.dataObjectsByName[name] = itemAware
+}
+
+func (do *DataObjectContainer) Clone() map[string]any {
+	out := make(map[string]any)
+	for name, item := range do.dataObjectsByName {
+		value := item.Get()
+		if value != nil {
+			out[name] = value
+		}
+	}
+	for name, item := range do.propertiesByName {
+		value := item.Get()
+		if value != nil {
+			out[name] = value
+		}
+	}
+	return out
 }
 
 type HeaderContainer struct {
@@ -117,7 +147,19 @@ func (h *HeaderContainer) FindItemAwareByName(name string) (data.IItemAware, boo
 	return item, true
 }
 
+func (h *HeaderContainer) Clone() map[string]any {
+	out := make(map[string]any)
+	for name, item := range h.items {
+		value := item.Get()
+		if value != nil {
+			out[name] = value
+		}
+	}
+	return out
+}
+
 type PropertyContainer struct {
+	mu sync.RWMutex
 	data.DefaultItemAwareLocator
 	items map[string]data.IItemAware
 }
@@ -133,12 +175,20 @@ func (p *PropertyContainer) FindItemAwareById(id schema.IdRef) (data.IItemAware,
 }
 
 func (p *PropertyContainer) FindItemAwareByName(name string) (data.IItemAware, bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 	item, ok := p.items[name]
 	if !ok {
 		return nil, false
 	}
 
 	return item, true
+}
+
+func (p *PropertyContainer) PutItemAwareByName(name string, itemAware data.IItemAware) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.items[name] = itemAware
 }
 
 func (p *PropertyContainer) Clone() map[string]any {

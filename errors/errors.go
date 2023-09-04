@@ -59,3 +59,13 @@ type NotSupportedError struct {
 func (e NotSupportedError) Error() string {
 	return fmt.Sprintf("%s is not supported because %s", e.What, e.Reason)
 }
+
+type TaskCallError struct {
+	Type   string
+	Id     string
+	Reason string
+}
+
+func (e TaskCallError) Error() string {
+	return fmt.Sprintf("call task %s-%s failed: %v", e.Type, e.Id, e.Reason)
+}

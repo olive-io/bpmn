@@ -4,10 +4,21 @@
     <bpmn:startEvent id="start">
       <bpmn:outgoing>Flow_1hox6h5</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:task id="task">
+    <bpmn:serviceTask id="task">
       <bpmn:incoming>Flow_1hox6h5</bpmn:incoming>
       <bpmn:outgoing>Flow_0rnfgnz</bpmn:outgoing>
-    </bpmn:task>
+      <bpmn:extensionElements>
+        <olive:taskDefinition type="service"/>
+        <olive:taskHeaders>
+          <olive:item key="contentType" value="aplication/json" type="string"/>
+        </olive:taskHeaders>
+        <olive:properties>
+          <olive:item key="a" value="1" type="integer"/>
+          <olive:item key="b" value="{&#34;a&#34;: &#34;b&#34;}" type="object"/>
+          <olive:item key="c" value="" type="object"/>
+        </olive:properties>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_1hox6h5" sourceRef="start" targetRef="task" />
     <bpmn:endEvent id="end">
       <bpmn:incoming>Flow_0rnfgnz</bpmn:incoming>

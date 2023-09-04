@@ -59,13 +59,13 @@ func (node *Task) SetBody(body func(*Task, context.Context) flow_node.IAction) {
 	node.body = body
 }
 
-func NewTask(ctx context.Context, startEvent *schema.Task) activity.Constructor {
+func NewTask(ctx context.Context, task *schema.Task) activity.Constructor {
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
 		taskNode := &Task{
 			Wiring:        wiring,
-			element:       startEvent,
+			element:       task,
 			runnerChannel: make(chan message, len(wiring.Incoming)*2+1),
 			cancel:        cancel,
 		}
