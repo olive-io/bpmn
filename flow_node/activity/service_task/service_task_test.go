@@ -21,10 +21,10 @@ import (
 	"log"
 	"testing"
 
-	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/activity/service_task"
 	"github.com/olive-io/bpmn/process"
+	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 	_ "github.com/stretchr/testify/assert"
@@ -54,11 +54,12 @@ func init() {
 func TestServiceTask(t *testing.T) {
 	processElement := (*testTask.Processes())[0]
 	proc := process.New(&processElement, &testTask)
-	if instance, err := proc.Instantiate(); err == nil {
-		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background(), map[string]data.IItem{
-			"c": map[string]string{"name": "cc"},
-		})
+	option := instance.WithVariables(map[string]any{
+		"c": map[string]string{"name": "cc"},
+	})
+	if ins, err := proc.Instantiate(option); err == nil {
+		traces := ins.Tracer.Subscribe()
+		err := ins.StartAll(context.Background())
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -84,7 +85,7 @@ func TestServiceTask(t *testing.T) {
 				t.Logf("%#v", trace)
 			}
 		}
-		instance.Tracer.Unsubscribe(traces)
+		ins.Tracer.Unsubscribe(traces)
 	} else {
 		t.Fatalf("failed to instantiate the process: %s", err)
 	}

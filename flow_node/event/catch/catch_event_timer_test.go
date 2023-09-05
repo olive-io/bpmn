@@ -54,7 +54,7 @@ func TestCatchEvent_Timer(t *testing.T) {
 		instance.WithEventEgress(fanOut),
 		instance.WithEventIngress(fanOut),
 	); err == nil {
-		err := i.StartAll(ctx, nil)
+		err := i.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

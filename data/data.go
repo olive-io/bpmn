@@ -134,8 +134,12 @@ func (d DefaultItemAwareLocator) PutItemAwareById(id schema.IdRef, itemAware IIt
 
 func (d DefaultItemAwareLocator) PutItemAwareByName(name string, itemAware IItemAware) {}
 
-// FlowDataLocator interface describes a way to find IItem and Variables
-type FlowDataLocator interface {
+// IFlowDataLocator interface describes a way to find and put IItemAwareLocator and Variables
+type IFlowDataLocator interface {
+	FindIItemAwareLocator(name string) (locator IItemAwareLocator, found bool)
+	PutIItemAwareLocator(name string, locator IItemAwareLocator)
 	CloneItems(name string) map[string]any
+	GetVariable(name string) (value any, found bool)
+	SetVariable(name string, value any)
 	CloneVariables() map[string]any
 }

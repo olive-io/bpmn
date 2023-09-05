@@ -55,7 +55,7 @@ func TestTrueFormalExpression(t *testing.T) {
 	proc := process.New(&processElement, &testCondExpr)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background(), nil)
+		err := instance.StartAll(context.Background())
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -94,7 +94,7 @@ func TestFalseFormalExpression(t *testing.T) {
 	proc := process.New(&processElement, &testCondExprFalse)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background(), nil)
+		err := instance.StartAll(context.Background())
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -142,7 +142,7 @@ func TestCondDataObject(t *testing.T) {
 					require.True(t, found)
 					itemAware.Put(k == cond)
 				}
-				err := instance.StartAll(context.Background(), nil)
+				err := instance.StartAll(context.Background())
 				if err != nil {
 					t.Fatalf("failed to run the instance: %s", err)
 				}

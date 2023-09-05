@@ -67,7 +67,7 @@ func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...ev
 	proc := process.New(&processElement, &testDoc)
 	if instance, err := proc.Instantiate(); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background(), nil)
+		err := instance.StartAll(context.Background())
 		if err != nil {
 			t.Errorf("failed to run the instance: %s", err)
 			return

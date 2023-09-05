@@ -42,8 +42,7 @@ type Flow struct {
 	actionTransformer flow_node.ActionTransformer
 	terminate         flow_node.Terminate
 	sequenceFlowId    *string
-	itemAwareLocators map[string]data.IItemAwareLocator
-	variables         map[string]data.IItem
+	locator           data.IFlowDataLocator
 }
 
 func (flow *Flow) SequenceFlow() *sequence_flow.SequenceFlow {
@@ -67,22 +66,6 @@ func (flow *Flow) SetTerminate(terminate flow_node.Terminate) {
 	flow.terminate = terminate
 }
 
-func (flow *Flow) CloneItems(locator string) map[string]any {
-	l, ok := flow.itemAwareLocators[locator]
-	if !ok {
-		return nil
-	}
-	return l.Clone()
-}
-
-func (flow *Flow) CloneVariables() map[string]any {
-	out := make(map[string]any)
-	for key, value := range flow.variables {
-		out[key] = value
-	}
-	return out
-}
-
 // New creates a new flow from a flow node
 //
 // The flow does nothing until it is explicitly started.
@@ -90,8 +73,7 @@ func New(definitions *schema.Definitions,
 	current flow_node.IFlowNode, tracer tracing.ITracer,
 	flowNodeMapping *flow_node.FlowNodeMapping, flowWaitGroup *sync.WaitGroup,
 	idGenerator id.IGenerator, actionTransformer flow_node.ActionTransformer,
-	itemAwareLocators map[string]data.IItemAwareLocator,
-	variables map[string]data.IItem,
+	locator data.IFlowDataLocator,
 ) *Flow {
 	return &Flow{
 		id:                idGenerator.New(),
@@ -102,8 +84,7 @@ func New(definitions *schema.Definitions,
 		flowWaitGroup:     flowWaitGroup,
 		idGenerator:       idGenerator,
 		actionTransformer: actionTransformer,
-		itemAwareLocators: itemAwareLocators,
-		variables:         variables,
+		locator:           locator,
 	}
 }
 
@@ -125,14 +106,14 @@ func (flow *Flow) executeSequenceFlow(ctx context.Context, sequenceFlow *sequenc
 
 			dataSets := map[string]any{}
 			engine := expression.GetEngine(ctx, lang)
-			for name, locator := range flow.itemAwareLocators {
-				if name == "@" {
-					dataSets = locator.Clone()
-					continue
-				}
-				engine.SetItemAwareLocator(name, locator)
+			if locator, found := flow.locator.FindIItemAwareLocator("$"); found {
+				engine.SetItemAwareLocator("$", locator)
 			}
-			for key, item := range flow.variables {
+			if locator, found := flow.locator.FindIItemAwareLocator("#"); found {
+				engine.SetItemAwareLocator("#", locator)
+			}
+
+			for key, item := range flow.locator.CloneVariables() {
 				dataSets[key] = item
 			}
 
@@ -243,8 +224,8 @@ func (flow *Flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow
 	if flowNode, found := flow.flowNodeMapping.ResolveElementToFlowNode(target); found {
 		flowId = flow.idGenerator.New()
 		f = func() {
-			newFlow := New(flow.definitions, flowNode, flow.tracer, flow.flowNodeMapping, flow.flowWaitGroup,
-				flow.idGenerator, actionTransformer, flow.itemAwareLocators, flow.variables)
+			newFlow := New(flow.definitions, flowNode, flow.tracer, flow.flowNodeMapping,
+				flow.flowWaitGroup, flow.idGenerator, actionTransformer, flow.locator)
 			newFlow.id = flowId // important: override id with pre-generated one
 			if idPtr, present := sequenceFlow.Id(); present {
 				newFlow.sequenceFlowId = idPtr
@@ -318,8 +299,8 @@ func (flow *Flow) Start(ctx context.Context) {
 					a.ProbeReport(results)
 				case flow_node.FlowAction:
 					if len(a.DataObjects) > 0 {
-						locator, ok := flow.itemAwareLocators["$"]
-						if ok {
+						locator, found := flow.locator.FindIItemAwareLocator("$")
+						if found {
 							for name, do := range a.DataObjects {
 								aware, found := locator.FindItemAwareByName(name)
 								if !found {
@@ -333,11 +314,8 @@ func (flow *Flow) Start(ctx context.Context) {
 						}
 					}
 					if len(a.Variables) > 0 {
-						if flow.variables == nil {
-							flow.variables = map[string]data.IItem{}
-						}
 						for key, value := range a.Variables {
-							flow.variables[key] = value
+							flow.locator.SetVariable(key, value)
 						}
 					}
 

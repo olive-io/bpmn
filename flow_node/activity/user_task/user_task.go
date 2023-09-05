@@ -97,6 +97,8 @@ func (node *UserTask) runner(ctx context.Context) {
 
 					node.Tracer.Trace(callTrace)
 					select {
+					case <-ctx.Done():
+						return
 					case out := <-response:
 						if out.err != nil {
 							action.Err = out.err
@@ -123,32 +125,31 @@ func (node *UserTask) NextAction(t flow_interface.T) chan flow_node.IAction {
 		response: response,
 	}
 
-	if locator, ok := t.(data.FlowDataLocator); ok {
-		variables := locator.CloneVariables()
-		headers := map[string]any{}
-		dataSets := map[string]any{}
-		if extension := node.element.ExtensionElementsField; extension != nil {
-			if properties := extension.PropertiesField; properties != nil {
-				fields := properties.ItemFields
-				for _, field := range fields {
-					value := field.ValueFor()
-					if len(strings.TrimSpace(field.Value)) == 0 {
-						value = variables[field.Key]
-					}
-					dataSets[field.Key] = value
+	variables := node.Locator.CloneVariables()
+	headers := map[string]any{}
+	dataSets := map[string]any{}
+	if extension := node.element.ExtensionElementsField; extension != nil {
+		if properties := extension.PropertiesField; properties != nil {
+			fields := properties.ItemFields
+			for _, field := range fields {
+				value := field.ValueFor()
+				if len(strings.TrimSpace(field.Value)) == 0 {
+					value = variables[field.Key]
 				}
-			}
-			if header := extension.TaskHeaderField; header != nil {
-				fields := header.ItemFields
-				for _, field := range fields {
-					value := field.ValueFor()
-					headers[field.Key] = value
-				}
+				dataSets[field.Key] = value
 			}
 		}
-		msg.Headers = headers
-		msg.Properties = dataSets
+		if header := extension.TaskHeaderField; header != nil {
+			fields := header.ItemFields
+			for _, field := range fields {
+				value := field.ValueFor()
+				headers[field.Key] = value
+			}
+		}
 	}
+	msg.Headers = headers
+	msg.Properties = dataSets
+
 	node.runnerChannel <- msg
 	return response
 }

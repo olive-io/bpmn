@@ -19,7 +19,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow/flow_interface"
@@ -50,7 +49,6 @@ type Harness struct {
 	cancellation       sync.Once
 	eventConsumers     []event.IConsumer
 	eventConsumersLock sync.RWMutex
-	variables          map[string]data.IItem
 }
 
 func (node *Harness) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
@@ -80,8 +78,6 @@ func NewHarness(ctx context.Context,
 	element *schema.FlowNode,
 	idGenerator id.IGenerator,
 	constructor Constructor,
-	itemAwareLocators map[string]data.IItemAwareLocator,
-	variables map[string]data.IItem,
 ) (node *Harness, err error) {
 	var activity Activity
 	activity, err = constructor(wiring)
@@ -103,7 +99,6 @@ func NewHarness(ctx context.Context,
 		element:       element,
 		runnerChannel: make(chan message, len(wiring.Incoming)*2+1),
 		activity:      activity,
-		variables:     variables,
 	}
 
 	err = node.EventEgress.RegisterEventConsumer(node)
@@ -136,7 +131,7 @@ func NewHarness(ctx context.Context,
 				}
 			}
 			newFlow := flow.New(node.Definitions, catchEvent, node.Tracer,
-				node.FlowNodeMapping, node.FlowWaitGroup, idGenerator, actionTransformer, itemAwareLocators, node.variables)
+				node.FlowNodeMapping, node.FlowWaitGroup, idGenerator, actionTransformer, node.Locator)
 			newFlow.Start(ctx)
 		}
 	}

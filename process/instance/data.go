@@ -201,3 +201,68 @@ func (p *PropertyContainer) Clone() map[string]any {
 	}
 	return out
 }
+
+type FlowDataLocator struct {
+	lmu       sync.RWMutex
+	locators  map[string]data.IItemAwareLocator
+	vmu       sync.RWMutex
+	variables map[string]data.IItem
+}
+
+func NewFlowDataLocator() *FlowDataLocator {
+	f := &FlowDataLocator{
+		locators:  map[string]data.IItemAwareLocator{},
+		variables: map[string]data.IItem{},
+	}
+	return f
+}
+
+func (f *FlowDataLocator) FindIItemAwareLocator(name string) (locator data.IItemAwareLocator, found bool) {
+	f.lmu.RLock()
+	defer f.lmu.Unlock()
+	locator, found = f.locators[name]
+	return locator, found
+}
+
+func (f *FlowDataLocator) PutIItemAwareLocator(name string, locator data.IItemAwareLocator) {
+	f.lmu.Lock()
+	defer f.lmu.Unlock()
+	f.locators[name] = locator
+}
+
+func (f *FlowDataLocator) CloneItems(name string) map[string]any {
+	out := make(map[string]any)
+
+	f.vmu.RLock()
+	locator, ok := f.locators[name]
+	if !ok {
+		f.vmu.RUnlock()
+		return out
+	}
+	f.vmu.RUnlock()
+
+	return locator.Clone()
+}
+
+func (f *FlowDataLocator) GetVariable(name string) (value any, found bool) {
+	f.vmu.RLock()
+	defer f.vmu.RUnlock()
+	value, found = f.variables[name]
+	return
+}
+
+func (f *FlowDataLocator) SetVariable(name string, value any) {
+	f.vmu.Lock()
+	defer f.vmu.Unlock()
+	f.variables[name] = value
+}
+
+func (f *FlowDataLocator) CloneVariables() map[string]any {
+	f.vmu.RLock()
+	defer f.vmu.RUnlock()
+	out := make(map[string]any)
+	for key, value := range f.variables {
+		out[key] = value
+	}
+	return out
+}

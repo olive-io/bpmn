@@ -48,7 +48,7 @@ type Instance struct {
 	flowWaitGroup                  sync.WaitGroup
 	complete                       sync.RWMutex
 	idGenerator                    id.IGenerator
-	DataObjectLocator              *DataObjectContainer
+	Locator                        *FlowDataLocator
 	EventIngress                   event.IConsumer
 	EventEgress                    event.ISource
 	idGeneratorBuilder             id.IGeneratorBuilder
@@ -122,6 +122,18 @@ func WithEventEgress(source event.ISource) Option {
 	}
 }
 
+func WithVariables(variables map[string]any) Option {
+	return func(ctx context.Context, instance *Instance) context.Context {
+		if instance.Locator == nil {
+			instance.Locator = NewFlowDataLocator()
+		}
+		for key, value := range variables {
+			instance.Locator.SetVariable(key, value)
+		}
+		return ctx
+	}
+}
+
 func WithEventDefinitionInstanceBuilder(builder event.IDefinitionInstanceBuilder) Option {
 	return func(ctx context.Context, instance *Instance) context.Context {
 		instance.eventDefinitionInstanceBuilder = builder
@@ -152,6 +164,10 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 
 	if instance.idGeneratorBuilder == nil {
 		instance.idGeneratorBuilder = id.DefaultIdGeneratorBuilder
+	}
+
+	if instance.Locator == nil {
+		instance.Locator = NewFlowDataLocator()
 	}
 
 	var idGenerator id.IGenerator
@@ -259,7 +275,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 	locators["$"] = dataObjectContainer
 	locators["#"] = headerContainer
 	locators["@"] = propertyContainer
-	instance.DataObjectLocator = dataObjectContainer
+	instance.Locator.locators = locators
 
 	// Flow nodes
 
@@ -291,7 +307,8 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 			instance.EventIngress, instance,
 			subTracer,
 			instance.flowNodeMapping,
-			&instance.flowWaitGroup, instance.eventDefinitionInstanceBuilder)
+			&instance.flowWaitGroup, instance.eventDefinitionInstanceBuilder,
+			instance.Locator)
 	}
 
 	var wiring *flow_node.Wiring
@@ -303,7 +320,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var startEvent *start.Node
-		startEvent, err = start.New(ctx, wiring, element, idGenerator, locators)
+		startEvent, err = start.New(ctx, wiring, element, idGenerator)
 		if err != nil {
 			return
 		}
@@ -354,9 +371,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var aTask *activity.Harness
-		aTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode,
-			idGenerator, task.NewTask(ctx, element), locators, nil,
-		)
+		aTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, task.NewTask(ctx, element))
 		if err != nil {
 			return
 		}
@@ -374,9 +389,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		}
 		var sTask *activity.Harness
 		taskElem := service_task.NewServiceTask(ctx, element)
-		sTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode,
-			idGenerator, taskElem, locators, nil,
-		)
+		sTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, taskElem)
 		if err != nil {
 			return
 		}
@@ -394,9 +407,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		}
 		var sTask *activity.Harness
 		taskElem := user_task.NewUserTask(ctx, element)
-		sTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode,
-			idGenerator, taskElem, locators, nil,
-		)
+		sTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, taskElem)
 		if err != nil {
 			return
 		}
@@ -486,7 +497,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 }
 
 // StartWith explicitly starts the instance by triggering a given start event
-func (instance *Instance) StartWith(ctx context.Context, startEvent schema.StartEventInterface, variables map[string]data.IItem) (err error) {
+func (instance *Instance) StartWith(ctx context.Context, startEvent schema.StartEventInterface) (err error) {
 	flowNode, found := instance.flowNodeMapping.ResolveElementToFlowNode(startEvent)
 	elementId := "<unnamed>"
 	if idPtr, present := startEvent.Id(); present {
@@ -508,14 +519,14 @@ func (instance *Instance) StartWith(ctx context.Context, startEvent schema.Start
 		}
 		return
 	}
-	startEventNode.Trigger(variables)
+	startEventNode.Trigger()
 	return
 }
 
 // StartAll explicitly starts the instance by triggering all start events, if any
-func (instance *Instance) StartAll(ctx context.Context, variables map[string]data.IItem) (err error) {
+func (instance *Instance) StartAll(ctx context.Context) (err error) {
 	for i := range *instance.process.StartEvents() {
-		err = instance.StartWith(ctx, &(*instance.process.StartEvents())[i], variables)
+		err = instance.StartWith(ctx, &(*instance.process.StartEvents())[i])
 		if err != nil {
 			return
 		}

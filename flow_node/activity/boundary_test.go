@@ -104,7 +104,7 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 			t.Fatalf("failed to get the flow node element for `task`")
 		}
 
-		err = inst.StartAll(context.Background(), nil)
+		err = inst.StartAll(context.Background())
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

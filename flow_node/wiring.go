@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/schema"
@@ -42,6 +43,7 @@ type Wiring struct {
 	FlowNodeMapping                *FlowNodeMapping
 	FlowWaitGroup                  *sync.WaitGroup
 	EventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder
+	Locator                        data.IFlowDataLocator
 }
 
 func sequenceFlows(process *schema.Process,
@@ -75,6 +77,7 @@ func NewWiring(
 	flowNodeMapping *FlowNodeMapping,
 	flowWaitGroup *sync.WaitGroup,
 	eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder,
+	locator data.IFlowDataLocator,
 ) (node *Wiring, err error) {
 	incoming, err := sequenceFlows(process, definitions, flowNode.Incomings())
 	if err != nil {
@@ -106,6 +109,7 @@ func NewWiring(
 		FlowNodeMapping:                flowNodeMapping,
 		FlowWaitGroup:                  flowWaitGroup,
 		EventDefinitionInstanceBuilder: eventDefinitionInstanceBuilder,
+		Locator:                        locator,
 	}
 	return
 }

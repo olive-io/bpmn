@@ -117,7 +117,7 @@ func testEvent(t *testing.T, filename string, nodeId string, eventDefinitionInst
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 64))
 
 	if inst, err := proc.Instantiate(instance.WithTracer(tracer)); err == nil {
-		err := inst.StartAll(context.Background(), nil)
+		err := inst.StartAll(context.Background())
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
