@@ -2,14 +2,14 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:local="http://olive-io" exclude-result-prefixes="xs"
                 version="3.0">
 
-    <xsl:variable name="schema" select="(/ | document(/xs:schema/xs:include/@schemaLocation))/xs:schema"/>
+    <xsl:variable name="schema" select="(/ | document(/xs:schema/xs:import/@schemaLocation))/xs:schema"/>
     <xsl:variable name="elements" select="$schema//xs:element"/>
 
     <xsl:strip-space elements="*"/>
 
     <xsl:template match="/">
 
-        <xsl:result-document method="text" href="schema_generated.go">
+        <xsl:result-document method="text" href="schema_di_generated.go">
             <xsl:text>// Copyright 2023 Lack (xingyys@gmail.com).
                 //
                 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,6 @@
                 // DO NOT EDIT
                 import (
                     "encoding/xml"
-                    "math/big"
                 )
 
             </xsl:text>
@@ -56,39 +55,12 @@
                 </xsl:call-template>
             </xsl:for-each>
 
-            <xsl:for-each select="$schema/xs:element[@name]">
-                <xsl:call-template name="element">
-                    <xsl:with-param name="element" select="." />
-                </xsl:call-template>
-            </xsl:for-each>
+<!--            <xsl:for-each select="$schema/xs:element[@name]">-->
+<!--                <xsl:call-template name="element">-->
+<!--                    <xsl:with-param name="element" select="." />-->
+<!--                </xsl:call-template>-->
+<!--            </xsl:for-each>-->
 
-        </xsl:result-document>
-
-        <xsl:result-document method="text" href="schema_generated_test.go">
-            <xsl:text>// Copyright 2023 Lack (xingyys@gmail.com).
-                //
-                // Licensed under the Apache License, Version 2.0 (the "License");
-                // you may not use this file except in compliance with the License.
-                // You may obtain a copy of the License at
-                //
-                //     http://www.apache.org/licenses/LICENSE-2.0
-                //
-                // Unless required by applicable law or agreed to in writing, software
-                // distributed under the License is distributed on an "AS IS" BASIS,
-                // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-                // See the License for the specific language governing permissions and
-                // limitations under the License.
-
-                package schema
-
-                import "testing"
-            </xsl:text>
-
-            <xsl:for-each select="$schema/xs:complexType[@name]">
-                <xsl:call-template name="type-test">
-                    <xsl:with-param name="type" select="." />
-                </xsl:call-template>
-            </xsl:for-each>
         </xsl:result-document>
     </xsl:template>
 
@@ -120,40 +92,30 @@
                     <xsl:value-of select="local:field-name(.)"/>
                     <xsl:text xml:space="preserve"> </xsl:text>
                     <xsl:value-of select="local:field-type(.)"/>
-                    <xsl:text xml:space="preserve"> `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL </xsl:text>
+                    <xsl:text xml:space="preserve"> `xml:"</xsl:text>
+                    <xsl:value-of select="local:field-namespace(.)" /><xsl:text xml:space="preserve"> </xsl:text>
                     <xsl:value-of select="./@name"/>
                     <xsl:text xml:space="preserve">"`
                     </xsl:text>
                 </xsl:when>
                 <xsl:when test="local:is-a-ref(.)">
                     <xsl:value-of select="local:field-name(.)"/>
-                    <xsl:text xml:space="preserve"> </xsl:text>
+                    <xsl:text xml:space="preserve">Field </xsl:text>
                     <xsl:value-of select="local:ref-type(.)"/>
-                    <xsl:text xml:space="preserve"> `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL </xsl:text>
-                    <xsl:value-of select="./@ref"/>
+                    <xsl:text xml:space="preserve"> `xml:"</xsl:text>
+                    <xsl:value-of select="local:field-namespace(.)" /><xsl:text xml:space="preserve"> </xsl:text>
+                    <xsl:value-of select="local:field-name(.)"/>
                     <xsl:text xml:space="preserve">"`
                     </xsl:text>
                 </xsl:when>
                 <xsl:otherwise/>
             </xsl:choose>
         </xsl:for-each>
-        <xsl:if test="local:struct-case($type/@name) = 'ExtensionElements'">
-            <xsl:text>TaskDefinitionField *TaskDefinition `xml:"http://olive.io/spec/BPMN/MODEL taskDefinition"`</xsl:text>
-            <xsl:text xml:space="preserve">
+        <xsl:if test="local:struct-case($type/@name) = 'Plane'">
+            <xsl:text>BPMNShareFields []BPMNShape `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNShape"`
             </xsl:text>
-            <xsl:text>TaskHeaderField *TaskHeader `xml:"http://olive.io/spec/BPMN/MODEL taskHeaders"`</xsl:text>
-            <xsl:text xml:space="preserve">
+            <xsl:text>BPMNEdgeFields []BPMNEdge `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNEdge"`
             </xsl:text>
-            <xsl:text>PropertiesField *Properties `xml:"http://olive.io/spec/BPMN/MODEL properties"`</xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-        </xsl:if>
-        <xsl:if test="local:struct-case($type/@name) = 'Definitions'">
-            <xsl:text>DiagramField *BPMNDiagram `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNDiagram"`
-            </xsl:text>
-        </xsl:if>
-        <xsl:if test="not($type/@abstract)">
-            <xsl:text>TextPayloadField *Payload `xml:",chardata"`</xsl:text>
         </xsl:if>
         <xsl:text xml:space="preserve"> }
         </xsl:text>
@@ -331,33 +293,12 @@
                 <xsl:otherwise/>
             </xsl:choose>
         </xsl:for-each>
-        <!-- Text payload -->
-        <xsl:if test="not($type/@abstract)">
-            <xsl:text>
-                TextPayload() *string
-                SetTextPayload(string)
-            </xsl:text>
-        </xsl:if>
 
         <xsl:text xml:space="preserve"> }
         </xsl:text>
         <!-- Interface implementation -->
         <xsl:if test="not($type/@abstract)">
-            <xsl:text xml:space="preserve">
-            func (t *</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
-            <xsl:text xml:space="preserve">) TextPayload() *string {
-            s := t.TextPayloadField.String()
-            return &amp;s
-            }
-            </xsl:text>
-            <xsl:text xml:space="preserve">
-            func (t *</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
-            <xsl:text xml:space="preserve">) SetTextPayload(text string) {
-            payload := Payload(text)
-	        t.TextPayloadField = &amp;payload
-            }
 
-            </xsl:text>
         </xsl:if>
 
         <xsl:text xml:space="preserve">func (t *</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
@@ -419,6 +360,27 @@
         <xsl:text xml:space="preserve">
           return
         }
+        </xsl:text>
+
+        <!-- MarshalXML and UnmarshalXML -->
+        <xsl:text xml:space="preserve">func (t *</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
+        <xsl:text xml:space="preserve">) MarshalXML(e *xml.Encoder, start xml.StartElement) error {</xsl:text>
+        <xsl:text xml:space="preserve">PreMarshal(t, e, &amp;start)
+        </xsl:text>
+        <xsl:text xml:space="preserve">out := </xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
+        <xsl:text xml:space="preserve">(*t)
+          return e.EncodeElement(out, start)
+        }
+
+        </xsl:text>
+
+        <xsl:text xml:space="preserve">func (t *</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
+        <xsl:text xml:space="preserve">) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {</xsl:text>
+        <xsl:text xml:space="preserve">
+            PreUnmarshal(t, de, start)
+	        return de.DecodeElement(t, start)
+            }
+
         </xsl:text>
 
         <!-- attributes -->
@@ -603,7 +565,7 @@
                     <xsl:text>    result = </xsl:text>
                     <xsl:value-of select="local:returning(.)"/>
                     <xsl:text>t.</xsl:text>
-                    <xsl:value-of select="local:field-name(.)"/>
+                    <xsl:value-of select="local:field-name(.)"/>Field
                     <xsl:text xml:space="preserve">
                         return
                         }
@@ -646,7 +608,7 @@
                     </xsl:text>
                     <xsl:text>t.</xsl:text>
                     <xsl:value-of select="local:field-name(.)"/>
-                    <xsl:text> = </xsl:text>
+                    <xsl:text>Field = </xsl:text>
                     <!--<xsl:if test="local:is-optional(.)">
                         <xsl:text>&amp;</xsl:text>
                         </xsl:if>-->
@@ -660,55 +622,20 @@
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template name="element">
-        <xsl:param name="element" required="yes"/>
-        <!-- MarshalXML and UnmarshalXML -->
-        <xsl:variable name="element" select="."/>
-        <xsl:text xml:space="preserve">
-        </xsl:text>
-        <xsl:text xml:space="preserve">func (t *</xsl:text><xsl:value-of select="local:struct-case($element/@type)"/>
-        <xsl:text xml:space="preserve">) MarshalXML(e *xml.Encoder, start xml.StartElement) error {</xsl:text>
-        <xsl:text xml:space="preserve">PreMarshal(t, e, &amp;start)
-        </xsl:text>
-        <xsl:text xml:space="preserve">out := </xsl:text><xsl:value-of select="local:struct-case($element/@type)"/>
-        <xsl:text xml:space="preserve">(*t)
-            return e.EncodeElement(out, start)
-            }
-
-        </xsl:text>
-        <xsl:text xml:space="preserve">
-        </xsl:text>
-        <xsl:text xml:space="preserve">func (t *</xsl:text><xsl:value-of select="local:struct-case($element/@type)"/>
-        <xsl:text xml:space="preserve">) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {</xsl:text>
-        <xsl:text xml:space="preserve">
-            PreUnmarshal(t, de, start)
-	        return de.DecodeElement(t, start)
-            }
-
-        </xsl:text>
-    </xsl:template>
-
-    <xsl:template name="type-test">
-        <xsl:param name="type" required="yes"/>
-
-        <xsl:text xml:space="preserve">func Test</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/><xsl:text xml:space="preserve">Interface(t *testing.T) {
-            // won't compile if the interaces are not implemented
-            var _ </xsl:text>
-        <xsl:value-of select="local:struct-case($type/@name)"/>
-        <xsl:text xml:space="preserve">Interface = &amp;</xsl:text>
-        <xsl:value-of select="local:struct-case($type/@name)"/>
-        <xsl:text xml:space="preserve"> {}
-        </xsl:text>
-        <xsl:text xml:space="preserve">
-            }
-        </xsl:text>
-    </xsl:template>
-
     <xsl:function name="local:struct-case">
         <xsl:param name="string"/>
         <xsl:choose>
             <xsl:when test="matches($string, '^t[A-Z][A-Za-z0-9_]+')">
                 <xsl:sequence select="local:struct-case(substring($string, 2, string-length($string) - 1))"/>
+            </xsl:when>
+            <xsl:when test="starts-with($string, 'di:')">
+                <xsl:sequence select="local:struct-case(substring($string, 4, string-length($string) - 1))"/>
+            </xsl:when>
+            <xsl:when test="starts-with($string, 'dc:')">
+                <xsl:sequence select="local:struct-case(substring($string, 4, string-length($string) - 1))"/>
+            </xsl:when>
+            <xsl:when test="starts-with($string, 'bpmndi:')">
+                <xsl:sequence select="local:struct-case(substring($string, 8, string-length($string) - 1))"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="
@@ -726,11 +653,39 @@
             <xsl:when test="matches($string, '^t[A-Z][A-Za-z0-9_]+')">
                 <xsl:sequence select="local:field-name(substring($string, 2, string-length($string) - 1))"/>
             </xsl:when>
+            <xsl:when test="starts-with($string, 'di:')">
+                <xsl:sequence select="local:struct-case(substring($string, 4, string-length($string) - 1))"/>
+            </xsl:when>
+            <xsl:when test="starts-with($string, 'dc:')">
+                <xsl:sequence select="local:struct-case(substring($string, 4, string-length($string) - 1))"/>
+            </xsl:when>
+            <xsl:when test="starts-with($string, 'bpmndi:')">
+                <xsl:sequence select="local:struct-case(substring($string, 8, string-length($string) - 1))"/>
+            </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="
                     string-join(for $s in tokenize($string, '\W+')
                     return
                     concat(upper-case(substring($s, 1, 1)), substring($s, 2),'Field'), '')"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="local:field-namespace">
+        <xsl:param name="el"/>
+        <xsl:variable name="string" select="if (exists($el/@ref)) then $el/@ref else $el/@name"/>
+        <xsl:choose>
+            <xsl:when test="starts-with($string, 'di:')">
+                <xsl:text>http://www.omg.org/spec/DD/20100524/DI</xsl:text>
+            </xsl:when>
+            <xsl:when test="starts-with($string, 'dc:')">
+                <xsl:text>http://www.omg.org/spec/DD/20100524/DC</xsl:text>
+            </xsl:when>
+            <xsl:when test="starts-with($string, 'bpmndi:')">
+                <xsl:text>http://www.omg.org/spec/BPMN/20100524/DI</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:text>http://www.omg.org/spec/BPMN/20100524/DI</xsl:text>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -764,6 +719,15 @@
             <xsl:when test="matches($string, '^t[A-Z][A-Za-z0-9_]+')">
                 <xsl:sequence select="local:field-name(substring($string, 2, string-length($string) - 1))"/>
             </xsl:when>
+            <xsl:when test="starts-with($string, 'di:')">
+                <xsl:sequence select="local:struct-case(substring($string, 4, string-length($string) - 1))"/>
+            </xsl:when>
+            <xsl:when test="starts-with($string, 'dc:')">
+                <xsl:sequence select="local:struct-case(substring($string, 4, string-length($string) - 1))"/>
+            </xsl:when>
+            <xsl:when test="starts-with($string, 'bpmndi:')">
+                <xsl:sequence select="local:struct-case(substring($string, 8, string-length($string) - 1))"/>
+            </xsl:when>
             <xsl:otherwise>
                 <xsl:sequence select="
                     string-join(for $s in tokenize($string, '\W+')
@@ -790,7 +754,11 @@
             <xsl:when test="$name = 'xsd:IDREF'"><xsl:text>IdRef</xsl:text></xsl:when>
             <xsl:when test="$name = 'xsd:ID'"><xsl:text>Id</xsl:text></xsl:when>
             <xsl:when test="$name = 'xsd:anyURI'"><xsl:text>AnyURI</xsl:text></xsl:when>
-            <xsl:otherwise><xsl:sequence select="local:struct-case($name)"/></xsl:otherwise>
+            <xsl:when test="$name = 'xsd:double'"><xsl:text>Double</xsl:text></xsl:when>
+            <xsl:when test="$name = 'extension'">*DIExtension</xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="local:struct-case($name)"/>
+            </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
@@ -824,7 +792,11 @@
             <xsl:when test="$ref = 'xsd:IDREF'"><xsl:text>*IdRef</xsl:text></xsl:when>
             <xsl:when test="$ref = 'xsd:ID'"><xsl:text>*Id</xsl:text></xsl:when>
             <xsl:when test="$ref = 'xsd:anyURI'"><xsl:text>*AnyURI</xsl:text></xsl:when>
-            <xsl:otherwise><xsl:sequence select="concat('*', local:struct-case($ref))"/></xsl:otherwise>
+            <xsl:when test="$ref = 'xsd:double'"><xsl:text>Double</xsl:text></xsl:when>
+            <xsl:when test="$ref = 'extension'">*DIExtension</xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="concat('*', local:struct-case($ref))"/>
+            </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
@@ -836,6 +808,7 @@
             <xsl:when test="local:is-optional($el) and not(contains($result,'*'))">
                 <xsl:sequence select="concat('*', $result)"/>
             </xsl:when>
+            <xsl:when test="$el/@name = 'extension'">*DIExtension</xsl:when>
             <xsl:otherwise><xsl:sequence select="$result"/></xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -847,7 +820,16 @@
             <xsl:when test="$el/@type = 'xsd:boolean'"></xsl:when>
             <xsl:when test="$el/@type = 'xsd:int'"></xsl:when>
             <xsl:when test="$el/@type = 'xsd:int32'"></xsl:when>
-            <xsl:otherwise><xsl:text>&amp;</xsl:text></xsl:otherwise>
+            <xsl:when test="$el/@type = 'xsd:double'">&amp;</xsl:when>
+            <xsl:when test="$el/@maxOccurs = 'unbounded'">
+                <xsl:text>&amp;</xsl:text>
+            </xsl:when>
+<!--            <xsl:when test="starts-with($el/@type, 'di:')"></xsl:when>-->
+<!--            <xsl:when test="starts-with($el/@type, 'bpmndi:')"></xsl:when>-->
+<!--            <xsl:when test="starts-with($el/@type, 'dc:')"></xsl:when>-->
+            <xsl:otherwise>
+<!--                <xsl:text>&amp;</xsl:text>-->
+            </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
@@ -855,19 +837,21 @@
     <xsl:function name="local:ref-type">
         <xsl:param name="el"/>
         <xsl:variable name="ref" select="$el/@ref"/>
-        <xsl:variable name="name" select="$schema/xs:element[@name = $ref]/@type"/>
+        <xsl:variable name="name" select="$schema/xs:element[@type = $ref]/@name"/>
         <xsl:variable name="type" select="$schema/xs:complexType[@name = $name]"/>
         <xsl:choose>
-            <xsl:when test="$type/@abstract and $el/@maxOccurs != 'unbounded'">
-                <xsl:sequence select="concat('*',local:struct-case($name))"/>
-            </xsl:when>
+<!--            <xsl:when test="$type/@abstract and $el/@maxOccurs != 'unbounded'">-->
+<!--                <xsl:sequence select="concat('*',local:struct-case($name))"/>-->
+<!--            </xsl:when>-->
             <xsl:when test="$el/@maxOccurs = 'unbounded'">
                 <xsl:sequence select="concat('[]',local:struct-case($name))"/>
             </xsl:when>
             <xsl:when test="local:is-optional($el)">
                 <xsl:sequence select="concat('*',local:struct-case($name))"/>
             </xsl:when>
-            <xsl:otherwise><xsl:sequence select="local:struct-case($name)"/></xsl:otherwise>
+            <xsl:otherwise>
+                <xsl:sequence select="concat('*',local:struct-case($name))"/>
+            </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
@@ -885,6 +869,7 @@
         <xsl:choose>
             <!-- Account for recursion -->
             <xsl:when test="local:type($el/@type) = 'LaneSet'">*LaneSet</xsl:when>
+            <xsl:when test="$el/@name = 'extension'">*DIExtension</xsl:when>
             <xsl:when test="$el/@maxOccurs = 'unbounded'">
                 <xsl:sequence select="concat('[]',local:type($el/@type))"/>
             </xsl:when>
@@ -902,7 +887,7 @@
 
     <xsl:function name="local:is-a-ref">
         <xsl:param name="el"/>
-        <xsl:sequence select="exists($el/@ref) and not(contains($el/@ref, ':'))"/>
+        <xsl:sequence select="exists($el/@ref)"/>
     </xsl:function>
 
     <xsl:function name="local:is-optional">

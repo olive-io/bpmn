@@ -23,7 +23,30 @@ import (
 	json "github.com/json-iterator/go"
 )
 
+const (
+	BpmnNS   = "bpmn:"
+	BpmnDINS = "bpmndi:"
+	DINS     = "di:"
+	DCNS     = "dc:"
+	OliveNS  = "olive:"
+)
+
+var mapping = map[string]string{
+	"http://www.omg.org/spec/BPMN/20100524/MODEL": BpmnNS,
+	"http://www.omg.org/spec/BPMN/20100524/DI":    BpmnDINS,
+	"http://www.omg.org/spec/DD/20100524/DC":      DCNS,
+	"http://www.omg.org/spec/DD/20100524/DI":      DINS,
+	"http://olive.io/spec/BPMN/MODEL":             OliveNS,
+}
+
 // Base types
+
+// Payload Reference to TextPayload
+type Payload string
+
+func (p *Payload) String() string {
+	return string(*p)
+}
 
 // QName XML qualified name (http://books.xmlschemata.org/relaxng/ch19-77287.html)
 type QName string
@@ -31,11 +54,13 @@ type QName string
 func (t *QName) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	out := QName(*t)
 	start.Name = xml.Name{
-		Local: "bpmn:" + start.Name.Local,
+		Local: BpmnNS + start.Name.Local,
 	}
 
 	return e.EncodeElement(out, start)
 }
+
+type Double = float64
 
 // Id Identifier (http://books.xmlschemata.org/relaxng/ch19-77151.html)
 type Id = string
@@ -214,20 +239,21 @@ func Equal(e1, e2 Element) bool {
 	return reflect.DeepEqual(e1, e2)
 }
 
-const Namespace = "bpmn:"
-
 func PreMarshal(element Element, encoder *xml.Encoder, start *xml.StartElement) {
-	if start.Name.Space == "http://www.omg.org/spec/BPMN/20100524/MODEL" {
-		start.Name.Space = ""
-		start.Name.Local = "bpmn:" + start.Name.Local
+	if v, ok := element.(TextInterface); ok {
+		if text := v.TextPayload(); text != nil {
+			s := strings.TrimSpace(*text)
+			v.SetTextPayload(s)
+		}
 	}
-	if start.Name.Space == "http://olive.io/spec/BPMN/MODEL" {
+
+	if ns, ok := mapping[start.Name.Space]; ok {
 		start.Name.Space = ""
-		start.Name.Local = "olive:" + start.Name.Local
+		start.Name.Local = ns + start.Name.Local
 	}
 
 	if _, ok := element.(*Definitions); ok {
-		start.Name.Local = Namespace + "definitions"
+		start.Name.Local = BpmnNS + "definitions"
 		start.Attr = append(start.Attr,
 			xml.Attr{
 				Name:  xml.Name{Local: "xmlns:bpmn"},
@@ -253,6 +279,10 @@ func PreMarshal(element Element, encoder *xml.Encoder, start *xml.StartElement) 
 	}
 }
 
+func PreUnmarshal(element Element, decoder *xml.Decoder, start *xml.StartElement) {
+	return
+}
+
 type ItemType string
 
 const (
@@ -270,7 +300,7 @@ type TaskDefinition struct {
 func (t *TaskDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	out := TaskDefinition(*t)
 	start.Name = xml.Name{
-		Local: "olive:taskDefinition",
+		Local: "olive:" + start.Name.Local,
 	}
 
 	return e.EncodeElement(out, start)
@@ -306,7 +336,7 @@ func (i *Item) ValueFor() any {
 func (i *Item) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	out := Item(*i)
 	start.Name = xml.Name{
-		Local: "olive:item",
+		Local: OliveNS + start.Name.Local,
 	}
 
 	return e.EncodeElement(out, start)
@@ -319,7 +349,7 @@ type TaskHeader struct {
 func (h *TaskHeader) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	out := TaskHeader(*h)
 	start.Name = xml.Name{
-		Local: "olive:taskHeader",
+		Local: OliveNS + start.Name.Local,
 	}
 
 	return e.EncodeElement(out, start)
@@ -332,12 +362,34 @@ type Properties struct {
 func (p *Properties) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	out := Properties(*p)
 	start.Name = xml.Name{
-		Local: "olive:properties",
+		Local: OliveNS + start.Name.Local,
 	}
 
 	return e.EncodeElement(out, start)
 }
 
+type DIExtension struct {
+}
+
+func (t *DIExtension) FindBy(f ElementPredicate) (result Element, found bool) {
+	return
+}
+
+func (t *DIExtension) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	out := DIExtension(*t)
+	start.Name = xml.Name{
+		Local: DINS + start.Name.Local,
+	}
+
+	return e.EncodeElement(out, start)
+}
+
+func (t *DIExtension) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
+	PreUnmarshal(t, de, start)
+	return de.DecodeElement(t, start)
+}
+
 // Generate schema files:
 
 //go:generate saxon-he ../BPMN20.xsd ../schema-codegen.xsl
+//go:generate saxon-he ../BPMNDI.xsd ../schema-di-codegen.xsl
