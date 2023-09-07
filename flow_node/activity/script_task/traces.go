@@ -21,8 +21,8 @@ import (
 )
 
 type submitResponse struct {
-	variables map[string]any
-	err       error
+	result map[string]any
+	err    error
 }
 
 type ScriptExecTrace struct {
@@ -36,6 +36,10 @@ type ScriptExecTrace struct {
 
 func (t *ScriptExecTrace) TraceInterface() {}
 
-func (t *ScriptExecTrace) Execute(variables map[string]any, err error) {
-	t.response <- submitResponse{variables: variables, err: err}
+func (t *ScriptExecTrace) Execute(result map[string]any, err error) {
+	t.response <- submitResponse{result: result, err: err}
+}
+
+func (t *ScriptExecTrace) Done() {
+	t.response <- submitResponse{}
 }

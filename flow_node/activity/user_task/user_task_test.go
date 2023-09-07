@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/flow_node/activity/user_task"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
@@ -74,8 +74,8 @@ func TestUserTask(t *testing.T) {
 						//break loop
 					}
 				}
-			case *user_task.UserCallTrace:
-				trace.Submit(map[string]any{"1": 22}, nil)
+			case activity.TaskTrace:
+				trace.Done()
 				t.Logf("%#v", trace)
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)

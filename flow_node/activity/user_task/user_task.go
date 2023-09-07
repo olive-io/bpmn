@@ -103,7 +103,7 @@ func (node *UserTask) runner(ctx context.Context) {
 						if out.err != nil {
 							action.Err = out.err
 						}
-						for key, value := range out.variables {
+						for key, value := range out.result {
 							action.Variables[key] = value
 						}
 					}

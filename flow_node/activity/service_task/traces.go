@@ -22,7 +22,7 @@ import (
 
 type callResponse struct {
 	dataObjects map[string]any
-	variables   map[string]any
+	result      map[string]any
 	err         error
 }
 
@@ -37,6 +37,10 @@ type ServiceCallTrace struct {
 
 func (t *ServiceCallTrace) TraceInterface() {}
 
-func (t *ServiceCallTrace) Do(dataObjects, variables map[string]any, err error) {
-	t.response <- callResponse{dataObjects: dataObjects, variables: variables, err: err}
+func (t *ServiceCallTrace) Do(dataObjects, result map[string]any, err error) {
+	t.response <- callResponse{dataObjects: dataObjects, result: result, err: err}
+}
+
+func (t *ServiceCallTrace) Done() {
+	t.response <- callResponse{}
 }

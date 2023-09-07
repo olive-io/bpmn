@@ -14,7 +14,10 @@
 
 package activity
 
-import "github.com/olive-io/bpmn/schema"
+import (
+	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/tracing"
+)
 
 type ActiveBoundaryTrace struct {
 	Start bool
@@ -22,3 +25,9 @@ type ActiveBoundaryTrace struct {
 }
 
 func (b ActiveBoundaryTrace) TraceInterface() {}
+
+// TaskTrace describes common channel handler for all tasks
+type TaskTrace interface {
+	tracing.ITrace
+	Done()
+}

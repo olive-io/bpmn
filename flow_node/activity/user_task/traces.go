@@ -21,8 +21,8 @@ import (
 )
 
 type submitResponse struct {
-	variables map[string]any
-	err       error
+	result map[string]any
+	err    error
 }
 
 type UserCallTrace struct {
@@ -35,6 +35,10 @@ type UserCallTrace struct {
 
 func (t *UserCallTrace) TraceInterface() {}
 
-func (t *UserCallTrace) Submit(variables map[string]any, err error) {
-	t.response <- submitResponse{variables: variables, err: err}
+func (t *UserCallTrace) Submit(result map[string]any, err error) {
+	t.response <- submitResponse{result: result, err: err}
+}
+
+func (t *UserCallTrace) Done() {
+	t.response <- submitResponse{}
 }

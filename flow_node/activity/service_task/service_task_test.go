@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/flow_node/activity/service_task"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
@@ -63,28 +63,41 @@ func TestServiceTask(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
-	loop:
-		for {
-			trace := tracing.Unwrap(<-traces)
-			switch trace := trace.(type) {
-			case flow.Trace:
-				if id, present := trace.Source.Id(); present {
-					if *id == "task" {
-						// success!
-						//break loop
-					}
+		done := make(chan struct{}, 1)
+		go func() {
+			for {
+				var trace tracing.ITrace
+				select {
+				case trace = <-traces:
 				}
-			case *service_task.ServiceCallTrace:
-				trace.Do(nil, map[string]any{"1": 22}, nil)
-				t.Logf("%#v", trace)
-			case tracing.ErrorTrace:
-				t.Fatalf("%#v", trace)
-			case flow.CeaseFlowTrace:
-				break loop
-			default:
-				t.Logf("%#v", trace)
+
+				trace = tracing.Unwrap(trace)
+				switch trace := trace.(type) {
+				case flow.Trace:
+					if id, present := trace.Source.Id(); present {
+						if *id == "task" {
+							// success!
+							//break loop
+						}
+					}
+				case activity.TaskTrace:
+					trace.Done()
+					t.Logf("%#v", trace)
+				case tracing.ErrorTrace:
+					t.Fatalf("%#v", trace)
+				case flow.CeaseFlowTrace:
+					close(done)
+					return
+				default:
+					t.Logf("%#v", trace)
+				}
 			}
+		}()
+
+		select {
+		case <-done:
 		}
+
 		ins.Tracer.Unsubscribe(traces)
 	} else {
 		t.Fatalf("failed to instantiate the process: %s", err)

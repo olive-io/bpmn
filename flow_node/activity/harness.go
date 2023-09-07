@@ -151,7 +151,7 @@ func (node *Harness) runner(ctx context.Context, sender tracing.ISenderHandle) {
 				atomic.StoreInt32(&node.active, 1)
 				node.Tracer.Trace(ActiveBoundaryTrace{Start: true, Node: node.activity.Element()})
 				in := node.activity.NextAction(m.flow)
-				out := make(chan flow_node.IAction)
+				out := make(chan flow_node.IAction, 1)
 				go func(ctx context.Context) {
 					select {
 					case out <- <-in:
@@ -172,7 +172,7 @@ func (node *Harness) runner(ctx context.Context, sender tracing.ISenderHandle) {
 }
 
 func (node *Harness) NextAction(flow flow_interface.T) chan flow_node.IAction {
-	response := make(chan chan flow_node.IAction)
+	response := make(chan chan flow_node.IAction, 1)
 	node.runnerChannel <- nextActionMessage{flow: flow, response: response}
 	return <-response
 }

@@ -92,7 +92,7 @@ func (node *Node) runner(ctx context.Context, sender tracing.ISenderHandle) {
 }
 
 func (node *Node) NextAction(flow_interface.T) chan flow_node.IAction {
-	response := make(chan flow_node.IAction)
+	response := make(chan flow_node.IAction, 1)
 	node.runnerChannel <- nextActionMessage{response: response}
 	return response
 }

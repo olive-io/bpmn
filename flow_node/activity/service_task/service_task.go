@@ -109,7 +109,7 @@ func (node *ServiceTask) runner(ctx context.Context) {
 						for name, do := range out.dataObjects {
 							action.DataObjects[name] = do
 						}
-						for key, value := range out.variables {
+						for key, value := range out.result {
 							action.Variables[key] = value
 						}
 					}

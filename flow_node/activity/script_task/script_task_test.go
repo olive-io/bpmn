@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/flow_node/activity/script_task"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
@@ -74,8 +74,8 @@ func TestScriptTask(t *testing.T) {
 						//break loop
 					}
 				}
-			case *script_task.ScriptExecTrace:
-				trace.Execute(map[string]any{"1": 22}, nil)
+			case activity.TaskTrace:
+				trace.Done()
 				t.Logf("%#v", trace)
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)

@@ -21,7 +21,7 @@ type ErrorTrace struct {
 func (t ErrorTrace) TraceInterface() {}
 
 type WarningTrace struct {
-	Warning interface{}
+	Warning any
 }
 
 func (t WarningTrace) TraceInterface() {}
