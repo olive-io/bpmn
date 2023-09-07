@@ -17,7 +17,7 @@ package script_task
 import (
 	"context"
 
-	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/flow_node/activity"
 )
 
 type submitResponse struct {
@@ -25,21 +25,21 @@ type submitResponse struct {
 	err    error
 }
 
-type ScriptExecTrace struct {
-	context.Context
-	Element     schema.FlowNodeInterface
+type ActiveTrace struct {
+	Context     context.Context
+	Activity    activity.Activity
 	DataObjects map[string]any
 	Headers     map[string]any
 	Properties  map[string]any
 	response    chan submitResponse
 }
 
-func (t *ScriptExecTrace) TraceInterface() {}
+func (t *ActiveTrace) TraceInterface() {}
 
-func (t *ScriptExecTrace) Execute(result map[string]any, err error) {
+func (t *ActiveTrace) ExecuteExt(result map[string]any, err error) {
 	t.response <- submitResponse{result: result, err: err}
 }
 
-func (t *ScriptExecTrace) Done() {
+func (t *ActiveTrace) Execute() {
 	t.response <- submitResponse{}
 }

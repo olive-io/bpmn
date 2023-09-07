@@ -219,7 +219,7 @@ func NewFlowDataLocator() *FlowDataLocator {
 
 func (f *FlowDataLocator) FindIItemAwareLocator(name string) (locator data.IItemAwareLocator, found bool) {
 	f.lmu.RLock()
-	defer f.lmu.Unlock()
+	defer f.lmu.RUnlock()
 	locator, found = f.locators[name]
 	return locator, found
 }

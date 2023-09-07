@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/flow_node/gateway/parallel"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
@@ -77,6 +78,8 @@ func TestParallelGateway(t *testing.T) {
 				} else {
 					t.Fatalf("can't find element with FlowNodeId %#v", id)
 				}
+			case activity.ActiveTaskTrace:
+				trace.Execute()
 			case flow.CeaseFlowTrace:
 				break loop
 			case tracing.ErrorTrace:
@@ -127,6 +130,8 @@ func TestParallelGatewayMtoN(t *testing.T) {
 				} else {
 					t.Fatalf("can't find element with FlowNodeId %#v", id)
 				}
+			case activity.ActiveTaskTrace:
+				trace.Execute()
 			case flow.CeaseFlowTrace:
 				break loop
 			case tracing.ErrorTrace:
@@ -176,6 +181,8 @@ func TestParallelGatewayNtoM(t *testing.T) {
 					t.Fatalf("can't find element with FlowNodeId %#v", id)
 				}
 				t.Logf("%#v", reached)
+			case activity.ActiveTaskTrace:
+				trace.Execute()
 			case flow.CeaseFlowTrace:
 				break loop
 			case tracing.ErrorTrace:
@@ -247,6 +254,8 @@ func TestParallelGatewayIncompleteJoin(t *testing.T) {
 				} else {
 					t.Fatalf("can't find element with FlowNodeId %#v", id)
 				}
+			case activity.ActiveTaskTrace:
+				trace.Execute()
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)
 			default:

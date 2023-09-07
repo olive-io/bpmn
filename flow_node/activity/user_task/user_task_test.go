@@ -74,8 +74,8 @@ func TestUserTask(t *testing.T) {
 						//break loop
 					}
 				}
-			case activity.TaskTrace:
-				trace.Done()
+			case activity.ActiveTaskTrace:
+				trace.Execute()
 				t.Logf("%#v", trace)
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)

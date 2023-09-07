@@ -37,6 +37,12 @@ func TestXPath(t *testing.T) {
 
 type dataObjects map[string]data.IItemAware
 
+func (d dataObjects) PutItemAwareById(id schema.IdRef, itemAware data.IItemAware) {
+}
+
+func (d dataObjects) PutItemAwareByName(name string, itemAware data.IItemAware) {
+}
+
 func (d dataObjects) FindItemAwareById(id schema.IdRef) (itemAware data.IItemAware, found bool) {
 	itemAware, found = d[id]
 	return

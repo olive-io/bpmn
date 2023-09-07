@@ -87,15 +87,15 @@ func (node *UserTask) runner(ctx context.Context) {
 					}
 
 					response := make(chan submitResponse, 1)
-					callTrace := &UserCallTrace{
+					at := &ActiveTrace{
 						Context:    node.ctx,
-						Element:    node.Element(),
+						Activity:   node,
 						Headers:    m.Headers,
 						Properties: m.Properties,
 						response:   response,
 					}
 
-					node.Tracer.Trace(callTrace)
+					node.Tracer.Trace(at)
 					select {
 					case <-ctx.Done():
 						return

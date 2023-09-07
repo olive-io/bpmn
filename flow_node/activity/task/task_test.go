@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
@@ -70,6 +71,8 @@ func TestTask(t *testing.T) {
 					}
 
 				}
+			case activity.ActiveTaskTrace:
+				trace.Execute()
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)
 			default:

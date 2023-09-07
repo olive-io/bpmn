@@ -12,22 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package activity
+package task
 
 import (
-	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tracing"
+	"context"
+
+	"github.com/olive-io/bpmn/flow_node"
+	"github.com/olive-io/bpmn/flow_node/activity"
 )
 
-type ActiveBoundaryTrace struct {
-	Start bool
-	Node  schema.FlowNodeInterface
+type ActiveTrace struct {
+	Context  context.Context
+	Activity activity.Activity
+	response chan flow_node.IAction
 }
 
-func (b ActiveBoundaryTrace) TraceInterface() {}
+func (t *ActiveTrace) TraceInterface() {}
 
-// ActiveTaskTrace describes common channel handler for all tasks
-type ActiveTaskTrace interface {
-	tracing.ITrace
-	Execute()
+func (t *ActiveTrace) Do(action flow_node.IAction) {
+	t.response <- action
+}
+
+func (t *ActiveTrace) Execute() {
+	node := t.Activity.(*Task)
+	t.response <- flow_node.FlowAction{SequenceFlows: flow_node.AllSequenceFlows(&node.Wiring.Outgoing)}
 }

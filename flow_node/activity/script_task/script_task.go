@@ -88,16 +88,16 @@ func (node *ScriptTask) runner(ctx context.Context) {
 					}
 
 					response := make(chan submitResponse, 1)
-					execTrace := &ScriptExecTrace{
+					at := &ActiveTrace{
 						Context:     node.ctx,
-						Element:     node.Element(),
+						Activity:    node,
 						DataObjects: m.DataObjects,
 						Headers:     m.Headers,
 						Properties:  m.Properties,
 						response:    response,
 					}
 
-					node.Tracer.Trace(execTrace)
+					node.Tracer.Trace(at)
 					select {
 					case <-ctx.Done():
 						return
@@ -108,9 +108,8 @@ func (node *ScriptTask) runner(ctx context.Context) {
 						for key, value := range out.result {
 							action.Variables[key] = value
 						}
+						m.response <- action
 					}
-
-					m.response <- action
 				}()
 			default:
 			}

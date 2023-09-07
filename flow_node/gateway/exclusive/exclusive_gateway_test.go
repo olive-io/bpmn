@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/flow_node/gateway/exclusive"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
@@ -134,6 +135,8 @@ func TestExclusiveGatewayWithDefault(t *testing.T) {
 						t.Fatalf("can't find sequence flow target: %#v", err)
 					}
 				}
+			case activity.ActiveTaskTrace:
+				trace.Execute()
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)
 			default:
@@ -180,6 +183,8 @@ func TestExclusiveGatewayWithNoDefault(t *testing.T) {
 						t.Fatalf("can't find sequence flow target: %#v", err)
 					}
 				}
+			case activity.ActiveTaskTrace:
+				trace.Execute()
 			case tracing.ErrorTrace:
 				var target exclusive.NoEffectiveSequenceFlows
 				if errors.As(trace.Error, &target) {
@@ -229,6 +234,8 @@ func TestExclusiveGatewayIncompleteJoin(t *testing.T) {
 				} else {
 					t.Fatalf("can't find element with FlowNodeId %#v", id)
 				}
+			case activity.ActiveTaskTrace:
+				trace.Execute()
 			case flow.CeaseFlowTrace:
 				break loop
 			case tracing.ErrorTrace:

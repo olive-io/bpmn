@@ -24,6 +24,7 @@ import (
 
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow_node"
+	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/assert"
@@ -54,6 +55,7 @@ func init() {
 
 func TestNewWiring(t *testing.T) {
 	var waitGroup sync.WaitGroup
+	locator := instance.NewFlowDataLocator()
 	if proc, found := sampleDoc.FindBy(schema.ExactId("sample")); found {
 		if flowNode, found := sampleDoc.FindBy(schema.ExactId("either")); found {
 			node, err := flow_node.NewWiring(
@@ -65,7 +67,7 @@ func TestNewWiring(t *testing.T) {
 				event.VoidSource{},
 				tracing.NewTracer(context.Background()), flow_node.NewLockedFlowNodeMapping(),
 				&waitGroup,
-				event.WrappingDefinitionInstanceBuilder,
+				event.WrappingDefinitionInstanceBuilder, locator,
 			)
 			assert.Nil(t, err)
 			assert.Equal(t, 1, len(node.Incoming))

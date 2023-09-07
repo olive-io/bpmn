@@ -17,7 +17,7 @@ package service_task
 import (
 	"context"
 
-	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/flow_node/activity"
 )
 
 type callResponse struct {
@@ -26,21 +26,21 @@ type callResponse struct {
 	err         error
 }
 
-type ServiceCallTrace struct {
+type ActiveTrace struct {
 	context.Context
-	Element     schema.FlowNodeInterface
+	Activity    activity.Activity
 	Headers     map[string]any
 	Properties  map[string]any
 	DataObjects map[string]any
 	response    chan callResponse
 }
 
-func (t *ServiceCallTrace) TraceInterface() {}
+func (t *ActiveTrace) TraceInterface() {}
 
-func (t *ServiceCallTrace) Do(dataObjects, result map[string]any, err error) {
+func (t *ActiveTrace) Do(dataObjects, result map[string]any, err error) {
 	t.response <- callResponse{dataObjects: dataObjects, result: result, err: err}
 }
 
-func (t *ServiceCallTrace) Done() {
+func (t *ActiveTrace) Execute() {
 	t.response <- callResponse{}
 }

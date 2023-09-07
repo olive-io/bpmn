@@ -24,6 +24,7 @@ import (
 
 	_ "github.com/olive-io/bpmn/expression/expr"
 	"github.com/olive-io/bpmn/flow"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/flow_node/gateway/inclusive"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
@@ -87,6 +88,8 @@ func TestInclusiveGateway(t *testing.T) {
 						t.Fatalf("can't find sequence flow target: %#v", err)
 					}
 				}
+			case activity.ActiveTaskTrace:
+				trace.Execute()
 			case flow.CeaseFlowTrace:
 				// should only reach `end` once
 				assert.Equal(t, 1, endReached)
@@ -144,6 +147,8 @@ func TestInclusiveGatewayDefault(t *testing.T) {
 						t.Fatalf("can't find sequence flow target: %#v", err)
 					}
 				}
+			case activity.ActiveTaskTrace:
+				trace.Execute()
 			case flow.CeaseFlowTrace:
 				// should only reach `end` once
 				assert.Equal(t, 1, endReached)

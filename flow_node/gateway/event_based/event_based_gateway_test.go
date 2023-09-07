@@ -23,6 +23,7 @@ import (
 
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	ev "github.com/olive-io/bpmn/flow_node/event/catch"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
@@ -123,6 +124,8 @@ func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...ev
 						ch <- reached
 						return
 					}
+				case activity.ActiveTaskTrace:
+					trace.Execute()
 				case flow.CeaseFlowTrace:
 					ch <- reached
 					return

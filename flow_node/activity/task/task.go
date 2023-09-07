@@ -16,7 +16,6 @@ package task
 
 import (
 	"context"
-	"sync"
 
 	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
@@ -42,21 +41,10 @@ func (m cancelMessage) message() {}
 
 type Task struct {
 	*flow_node.Wiring
+	ctx           context.Context
+	cancel        context.CancelFunc
 	element       *schema.Task
 	runnerChannel chan message
-	bodyLock      sync.RWMutex
-	body          func(*Task, context.Context) flow_node.IAction
-	cancel        context.CancelFunc
-}
-
-// SetBody override Task's body with an arbitrary function
-//
-// Since Task implements Abstract Task, it does nothing by default.
-// This allows to add an implementation. Primarily used for testing.
-func (node *Task) SetBody(body func(*Task, context.Context) flow_node.IAction) {
-	node.bodyLock.Lock()
-	defer node.bodyLock.Unlock()
-	node.body = body
 }
 
 func NewTask(ctx context.Context, task *schema.Task) activity.Constructor {
@@ -65,9 +53,10 @@ func NewTask(ctx context.Context, task *schema.Task) activity.Constructor {
 		ctx, cancel = context.WithCancel(ctx)
 		taskNode := &Task{
 			Wiring:        wiring,
+			ctx:           ctx,
+			cancel:        cancel,
 			element:       task,
 			runnerChannel: make(chan message, len(wiring.Incoming)*2+1),
-			cancel:        cancel,
 		}
 		go taskNode.runner(ctx)
 		node = taskNode
@@ -86,13 +75,21 @@ func (node *Task) runner(ctx context.Context) {
 			case nextActionMessage:
 				go func() {
 					var action flow_node.IAction
-					action = flow_node.FlowAction{SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing)}
-					if node.body != nil {
-						node.bodyLock.RLock()
-						action = node.body(node, ctx)
-						node.bodyLock.RUnlock()
+
+					response := make(chan flow_node.IAction, 1)
+					at := &ActiveTrace{
+						Context:  node.ctx,
+						Activity: node,
+						response: response,
 					}
-					m.response <- action
+
+					node.Tracer.Trace(at)
+					select {
+					case <-ctx.Done():
+						return
+					case action = <-response:
+						m.response <- action
+					}
 				}()
 			default:
 			}
@@ -103,7 +100,7 @@ func (node *Task) runner(ctx context.Context) {
 }
 
 func (node *Task) NextAction(flow_interface.T) chan flow_node.IAction {
-	response := make(chan flow_node.IAction)
+	response := make(chan flow_node.IAction, 1)
 	node.runnerChannel <- nextActionMessage{response: response}
 	return response
 }

@@ -23,7 +23,6 @@ import (
 
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/flow_node/activity/task"
 	"github.com/olive-io/bpmn/flow_node/event/catch"
@@ -84,26 +83,6 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 32))
 
 	if inst, err := proc.Instantiate(instance.WithTracer(tracer)); err == nil {
-		if node, found := testDoc.FindBy(schema.ExactId("task")); found {
-			if taskNode, found := inst.FlowNodeMapping().
-				ResolveElementToFlowNode(node.(schema.FlowNodeInterface)); found {
-				harness := taskNode.(*activity.Harness)
-				aTask := harness.Activity().(*task.Task)
-				aTask.SetBody(func(task *task.Task, ctx context.Context) flow_node.IAction {
-					select {
-					case <-ready:
-						return flow_node.FlowAction{SequenceFlows: flow_node.AllSequenceFlows(&task.Wiring.Outgoing)}
-					case <-ctx.Done():
-						return flow_node.CompleteAction{}
-					}
-				})
-			} else {
-				t.Fatalf("failed to get the flow node `task`")
-			}
-		} else {
-			t.Fatalf("failed to get the flow node element for `task`")
-		}
-
 		err = inst.StartAll(context.Background())
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
@@ -160,6 +139,23 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 					visited[*id] = true
 					if *id == "end" {
 						break loop1
+					}
+				}
+			case activity.ActiveTaskTrace:
+				if v, ok := trace.(*task.ActiveTrace); ok {
+					if id, present := v.Activity.Element().Id(); present {
+						if *id == "task" {
+							//v.Execute()
+							go func() {
+								select {
+								case <-ready:
+									v.Execute()
+								}
+							}()
+						} else {
+							v.Execute()
+						}
+					} else {
 					}
 				}
 			case tracing.ErrorTrace:

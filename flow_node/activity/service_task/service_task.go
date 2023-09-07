@@ -89,16 +89,16 @@ func (node *ServiceTask) runner(ctx context.Context) {
 					}
 
 					response := make(chan callResponse, 1)
-					callTrace := &ServiceCallTrace{
+					at := &ActiveTrace{
 						Context:     node.ctx,
-						Element:     node.Element(),
+						Activity:    node,
 						Headers:     m.Headers,
 						Properties:  m.Properties,
 						DataObjects: m.DataObjects,
 						response:    response,
 					}
 
-					node.Tracer.Trace(callTrace)
+					node.Tracer.Trace(at)
 					select {
 					case <-ctx.Done():
 						return

@@ -138,9 +138,10 @@ func TestCondDataObject(t *testing.T) {
 				traces := instance.Tracer.Subscribe()
 				// Set all data objects to false by default, except for `cond`
 				for _, k := range []string{"cond1o", "cond2o"} {
-					itemAware, found := instance.DataObjectLocator.FindItemAwareByName(k)
+					locator, _ := instance.Locator.FindIItemAwareLocator("$")
+					aware, found := locator.FindItemAwareByName(k)
 					require.True(t, found)
-					itemAware.Put(k == cond)
+					aware.Put(k == cond)
 				}
 				err := instance.StartAll(context.Background())
 				if err != nil {

@@ -17,7 +17,7 @@ package user_task
 import (
 	"context"
 
-	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/flow_node/activity"
 )
 
 type submitResponse struct {
@@ -25,20 +25,20 @@ type submitResponse struct {
 	err    error
 }
 
-type UserCallTrace struct {
+type ActiveTrace struct {
 	context.Context
-	Element    schema.FlowNodeInterface
+	Activity   activity.Activity
 	Headers    map[string]any
 	Properties map[string]any
 	response   chan submitResponse
 }
 
-func (t *UserCallTrace) TraceInterface() {}
+func (t *ActiveTrace) TraceInterface() {}
 
-func (t *UserCallTrace) Submit(result map[string]any, err error) {
+func (t *ActiveTrace) Submit(result map[string]any, err error) {
 	t.response <- submitResponse{result: result, err: err}
 }
 
-func (t *UserCallTrace) Done() {
+func (t *ActiveTrace) Execute() {
 	t.response <- submitResponse{}
 }
