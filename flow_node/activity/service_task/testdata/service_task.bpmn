@@ -8,7 +8,7 @@
       <bpmn:incoming>Flow_1hox6h5</bpmn:incoming>
       <bpmn:outgoing>Flow_0rnfgnz</bpmn:outgoing>
       <bpmn:extensionElements>
-        <olive:taskDefinition type="service"/>
+        <olive:taskDefinition type="service" retries="2"/>
         <olive:taskHeaders>
           <olive:item key="contentType" value="aplication/json" type="string"/>
         </olive:taskHeaders>

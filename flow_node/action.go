@@ -37,10 +37,15 @@ func (action ProbeAction) action() {}
 type ActionTransformer func(sequenceFlowId *schema.IdRef, action IAction) IAction
 type Terminate func(sequenceFlowId *schema.IdRef) chan bool
 
-type FlowAction struct {
+type FlowActionResponse struct {
 	DataObjects map[string]data.IItem
 	Variables   map[string]data.IItem
+	Retries     *int32
 	Err         error
+}
+
+type FlowAction struct {
+	Response *FlowActionResponse
 
 	SequenceFlows []*sequence_flow.SequenceFlow
 	// Index of sequence flows that should flow without

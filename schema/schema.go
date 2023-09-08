@@ -294,7 +294,8 @@ const (
 )
 
 type TaskDefinition struct {
-	Type string `xml:"type,attr"`
+	Type    string `xml:"type,attr"`
+	Retries int32  `xml:"retries,attr"`
 }
 
 func (t *TaskDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {

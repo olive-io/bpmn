@@ -18,15 +18,19 @@ import (
 	"context"
 	"embed"
 	"encoding/xml"
+	"fmt"
 	"log"
 	"testing"
 
+	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/activity"
+	"github.com/olive-io/bpmn/flow_node/activity/service_task"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
+	"github.com/stretchr/testify/assert"
 	_ "github.com/stretchr/testify/assert"
 )
 
@@ -65,6 +69,7 @@ func TestServiceTask(t *testing.T) {
 		}
 		done := make(chan struct{}, 1)
 		go func() {
+			defer close(done)
 			for {
 				var trace tracing.ITrace
 				select {
@@ -74,19 +79,12 @@ func TestServiceTask(t *testing.T) {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case flow.Trace:
-					if id, present := trace.Source.Id(); present {
-						if *id == "task" {
-							// success!
-							//break loop
-						}
-					}
 				case activity.ActiveTaskTrace:
 					trace.Execute()
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:
 					t.Fatalf("%#v", trace)
 				case flow.CeaseFlowTrace:
-					close(done)
 					return
 				default:
 					t.Logf("%#v", trace)
@@ -102,4 +100,108 @@ func TestServiceTask(t *testing.T) {
 	} else {
 		t.Fatalf("failed to instantiate the process: %s", err)
 	}
+}
+
+func TestServiceTaskWithError(t *testing.T) {
+	processElement := (*testTask.Processes())[0]
+	proc := process.New(&processElement, &testTask)
+	var te error
+	if ins, err := proc.Instantiate(); err == nil {
+		traces := ins.Tracer.Subscribe()
+		err := ins.StartAll(context.Background())
+		if err != nil {
+			t.Fatalf("failed to run the instance: %s", err)
+		}
+		done := make(chan struct{}, 1)
+		go func() {
+			defer close(done)
+			for {
+				var trace tracing.ITrace
+				select {
+				case trace = <-traces:
+				}
+
+				trace = tracing.Unwrap(trace)
+				switch trace := trace.(type) {
+				case flow.Trace:
+				case activity.ActiveTaskTrace:
+					if st, ok := trace.(*service_task.ActiveTrace); ok {
+						st.Do(nil, nil, fmt.Errorf("text error"), nil)
+					}
+					t.Logf("%#v", trace)
+				case tracing.ErrorTrace:
+					te = trace.Error
+					t.Logf("%#v", trace)
+				case flow.CeaseFlowTrace:
+					return
+				default:
+					t.Logf("%#v", trace)
+				}
+			}
+		}()
+
+		select {
+		case <-done:
+		}
+
+		ins.Tracer.Unsubscribe(traces)
+	} else {
+		t.Fatalf("failed to instantiate the process: %s", err)
+	}
+
+	assert.Equal(t, te.(errors.TaskExecError).Reason, "text error")
+}
+
+func TestServiceTaskWithRetry(t *testing.T) {
+	processElement := (*testTask.Processes())[0]
+	proc := process.New(&processElement, &testTask)
+	var te error
+	runnum := 0
+	if ins, err := proc.Instantiate(); err == nil {
+		traces := ins.Tracer.Subscribe()
+		err := ins.StartAll(context.Background())
+		if err != nil {
+			t.Fatalf("failed to run the instance: %s", err)
+		}
+		done := make(chan struct{}, 1)
+		go func() {
+			defer close(done)
+			for {
+				var trace tracing.ITrace
+				select {
+				case trace = <-traces:
+				}
+
+				trace = tracing.Unwrap(trace)
+				switch trace := trace.(type) {
+				case flow.Trace:
+				case activity.ActiveTaskTrace:
+					runnum += 1
+					if st, ok := trace.(*service_task.ActiveTrace); ok {
+						retry := int32(1)
+						st.Do(nil, nil, fmt.Errorf("text error"), &retry)
+					}
+					t.Logf("%#v", trace)
+				case tracing.ErrorTrace:
+					te = trace.Error
+					t.Logf("%#v", trace)
+				case flow.CeaseFlowTrace:
+					return
+				default:
+					t.Logf("%#v", trace)
+				}
+			}
+		}()
+
+		select {
+		case <-done:
+		}
+
+		ins.Tracer.Unsubscribe(traces)
+	} else {
+		t.Fatalf("failed to instantiate the process: %s", err)
+	}
+
+	assert.Equal(t, runnum, 2)
+	assert.Equal(t, te.(errors.TaskExecError).Reason, "text error")
 }

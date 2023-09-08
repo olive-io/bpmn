@@ -82,9 +82,12 @@ func (node *ServiceTask) runner(ctx context.Context) {
 				m.response <- true
 			case nextActionMessage:
 				go func() {
+					aResponse := &flow_node.FlowActionResponse{
+						DataObjects: map[string]data.IItem{},
+						Variables:   map[string]data.IItem{},
+					}
 					action := flow_node.FlowAction{
-						DataObjects:   map[string]data.IItem{},
-						Variables:     map[string]data.IItem{},
+						Response:      aResponse,
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
@@ -104,17 +107,20 @@ func (node *ServiceTask) runner(ctx context.Context) {
 						return
 					case out := <-response:
 						if out.err != nil {
-							action.Err = out.err
+							aResponse.Err = out.err
 						}
 						for name, do := range out.dataObjects {
-							action.DataObjects[name] = do
+							aResponse.DataObjects[name] = do
 						}
 						for key, value := range out.result {
-							action.Variables[key] = value
+							aResponse.Variables[key] = value
 						}
+						if out.retries != nil {
+							aResponse.Retries = out.retries
+						}
+						m.response <- action
 					}
 
-					m.response <- action
 				}()
 			default:
 			}

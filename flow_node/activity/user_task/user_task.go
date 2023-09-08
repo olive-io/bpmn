@@ -81,8 +81,11 @@ func (node *UserTask) runner(ctx context.Context) {
 				m.response <- true
 			case nextActionMessage:
 				go func() {
+					aResponse := &flow_node.FlowActionResponse{
+						Variables: map[string]data.IItem{},
+					}
 					action := flow_node.FlowAction{
-						Variables:     map[string]data.IItem{},
+						Response:      aResponse,
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
@@ -101,10 +104,10 @@ func (node *UserTask) runner(ctx context.Context) {
 						return
 					case out := <-response:
 						if out.err != nil {
-							action.Err = out.err
+							aResponse.Err = out.err
 						}
 						for key, value := range out.result {
-							action.Variables[key] = value
+							aResponse.Variables[key] = value
 						}
 					}
 

@@ -43,6 +43,7 @@ type Flow struct {
 	terminate         flow_node.Terminate
 	sequenceFlowId    *string
 	locator           data.IFlowDataLocator
+	retry             *Retry
 }
 
 func (flow *Flow) SequenceFlow() *sequence_flow.SequenceFlow {
@@ -298,24 +299,54 @@ func (flow *Flow) Start(ctx context.Context) {
 					}
 					a.ProbeReport(results)
 				case flow_node.FlowAction:
-					if len(a.DataObjects) > 0 {
-						locator, found := flow.locator.FindIItemAwareLocator("$")
-						if found {
-							for name, do := range a.DataObjects {
-								aware, found := locator.FindItemAwareByName(name)
-								if !found {
-									container := data.NewContainer(nil)
-									container.Put(do)
-									locator.PutItemAwareByName(name, container)
-								} else {
-									aware.Put(do)
+					if res := a.Response; res != nil {
+						if res.Err != nil {
+							source := flow.current.Element()
+							fid, _ := source.Id()
+							flow.tracer.Trace(tracing.ErrorTrace{Error: errors.TaskExecError{
+								Id:     *fid,
+								Reason: res.Err.Error(),
+							}})
+
+							if flow.retry == nil {
+								retry := &Retry{}
+								if extension, present := source.ExtensionElements(); present {
+									if taskDefinition := extension.TaskDefinitionField; taskDefinition != nil {
+										retry.Reset(taskDefinition.Retries)
+									}
+								}
+								flow.retry = retry
+							}
+
+							if res.Retries != nil {
+								flow.retry.Reset(*res.Retries)
+							}
+							if flow.retry.IsContinue() {
+								flow.retry.Step()
+								goto await
+							}
+							return
+						}
+
+						if len(res.DataObjects) > 0 {
+							locator, found := flow.locator.FindIItemAwareLocator("$")
+							if found {
+								for name, do := range res.DataObjects {
+									aware, found := locator.FindItemAwareByName(name)
+									if !found {
+										container := data.NewContainer(nil)
+										container.Put(do)
+										locator.PutItemAwareByName(name, container)
+									} else {
+										aware.Put(do)
+									}
 								}
 							}
 						}
-					}
-					if len(a.Variables) > 0 {
-						for key, value := range a.Variables {
-							flow.locator.SetVariable(key, value)
+						if len(res.Variables) > 0 {
+							for key, value := range res.Variables {
+								flow.locator.SetVariable(key, value)
+							}
 						}
 					}
 

@@ -24,6 +24,7 @@ type callResponse struct {
 	dataObjects map[string]any
 	result      map[string]any
 	err         error
+	retries     *int32
 }
 
 type ActiveTrace struct {
@@ -37,8 +38,8 @@ type ActiveTrace struct {
 
 func (t *ActiveTrace) TraceInterface() {}
 
-func (t *ActiveTrace) Do(dataObjects, result map[string]any, err error) {
-	t.response <- callResponse{dataObjects: dataObjects, result: result, err: err}
+func (t *ActiveTrace) Do(dataObjects, result map[string]any, err error, retries *int32) {
+	t.response <- callResponse{dataObjects: dataObjects, result: result, err: err, retries: retries}
 }
 
 func (t *ActiveTrace) Execute() {
