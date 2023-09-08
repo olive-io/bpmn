@@ -39,14 +39,14 @@ type Wiring struct {
 	EventIngress                   event.IConsumer
 	EventEgress                    event.ISource
 	Tracer                         tracing.ITracer
-	Process                        *schema.Process
+	Process                        schema.Element
 	FlowNodeMapping                *FlowNodeMapping
 	FlowWaitGroup                  *sync.WaitGroup
 	EventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder
 	Locator                        data.IFlowDataLocator
 }
 
-func sequenceFlows(process *schema.Process,
+func sequenceFlows(process schema.Element,
 	definitions *schema.Definitions,
 	flows *[]schema.QName) (result []sequence_flow.SequenceFlow, err error) {
 	result = make([]sequence_flow.SequenceFlow, len(*flows))
@@ -57,18 +57,19 @@ func sequenceFlows(process *schema.Process,
 			_, ok := e.(*schema.SequenceFlow)
 			return ok && exactId(e)
 		}); found {
-			result[i] = sequence_flow.Make(element.(*schema.SequenceFlow), definitions)
+			result[i] = sequence_flow.Make(element.(*schema.SequenceFlow), process)
 		} else {
 			err = errors.NotFoundError{Expected: identifier}
 			return
 		}
 	}
+
 	return
 }
 
 func NewWiring(
 	processInstanceId id.Id,
-	process *schema.Process,
+	process schema.Element,
 	definitions *schema.Definitions,
 	flowNode *schema.FlowNode,
 	eventIngress event.IConsumer,
@@ -79,6 +80,7 @@ func NewWiring(
 	eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder,
 	locator data.IFlowDataLocator,
 ) (node *Wiring, err error) {
+
 	incoming, err := sequenceFlows(process, definitions, flowNode.Incomings())
 	if err != nil {
 		return

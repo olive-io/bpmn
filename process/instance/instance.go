@@ -27,6 +27,7 @@ import (
 	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/flow_node/activity/script_task"
 	"github.com/olive-io/bpmn/flow_node/activity/service_task"
+	"github.com/olive-io/bpmn/flow_node/activity/subprocess"
 	"github.com/olive-io/bpmn/flow_node/activity/task"
 	"github.com/olive-io/bpmn/flow_node/activity/user_task"
 	"github.com/olive-io/bpmn/flow_node/event/catch"
@@ -371,12 +372,12 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		if err != nil {
 			return
 		}
-		var aTask *activity.Harness
-		aTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, task.NewTask(ctx, element))
+		var harness *activity.Harness
+		harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, task.NewTask(ctx, element))
 		if err != nil {
 			return
 		}
-		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, aTask)
+		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, harness)
 		if err != nil {
 			return
 		}
@@ -388,13 +389,13 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		if err != nil {
 			return
 		}
-		var sTask *activity.Harness
-		taskElem := service_task.NewServiceTask(ctx, element)
-		sTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, taskElem)
+		var harness *activity.Harness
+		serviceTask := service_task.NewServiceTask(ctx, element)
+		harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, serviceTask)
 		if err != nil {
 			return
 		}
-		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, sTask)
+		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, harness)
 		if err != nil {
 			return
 		}
@@ -406,13 +407,13 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		if err != nil {
 			return
 		}
-		var sTask *activity.Harness
-		taskElem := user_task.NewUserTask(ctx, element)
-		sTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, taskElem)
+		var harness *activity.Harness
+		userTask := user_task.NewUserTask(ctx, element)
+		harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, userTask)
 		if err != nil {
 			return
 		}
-		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, sTask)
+		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, harness)
 		if err != nil {
 			return
 		}
@@ -424,13 +425,31 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		if err != nil {
 			return
 		}
-		var sTask *activity.Harness
-		taskElem := script_task.NewScriptTask(ctx, element)
-		sTask, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, taskElem)
+		var harness *activity.Harness
+		scriptTask := script_task.NewScriptTask(ctx, element)
+		harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, scriptTask)
 		if err != nil {
 			return
 		}
-		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, sTask)
+		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, harness)
+		if err != nil {
+			return
+		}
+	}
+
+	for i := range *instance.process.SubProcesses() {
+		element := &(*instance.process.SubProcesses())[i]
+		wiring, err = wiringMaker(&element.FlowNode)
+		if err != nil {
+			return
+		}
+		var harness *activity.Harness
+		subProcess := subprocess.New(ctx, instance.eventDefinitionInstanceBuilder, idGenerator, subTracer, element)
+		harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, subProcess)
+		if err != nil {
+			return
+		}
+		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, harness)
 		if err != nil {
 			return
 		}

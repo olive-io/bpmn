@@ -75,7 +75,7 @@ func New(ctx context.Context, wiring *flow_node.Wiring, exclusiveGateway *schema
 			defaultSequenceFlow = new(sequence_flow.SequenceFlow)
 			*defaultSequenceFlow = sequence_flow.Make(
 				node.(*schema.SequenceFlow),
-				wiring.Definitions,
+				wiring.Process,
 			)
 		} else {
 			err = errors.NotFoundError{

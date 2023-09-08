@@ -87,10 +87,20 @@ func NewHarness(ctx context.Context,
 
 	boundaryEvents := make([]*schema.BoundaryEvent, 0)
 
-	for i := range *wiring.Process.BoundaryEvents() {
-		boundaryEvent := &(*wiring.Process.BoundaryEvents())[i]
-		if string(*boundaryEvent.AttachedToRef()) == wiring.FlowNodeId {
-			boundaryEvents = append(boundaryEvents, boundaryEvent)
+	switch process := wiring.Process.(type) {
+	case *schema.Process:
+		for i := range *process.BoundaryEvents() {
+			boundaryEvent := &(*process.BoundaryEvents())[i]
+			if string(*boundaryEvent.AttachedToRef()) == wiring.FlowNodeId {
+				boundaryEvents = append(boundaryEvents, boundaryEvent)
+			}
+		}
+	case *schema.SubProcess:
+		for i := range *process.BoundaryEvents() {
+			boundaryEvent := &(*process.BoundaryEvents())[i]
+			if string(*boundaryEvent.AttachedToRef()) == wiring.FlowNodeId {
+				boundaryEvents = append(boundaryEvents, boundaryEvent)
+			}
 		}
 	}
 

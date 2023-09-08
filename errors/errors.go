@@ -68,3 +68,12 @@ type TaskExecError struct {
 func (e TaskExecError) Error() string {
 	return fmt.Sprintf("call task %s failed: %v", e.Id, e.Reason)
 }
+
+type SubProcessError struct {
+	Id     string
+	Reason string
+}
+
+func (e SubProcessError) Error() string {
+	return fmt.Sprintf("exec subprocess %s failed: %v", e.Id, e.Reason)
+}
