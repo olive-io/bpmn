@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
@@ -83,7 +84,6 @@ func New(ctx context.Context,
 		flowNodeMapping := flow_node.NewLockedFlowNodeMapping()
 
 		subTracer := tracing.NewTracer(ctx)
-		//subTracer := tracer
 
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
@@ -99,12 +99,12 @@ func New(ctx context.Context,
 			runnerChannel:          make(chan message, len(parentWiring.Incoming)*2+1),
 		}
 
-		//tracing.NewRelay(ctx, subTracer, tracer, func(trace tracing.ITrace) []tracing.ITrace {
-		//	return []tracing.ITrace{Trace{
-		//		InstanceId: instance.id,
-		//		Trace:      trace,
-		//	}}
-		//})
+		var locator *data.FlowDataLocator
+		locator, err = data.NewFlowDataLocatorFromElement(idGenerator, subProcess)
+		if err != nil {
+			return
+		}
+		locator.Merge(parentWiring.Locator.(*data.FlowDataLocator))
 
 		wiringMaker := func(element *schema.FlowNode) (*flow_node.Wiring, error) {
 			return flow_node.NewWiring(
@@ -116,7 +116,7 @@ func New(ctx context.Context,
 				subTracer,
 				process.flowNodeMapping,
 				&process.flowWaitGroup, process.eventDefinitionBuilder,
-				parentWiring.Locator)
+				locator)
 		}
 
 		var wiring *flow_node.Wiring
@@ -406,25 +406,7 @@ func (p *SubProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.C
 		defer sender.Done()
 		defer p.complete.Unlock()
 
-		/* 13.4.6 End Events:
-
-		The Process instance is [...] completed, if
-		and only if the following two conditions
-		hold:
-
-		(1) All start nodes of the Process have been
-		visited. More precisely, all StartAll Events
-		have been triggered (1.1), and for all
-		starting Event-Based Gateways, one of the
-		associated Events has been triggered (1.2).
-
-		(2) There is no token remaining within the
-		Process instance
-		*/
 		startEventsActivated := make([]*schema.StartEvent, 0)
-
-		// So, at first, we wait for (1.1) to occur
-		// [(1.2) will be addded when we actually support them]
 
 		for {
 			if len(startEventsActivated) == len(*p.element.StartEvents()) {
@@ -473,7 +455,7 @@ func (p *SubProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.C
 	}
 }
 
-func (p *SubProcess) runner(ctx context.Context, tracer tracing.ITracer) {
+func (p *SubProcess) runner(ctx context.Context, out tracing.ITracer) {
 	for {
 		select {
 		case msg := <-p.runnerChannel:
@@ -488,7 +470,7 @@ func (p *SubProcess) runner(ctx context.Context, tracer tracing.ITracer) {
 						if pid, present := p.element.Id(); present {
 							subProcessId = *pid
 						}
-						tracer.Trace(tracing.ErrorTrace{Error: &errors.SubProcessError{
+						out.Trace(tracing.ErrorTrace{Error: &errors.SubProcessError{
 							Id:     subProcessId,
 							Reason: err.Error(),
 						}})
@@ -501,12 +483,12 @@ func (p *SubProcess) runner(ctx context.Context, tracer tracing.ITracer) {
 						trace := tracing.Unwrap(<-traces)
 						switch trace := trace.(type) {
 						case flow.CeaseFlowTrace:
-							tracer.Trace(ProcessLandMarkTrace{Node: p.element})
+							out.Trace(ProcessLandMarkTrace{Node: p.element})
 							break loop
 						case flow.CompletionTrace:
 							// ignore end event of sub process
 						default:
-							tracer.Trace(trace)
+							out.Trace(trace)
 						}
 					}
 					p.tracer.Unsubscribe(traces)

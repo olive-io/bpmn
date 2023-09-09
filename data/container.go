@@ -48,3 +48,14 @@ func (c *Container) Put(item IItem) {
 	defer c.mu.Unlock()
 	c.item = item
 }
+
+func (c *Container) CloneFor(other ILocatorCloner) {
+	out, ok := other.(*Container)
+	if !ok {
+		return
+	}
+	if out.ItemAwareInterface == nil {
+		out.ItemAwareInterface = c.ItemAwareInterface
+	}
+	out.Put(c.Get())
+}

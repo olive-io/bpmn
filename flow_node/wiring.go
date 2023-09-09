@@ -47,7 +47,6 @@ type Wiring struct {
 }
 
 func sequenceFlows(process schema.Element,
-	definitions *schema.Definitions,
 	flows *[]schema.QName) (result []sequence_flow.SequenceFlow, err error) {
 	result = make([]sequence_flow.SequenceFlow, len(*flows))
 	for i := range result {
@@ -81,11 +80,11 @@ func NewWiring(
 	locator data.IFlowDataLocator,
 ) (node *Wiring, err error) {
 
-	incoming, err := sequenceFlows(process, definitions, flowNode.Incomings())
+	incoming, err := sequenceFlows(process, flowNode.Incomings())
 	if err != nil {
 		return
 	}
-	outgoing, err := sequenceFlows(process, definitions, flowNode.Outgoings())
+	outgoing, err := sequenceFlows(process, flowNode.Outgoings())
 	if err != nil {
 		return
 	}
@@ -118,11 +117,11 @@ func NewWiring(
 
 // CloneFor copies receiver, overriding FlowNodeId, Incoming, Outgoing for a given flowNode
 func (wiring *Wiring) CloneFor(flowNode *schema.FlowNode) (result *Wiring, err error) {
-	incoming, err := sequenceFlows(wiring.Process, wiring.Definitions, flowNode.Incomings())
+	incoming, err := sequenceFlows(wiring.Process, flowNode.Incomings())
 	if err != nil {
 		return
 	}
-	outgoing, err := sequenceFlows(wiring.Process, wiring.Definitions, flowNode.Outgoings())
+	outgoing, err := sequenceFlows(wiring.Process, flowNode.Outgoings())
 	if err != nil {
 		return
 	}

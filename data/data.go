@@ -104,6 +104,11 @@ type IItemAware interface {
 	Put(item IItem)
 }
 
+// ILocatorCloner provides basic interface of cloning data items
+type ILocatorCloner interface {
+	CloneFor(target ILocatorCloner)
+}
+
 // IItemAwareLocator interface describes a way to find and put IItemAware
 type IItemAwareLocator interface {
 	// FindItemAwareById finds ItemAware by its schema.Id

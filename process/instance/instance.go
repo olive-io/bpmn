@@ -50,7 +50,7 @@ type Instance struct {
 	flowWaitGroup                  sync.WaitGroup
 	complete                       sync.RWMutex
 	idGenerator                    id.IGenerator
-	Locator                        *FlowDataLocator
+	Locator                        *data.FlowDataLocator
 	EventIngress                   event.IConsumer
 	EventEgress                    event.ISource
 	idGeneratorBuilder             id.IGeneratorBuilder
@@ -127,7 +127,7 @@ func WithEventEgress(source event.ISource) Option {
 func WithVariables(variables map[string]any) Option {
 	return func(ctx context.Context, instance *Instance) context.Context {
 		if instance.Locator == nil {
-			instance.Locator = NewFlowDataLocator()
+			instance.Locator = data.NewFlowDataLocator()
 		}
 		for key, value := range variables {
 			instance.Locator.SetVariable(key, value)
@@ -169,7 +169,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 	}
 
 	if instance.Locator == nil {
-		instance.Locator = NewFlowDataLocator()
+		instance.Locator = data.NewFlowDataLocator()
 	}
 
 	var idGenerator id.IGenerator
@@ -187,97 +187,12 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		return
 	}
 
-	locators := make(map[string]data.IItemAwareLocator)
-	// Item aware elements
-	dataObjectContainer := NewDataObjectContainer()
-	headerContainer := NewHeaderContainer()
-	propertyContainer := NewPropertyContainer()
-	for i := range *instance.process.DataObjects() {
-		dataObject := &(*instance.process.DataObjects())[i]
-		var name string
-		if namePtr, present := dataObject.Name(); present {
-			name = *namePtr
-		} else {
-			name = idGenerator.New().String()
-		}
-		container := data.NewContainer(dataObject)
-		dataObjectContainer.dataObjectsByName[name] = container
-		if idPtr, present := dataObject.Id(); present {
-			dataObjectContainer.dataObjects[*idPtr] = container
-		}
+	var locator *data.FlowDataLocator
+	locator, err = data.NewFlowDataLocatorFromElement(idGenerator, instance.process)
+	if err != nil {
+		return
 	}
-
-	for i := range *instance.process.DataObjectReferences() {
-		dataObjectReference := &(*instance.process.DataObjectReferences())[i]
-		var name string
-		if namePtr, present := dataObjectReference.Name(); present {
-			name = *namePtr
-		} else {
-			name = idGenerator.New().String()
-		}
-		var container data.IItemAware
-		if dataObjPtr, present := dataObjectReference.DataObjectRef(); present {
-			for dataObjectId := range dataObjectContainer.dataObjects {
-				if dataObjectId == *dataObjPtr {
-					container = dataObjectContainer.dataObjects[dataObjectId]
-					break
-				}
-			}
-			if container == nil {
-				err = errors.NotFoundError{
-					Expected: fmt.Sprintf("data object with ID %s", *dataObjPtr),
-				}
-				return
-			}
-		} else {
-			err = errors.InvalidArgumentError{
-				Expected: "data object reference to have dataObjectRef",
-				Actual:   dataObjectReference,
-			}
-			return
-		}
-		dataObjectContainer.dataObjectReferencesByName[name] = container
-		if idPtr, present := dataObjectReference.Id(); present {
-			dataObjectContainer.dataObjectReferences[*idPtr] = container
-		}
-	}
-
-	for i := range *instance.process.Properties() {
-		property := &(*instance.process.Properties())[i]
-		var name string
-		if namePtr, present := property.Name(); present {
-			name = *namePtr
-		} else {
-			name = idGenerator.New().String()
-		}
-		container := data.NewContainer(property)
-		dataObjectContainer.propertiesByName[name] = container
-		if idPtr, present := property.Id(); present {
-			dataObjectContainer.properties[*idPtr] = container
-		}
-	}
-
-	if extension := instance.process.ExtensionElementsField; extension != nil {
-		if header := extension.TaskHeaderField; header != nil {
-			for _, item := range header.ItemFields {
-				container := data.NewContainer(nil)
-				container.Put(item.ValueFor())
-				headerContainer.items[item.Key] = container
-			}
-		}
-		if properties := extension.PropertiesField; properties != nil {
-			for _, item := range properties.ItemFields {
-				container := data.NewContainer(nil)
-				container.Put(item.ValueFor())
-				propertyContainer.items[item.Key] = container
-			}
-		}
-	}
-
-	locators["$"] = dataObjectContainer
-	locators["#"] = headerContainer
-	locators["@"] = propertyContainer
-	instance.Locator.locators = locators
+	instance.Locator.Merge(locator)
 
 	// Flow nodes
 
