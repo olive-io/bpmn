@@ -371,6 +371,7 @@ func NewFlowDataLocatorFromElement(idGenerator id.IGenerator, element schema.Ele
 	locators["$"] = dataObjectContainer
 	locators["#"] = headerContainer
 	locators["@"] = propertyContainer
+	locator.locators = locators
 
 	return
 }
