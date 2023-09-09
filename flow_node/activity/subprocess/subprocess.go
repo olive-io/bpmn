@@ -332,9 +332,7 @@ func New(ctx context.Context,
 		flowNodeMapping.Finalize()
 		// StartAll cease flow monitor
 		sender := process.Tracer.RegisterSender()
-		//go process.ceaseFlowMonitor(subTracer, tracer)(ctx, sender)
 		go process.ceaseFlowMonitor(subTracer)(ctx, sender)
-
 		go process.runner(ctx, tracer)
 		node = process
 		return
@@ -486,6 +484,8 @@ func (p *SubProcess) runner(ctx context.Context, out tracing.ITracer) {
 							out.Trace(ProcessLandMarkTrace{Node: p.element})
 							break loop
 						case flow.CompletionTrace:
+							// ignore end event of sub process
+						case flow.TerminationTrace:
 							// ignore end event of sub process
 						default:
 							out.Trace(trace)

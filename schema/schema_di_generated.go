@@ -743,7 +743,7 @@ func (t *Bounds) SetHeight(value Double) {
 
 type DiagramElement struct {
 	IdField        *Id          `xml:"id,attr"`
-	ExtensionField *DIExtension `xml:"http://www.omg.org/spec/BPMN/20100524/DI extension"`
+	ExtensionField *DIExtension `xml:"http://www.omg.org/spec/DD/20100524/DI extension"`
 }
 
 func DefaultDiagramElement() DiagramElement {
@@ -933,7 +933,7 @@ func (t *Node) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
 
 type Edge struct {
 	DiagramElement
-	WaypointField []Point `xml:"http://www.omg.org/spec/BPMN/20100524/DI waypoint"`
+	WaypointField []Point `xml:"http://www.omg.org/spec/DD/20100524/DI waypoint"`
 }
 
 func DefaultEdge() Edge {

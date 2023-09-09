@@ -685,7 +685,7 @@
                 <xsl:text>http://www.omg.org/spec/BPMN/20100524/DI</xsl:text>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:text>http://www.omg.org/spec/BPMN/20100524/DI</xsl:text>
+                <xsl:text>http://www.omg.org/spec/DD/20100524/DI</xsl:text>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
