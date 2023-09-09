@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package script_task_test
+package user_test
 
 import (
 	"context"
@@ -48,10 +48,10 @@ func LoadTestFile(filename string, definitions any) {
 var testTask schema.Definitions
 
 func init() {
-	LoadTestFile("testdata/script_task.bpmn", &testTask)
+	LoadTestFile("testdata/user_task.bpmn", &testTask)
 }
 
-func TestScriptTask(t *testing.T) {
+func TestUserTask(t *testing.T) {
 	processElement := (*testTask.Processes())[0]
 	proc := process.New(&processElement, &testTask)
 	option := instance.WithVariables(map[string]any{

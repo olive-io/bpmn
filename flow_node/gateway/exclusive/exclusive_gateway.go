@@ -39,7 +39,7 @@ func (e NoEffectiveSequenceFlows) Error() string {
 	return fmt.Sprintf("No effective sequence flows found in exclusive gateway `%v`", ownId)
 }
 
-type message interface {
+type imessage interface {
 	message()
 }
 
@@ -60,7 +60,7 @@ func (m probingReport) message() {}
 type Node struct {
 	*flow_node.Wiring
 	element                 *schema.ExclusiveGateway
-	runnerChannel           chan message
+	runnerChannel           chan imessage
 	defaultSequenceFlow     *sequence_flow.SequenceFlow
 	nonDefaultSequenceFlows []*sequence_flow.SequenceFlow
 	probing                 map[id.Id]*chan flow_node.IAction
@@ -97,7 +97,7 @@ func New(ctx context.Context, wiring *flow_node.Wiring, exclusiveGateway *schema
 	node = &Node{
 		Wiring:                  wiring,
 		element:                 exclusiveGateway,
-		runnerChannel:           make(chan message, len(wiring.Incoming)*2+1),
+		runnerChannel:           make(chan imessage, len(wiring.Incoming)*2+1),
 		nonDefaultSequenceFlows: nonDefaultSequenceFlows,
 		defaultSequenceFlow:     defaultSequenceFlow,
 		probing:                 make(map[id.Id]*chan flow_node.IAction),

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package service_task_test
+package service_test
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/activity"
-	"github.com/olive-io/bpmn/flow_node/activity/service_task"
+	"github.com/olive-io/bpmn/flow_node/activity/service"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
@@ -125,7 +125,7 @@ func TestServiceTaskWithError(t *testing.T) {
 				switch trace := trace.(type) {
 				case flow.Trace:
 				case activity.ActiveTaskTrace:
-					if st, ok := trace.(*service_task.ActiveTrace); ok {
+					if st, ok := trace.(*service.ActiveTrace); ok {
 						st.Do(nil, nil, fmt.Errorf("text error"), nil)
 					}
 					t.Logf("%#v", trace)
@@ -177,7 +177,7 @@ func TestServiceTaskWithRetry(t *testing.T) {
 				case flow.Trace:
 				case activity.ActiveTaskTrace:
 					runnum += 1
-					if st, ok := trace.(*service_task.ActiveTrace); ok {
+					if st, ok := trace.(*service.ActiveTrace); ok {
 						retry := int32(1)
 						st.Do(nil, nil, fmt.Errorf("text error"), &retry)
 					}

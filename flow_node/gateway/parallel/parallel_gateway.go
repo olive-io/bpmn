@@ -24,7 +24,7 @@ import (
 	"github.com/olive-io/bpmn/tracing"
 )
 
-type message interface {
+type imessage interface {
 	message()
 }
 
@@ -38,7 +38,7 @@ func (m nextActionMessage) message() {}
 type Node struct {
 	*flow_node.Wiring
 	element               *schema.ParallelGateway
-	runnerChannel         chan message
+	runnerChannel         chan imessage
 	reportedIncomingFlows int
 	awaitingActions       []chan flow_node.IAction
 	noOfIncomingFlows     int
@@ -48,7 +48,7 @@ func New(ctx context.Context, wiring *flow_node.Wiring, parallelGateway *schema.
 	node = &Node{
 		Wiring:                wiring,
 		element:               parallelGateway,
-		runnerChannel:         make(chan message, len(wiring.Incoming)*2+1),
+		runnerChannel:         make(chan imessage, len(wiring.Incoming)*2+1),
 		reportedIncomingFlows: 0,
 		awaitingActions:       make([]chan flow_node.IAction, 0),
 		noOfIncomingFlows:     len(wiring.Incoming),

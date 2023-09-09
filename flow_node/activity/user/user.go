@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package user_task
+package user
 
 import (
 	"context"
@@ -26,7 +26,7 @@ import (
 	"github.com/olive-io/bpmn/schema"
 )
 
-type message interface {
+type imessage interface {
 	message()
 }
 
@@ -49,7 +49,7 @@ type UserTask struct {
 	ctx           context.Context
 	cancel        context.CancelFunc
 	element       *schema.UserTask
-	runnerChannel chan message
+	runnerChannel chan imessage
 }
 
 func NewUserTask(ctx context.Context, task *schema.UserTask) activity.Constructor {
@@ -63,7 +63,7 @@ func NewUserTask(ctx context.Context, task *schema.UserTask) activity.Constructo
 			ctx:           ctx,
 			cancel:        cancel,
 			element:       task,
-			runnerChannel: make(chan message, len(wiring.Incoming)*2+1),
+			runnerChannel: make(chan imessage, len(wiring.Incoming)*2+1),
 		}
 		go taskNode.runner(ctx)
 		node = taskNode

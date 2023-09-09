@@ -25,7 +25,7 @@ import (
 	"github.com/olive-io/bpmn/tracing"
 )
 
-type message interface {
+type imessage interface {
 	message()
 }
 
@@ -44,7 +44,7 @@ func (m processEventMessage) message() {}
 type Node struct {
 	*flow_node.Wiring
 	element         *schema.CatchEvent
-	runnerChannel   chan message
+	runnerChannel   chan imessage
 	activated       bool
 	awaitingActions []chan flow_node.IAction
 	satisfier       *logic.CatchEventSatisfier
@@ -54,7 +54,7 @@ func New(ctx context.Context, wiring *flow_node.Wiring, catchEvent *schema.Catch
 	node = &Node{
 		Wiring:          wiring,
 		element:         catchEvent,
-		runnerChannel:   make(chan message, len(wiring.Incoming)*2+1),
+		runnerChannel:   make(chan imessage, len(wiring.Incoming)*2+1),
 		activated:       false,
 		awaitingActions: make([]chan flow_node.IAction, 0),
 		satisfier:       logic.NewCatchEventSatisfier(catchEvent, wiring.EventDefinitionInstanceBuilder),

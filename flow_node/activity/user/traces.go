@@ -12,4 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package user_task
+package user
+
+import (
+	"context"
+
+	"github.com/olive-io/bpmn/flow_node/activity"
+)
+
+type submitResponse struct {
+	result map[string]any
+	err    error
+}
+
+type ActiveTrace struct {
+	context.Context
+	Activity   activity.Activity
+	Headers    map[string]any
+	Properties map[string]any
+	response   chan submitResponse
+}
+
+func (t *ActiveTrace) TraceInterface() {}
+
+func (t *ActiveTrace) Submit(result map[string]any, err error) {
+	t.response <- submitResponse{result: result, err: err}
+}
+
+func (t *ActiveTrace) Execute() {
+	t.response <- submitResponse{}
+}

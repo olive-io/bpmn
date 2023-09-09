@@ -29,7 +29,7 @@ import (
 	"github.com/olive-io/bpmn/tracing"
 )
 
-type message interface {
+type imessage interface {
 	message()
 }
 
@@ -43,7 +43,7 @@ func (m nextActionMessage) message() {}
 type Harness struct {
 	*flow_node.Wiring
 	element            schema.FlowNodeInterface
-	runnerChannel      chan message
+	runnerChannel      chan imessage
 	activity           Activity
 	active             int32
 	cancellation       sync.Once
@@ -107,7 +107,7 @@ func NewHarness(ctx context.Context,
 	node = &Harness{
 		Wiring:        wiring,
 		element:       element,
-		runnerChannel: make(chan message, len(wiring.Incoming)*2+1),
+		runnerChannel: make(chan imessage, len(wiring.Incoming)*2+1),
 		activity:      activity,
 	}
 

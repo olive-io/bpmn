@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package service_task
+package script
 
 import (
 	"context"
@@ -26,14 +26,14 @@ import (
 	"github.com/olive-io/bpmn/schema"
 )
 
-type message interface {
+type imessage interface {
 	message()
 }
 
 type nextActionMessage struct {
+	DataObjects map[string]any
 	Headers     map[string]any
 	Properties  map[string]any
-	DataObjects map[string]any
 	response    chan flow_node.IAction
 }
 
@@ -45,26 +45,26 @@ type cancelMessage struct {
 
 func (m cancelMessage) message() {}
 
-type ServiceTask struct {
+type ScriptTask struct {
 	*flow_node.Wiring
 	ctx           context.Context
 	cancel        context.CancelFunc
-	element       *schema.ServiceTask
-	runnerChannel chan message
+	element       *schema.ScriptTask
+	runnerChannel chan imessage
 }
 
-func NewServiceTask(ctx context.Context, task *schema.ServiceTask) activity.Constructor {
+func NewScriptTask(ctx context.Context, task *schema.ScriptTask) activity.Constructor {
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
 		done := &atomic.Bool{}
 		done.Store(false)
-		taskNode := &ServiceTask{
+		taskNode := &ScriptTask{
 			Wiring:        wiring,
 			ctx:           ctx,
 			cancel:        cancel,
 			element:       task,
-			runnerChannel: make(chan message, len(wiring.Incoming)*2+1),
+			runnerChannel: make(chan imessage, len(wiring.Incoming)*2+1),
 		}
 		go taskNode.runner(ctx)
 		node = taskNode
@@ -72,7 +72,7 @@ func NewServiceTask(ctx context.Context, task *schema.ServiceTask) activity.Cons
 	}
 }
 
-func (node *ServiceTask) runner(ctx context.Context) {
+func (node *ScriptTask) runner(ctx context.Context) {
 	for {
 		select {
 		case msg := <-node.runnerChannel:
@@ -83,21 +83,20 @@ func (node *ServiceTask) runner(ctx context.Context) {
 			case nextActionMessage:
 				go func() {
 					aResponse := &flow_node.FlowActionResponse{
-						DataObjects: map[string]data.IItem{},
-						Variables:   map[string]data.IItem{},
+						Variables: map[string]data.IItem{},
 					}
 					action := flow_node.FlowAction{
 						Response:      aResponse,
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
-					response := make(chan callResponse, 1)
+					response := make(chan submitResponse, 1)
 					at := &ActiveTrace{
 						Context:     node.ctx,
 						Activity:    node,
+						DataObjects: m.DataObjects,
 						Headers:     m.Headers,
 						Properties:  m.Properties,
-						DataObjects: m.DataObjects,
 						response:    response,
 					}
 
@@ -109,18 +108,11 @@ func (node *ServiceTask) runner(ctx context.Context) {
 						if out.err != nil {
 							aResponse.Err = out.err
 						}
-						for name, do := range out.dataObjects {
-							aResponse.DataObjects[name] = do
-						}
 						for key, value := range out.result {
 							aResponse.Variables[key] = value
 						}
-						if out.retries != nil {
-							aResponse.Retries = out.retries
-						}
 						m.response <- action
 					}
-
 				}()
 			default:
 			}
@@ -130,7 +122,7 @@ func (node *ServiceTask) runner(ctx context.Context) {
 	}
 }
 
-func (node *ServiceTask) NextAction(flow_interface.T) chan flow_node.IAction {
+func (node *ScriptTask) NextAction(t flow_interface.T) chan flow_node.IAction {
 	response := make(chan flow_node.IAction, 1)
 
 	msg := nextActionMessage{
@@ -159,19 +151,19 @@ func (node *ServiceTask) NextAction(flow_interface.T) chan flow_node.IAction {
 			}
 		}
 	}
+	msg.DataObjects = node.Locator.CloneItems("$")
 	msg.Headers = headers
 	msg.Properties = dataSets
-	msg.DataObjects = node.Locator.CloneItems("$")
 
 	node.runnerChannel <- msg
 	return response
 }
 
-func (node *ServiceTask) Element() schema.FlowNodeInterface {
+func (node *ScriptTask) Element() schema.FlowNodeInterface {
 	return node.element
 }
 
-func (node *ServiceTask) Cancel() <-chan bool {
+func (node *ScriptTask) Cancel() <-chan bool {
 	response := make(chan bool)
 	node.runnerChannel <- cancelMessage{response: response}
 	return response

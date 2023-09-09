@@ -24,7 +24,7 @@ import (
 	"github.com/olive-io/bpmn/tracing"
 )
 
-type message interface {
+type imessage interface {
 	message()
 }
 
@@ -39,7 +39,7 @@ type Node struct {
 	element              *schema.EndEvent
 	activated            bool
 	completed            bool
-	runnerChannel        chan message
+	runnerChannel        chan imessage
 	startEventsActivated []*schema.StartEvent
 }
 
@@ -49,7 +49,7 @@ func New(ctx context.Context, wiring *flow_node.Wiring, endEvent *schema.EndEven
 		element:              endEvent,
 		activated:            false,
 		completed:            false,
-		runnerChannel:        make(chan message, len(wiring.Incoming)*2+1),
+		runnerChannel:        make(chan imessage, len(wiring.Incoming)*2+1),
 		startEventsActivated: make([]*schema.StartEvent, 0),
 	}
 	sender := node.Tracer.RegisterSender()

@@ -25,11 +25,11 @@ import (
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
-	"github.com/olive-io/bpmn/flow_node/activity/script_task"
-	"github.com/olive-io/bpmn/flow_node/activity/service_task"
+	"github.com/olive-io/bpmn/flow_node/activity/script"
+	"github.com/olive-io/bpmn/flow_node/activity/service"
 	"github.com/olive-io/bpmn/flow_node/activity/subprocess"
 	"github.com/olive-io/bpmn/flow_node/activity/task"
-	"github.com/olive-io/bpmn/flow_node/activity/user_task"
+	"github.com/olive-io/bpmn/flow_node/activity/user"
 	"github.com/olive-io/bpmn/flow_node/event/catch"
 	"github.com/olive-io/bpmn/flow_node/event/end"
 	"github.com/olive-io/bpmn/flow_node/event/start"
@@ -305,7 +305,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *activity.Harness
-		serviceTask := service_task.NewServiceTask(ctx, element)
+		serviceTask := service.NewServiceTask(ctx, element)
 		harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, serviceTask)
 		if err != nil {
 			return
@@ -323,7 +323,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *activity.Harness
-		userTask := user_task.NewUserTask(ctx, element)
+		userTask := user.NewUserTask(ctx, element)
 		harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, userTask)
 		if err != nil {
 			return
@@ -341,7 +341,7 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *activity.Harness
-		scriptTask := script_task.NewScriptTask(ctx, element)
+		scriptTask := script.NewScriptTask(ctx, element)
 		harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, scriptTask)
 		if err != nil {
 			return

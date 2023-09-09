@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package service_task
+package service
 
 import (
 	"context"
@@ -35,6 +35,8 @@ type ActiveTrace struct {
 	DataObjects map[string]any
 	response    chan callResponse
 }
+
+//func (t *ActiveTrace) TraceInterface() {}
 
 func (t *ActiveTrace) TraceInterface() {}
 

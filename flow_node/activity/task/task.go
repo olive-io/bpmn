@@ -23,7 +23,7 @@ import (
 	"github.com/olive-io/bpmn/schema"
 )
 
-type message interface {
+type imessage interface {
 	message()
 }
 
@@ -44,7 +44,7 @@ type Task struct {
 	ctx           context.Context
 	cancel        context.CancelFunc
 	element       *schema.Task
-	runnerChannel chan message
+	runnerChannel chan imessage
 }
 
 func NewTask(ctx context.Context, task *schema.Task) activity.Constructor {
@@ -56,7 +56,7 @@ func NewTask(ctx context.Context, task *schema.Task) activity.Constructor {
 			ctx:           ctx,
 			cancel:        cancel,
 			element:       task,
-			runnerChannel: make(chan message, len(wiring.Incoming)*2+1),
+			runnerChannel: make(chan imessage, len(wiring.Incoming)*2+1),
 		}
 		go taskNode.runner(ctx)
 		node = taskNode

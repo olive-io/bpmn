@@ -26,10 +26,10 @@ import (
 	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
-	"github.com/olive-io/bpmn/flow_node/activity/script_task"
-	"github.com/olive-io/bpmn/flow_node/activity/service_task"
+	"github.com/olive-io/bpmn/flow_node/activity/script"
+	"github.com/olive-io/bpmn/flow_node/activity/service"
 	"github.com/olive-io/bpmn/flow_node/activity/task"
-	"github.com/olive-io/bpmn/flow_node/activity/user_task"
+	"github.com/olive-io/bpmn/flow_node/activity/user"
 	"github.com/olive-io/bpmn/flow_node/event/catch"
 	"github.com/olive-io/bpmn/flow_node/event/end"
 	"github.com/olive-io/bpmn/flow_node/event/start"
@@ -42,7 +42,7 @@ import (
 	"github.com/olive-io/bpmn/tracing"
 )
 
-type message interface {
+type imessage interface {
 	message()
 }
 
@@ -71,7 +71,7 @@ type SubProcess struct {
 	eventDefinitionBuilder event.IDefinitionInstanceBuilder
 	eventConsumersLock     sync.RWMutex
 	eventConsumers         []event.IConsumer
-	runnerChannel          chan message
+	runnerChannel          chan imessage
 }
 
 func New(ctx context.Context,
@@ -96,7 +96,7 @@ func New(ctx context.Context,
 			flowNodeMapping:        flowNodeMapping,
 			eventDefinitionBuilder: eventDefinitionBuilder,
 			idGenerator:            idGenerator,
-			runnerChannel:          make(chan message, len(parentWiring.Incoming)*2+1),
+			runnerChannel:          make(chan imessage, len(parentWiring.Incoming)*2+1),
 		}
 
 		var locator *data.FlowDataLocator
@@ -196,7 +196,7 @@ func New(ctx context.Context,
 				return
 			}
 			var harness *activity.Harness
-			serviceTask := service_task.NewServiceTask(ctx, element)
+			serviceTask := service.NewServiceTask(ctx, element)
 			harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, serviceTask)
 			if err != nil {
 				return
@@ -214,7 +214,7 @@ func New(ctx context.Context,
 				return
 			}
 			var harness *activity.Harness
-			userTask := user_task.NewUserTask(ctx, element)
+			userTask := user.NewUserTask(ctx, element)
 			harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, userTask)
 			if err != nil {
 				return
@@ -232,7 +232,7 @@ func New(ctx context.Context,
 				return
 			}
 			var harness *activity.Harness
-			scriptTask := script_task.NewScriptTask(ctx, element)
+			scriptTask := script.NewScriptTask(ctx, element)
 			harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, scriptTask)
 			if err != nil {
 				return
