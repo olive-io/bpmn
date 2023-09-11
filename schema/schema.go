@@ -369,6 +369,20 @@ func (p *Properties) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
+type ExtensionScript struct {
+	Expression string `xml:"expression,attr"`
+	Result     string `xml:"result,attr"`
+}
+
+func (p *ExtensionScript) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	out := ExtensionScript(*p)
+	start.Name = xml.Name{
+		Local: OliveNS + start.Name.Local,
+	}
+
+	return e.EncodeElement(out, start)
+}
+
 type DIExtension struct {
 }
 

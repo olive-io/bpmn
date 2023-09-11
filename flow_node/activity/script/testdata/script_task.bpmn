@@ -16,6 +16,7 @@
           <olive:item key="b" value="{&#34;a&#34;: &#34;b&#34;}" type="object"/>
           <olive:item key="c" value="" type="object"/>
         </olive:properties>
+        <olive:script expression="=a + b" result="sum" />
       </bpmn:extensionElements>
     </bpmn:scriptTask>
     <bpmn:sequenceFlow id="Flow_1hox6h5" sourceRef="start" targetRef="task" />

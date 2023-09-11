@@ -39,32 +39,6 @@ func New(sequenceFlow *schema.SequenceFlow, process schema.Element) *SequenceFlo
 }
 
 func (sequenceFlow *SequenceFlow) resolveId(id *string) (result schema.FlowNodeInterface, err error) {
-	//ownId, present := sequenceFlow.SequenceFlow.Id()
-	//if !present {
-	//	err = errors.InvalidStateError{
-	//		Expected: "SequenceFlow to have an FlowNodeId",
-	//		Actual:   "FlowNodeId is not present",
-	//	}
-	//	return
-	//}
-	//var process *schema.Process
-	//for i := range *sequenceFlow.definitions.Processes() {
-	//	proc := &(*sequenceFlow.definitions.Processes())[i]
-	//	sequenceFlows := proc.SequenceFlows()
-	//	for j := range *sequenceFlows {
-	//		if idPtr, present := (*sequenceFlows)[j].Id(); present {
-	//			if *idPtr == *ownId {
-	//				process = proc
-	//			}
-	//		}
-	//	}
-	//}
-	//if process == nil {
-	//	err = errors.NotFoundError{
-	//		Expected: fmt.Sprintf("sequence flow with ID %s", *ownId),
-	//	}
-	//	return
-	//}
 	process := sequenceFlow.process
 
 	predicate := schema.ExactId(*id).And(schema.ElementInterface((*schema.FlowNodeInterface)(nil)))

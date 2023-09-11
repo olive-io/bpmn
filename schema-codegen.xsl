@@ -147,6 +147,9 @@
             <xsl:text>PropertiesField *Properties `xml:"http://olive.io/spec/BPMN/MODEL properties"`</xsl:text>
             <xsl:text xml:space="preserve">
             </xsl:text>
+            <xsl:text>ScriptField *ExtensionScript `xml:"http://olive.io/spec/BPMN/MODEL script"`</xsl:text>
+            <xsl:text xml:space="preserve">
+            </xsl:text>
         </xsl:if>
         <xsl:if test="local:struct-case($type/@name) = 'Definitions'">
             <xsl:text>DiagramField *BPMNDiagram `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNDiagram"`
