@@ -298,7 +298,7 @@ func NewFlowDataLocatorFromElement(idGenerator id.IGenerator, element schema.Ele
 			dataObjectBody := map[string]any{}
 			if extension := dataObject.ExtensionElementsField; extension != nil {
 				if properties := extension.PropertiesField; properties != nil {
-					for _, item := range properties.ItemFields {
+					for _, item := range properties.Property {
 						dataObjectBody[item.Name] = item.ValueFor()
 					}
 				}
@@ -373,18 +373,18 @@ func NewFlowDataLocatorFromElement(idGenerator id.IGenerator, element schema.Ele
 	if impl, ok := element.(schema.BaseElementInterface); ok {
 		extensionElements, present := impl.ExtensionElements()
 		if present {
-			if header := extensionElements.TaskHeaderField; header != nil {
-				for _, item := range header.ItemFields {
+			if headers := extensionElements.TaskHeaderField; headers != nil {
+				for _, item := range headers.Header {
 					container := NewContainer(nil)
 					container.Put(item.ValueFor())
 					headerContainer.items[item.Name] = container
 				}
 			}
 			if properties := extensionElements.PropertiesField; properties != nil {
-				for _, item := range properties.ItemFields {
+				for _, property := range properties.Property {
 					container := NewContainer(nil)
-					container.Put(item.ValueFor())
-					propertyContainer.items[item.Name] = container
+					container.Put(property.ValueFor())
+					propertyContainer.items[property.Name] = container
 				}
 			}
 		}

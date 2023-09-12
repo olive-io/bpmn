@@ -344,7 +344,7 @@ func (i *Item) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 }
 
 type TaskHeader struct {
-	ItemFields []*Item `xml:"http://olive.io/spec/BPMN/MODEL item"`
+	Header []*Item `xml:"http://olive.io/spec/BPMN/MODEL header"`
 }
 
 func (h *TaskHeader) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -357,7 +357,7 @@ func (h *TaskHeader) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 }
 
 type Properties struct {
-	ItemFields []*Item `xml:"http://olive.io/spec/BPMN/MODEL item"`
+	Property []*Item `xml:"http://olive.io/spec/BPMN/MODEL property"`
 }
 
 func (p *Properties) MarshalXML(e *xml.Encoder, start xml.StartElement) error {

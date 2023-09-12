@@ -28,14 +28,14 @@ func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElemen
 	dataObjects = map[string]any{}
 	if extension, found := element.ExtensionElements(); found {
 		if header := extension.TaskHeaderField; header != nil {
-			fields := header.ItemFields
+			fields := header.Header
 			for _, field := range fields {
 				value := field.ValueFor()
 				headers[field.Name] = value
 			}
 		}
 		if properties := extension.PropertiesField; properties != nil {
-			fields := properties.ItemFields
+			fields := properties.Property
 			for _, field := range fields {
 				value := field.ValueFor()
 				if len(strings.TrimSpace(field.Value)) == 0 {

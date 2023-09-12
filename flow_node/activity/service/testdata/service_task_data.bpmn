@@ -27,7 +27,7 @@
         <bpmn:dataObject id="DataObject_0yhrl3s">
             <bpmn:extensionElements>
                 <olive:properties>
-                    <olive:item name="a" value="aa" type="string"/>
+                    <olive:property name="a" value="aa" type="string"/>
                 </olive:properties>
             </bpmn:extensionElements>
         </bpmn:dataObject>

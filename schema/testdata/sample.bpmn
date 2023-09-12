@@ -29,11 +29,11 @@
       <bpmn:extensionElements>
         <olive:taskDefinition type="service"/>
         <olive:taskHeaders>
-          <olive:item key="contentType" value="aplication/json" type="string"/>
+          <olive:header name="contentType" value="aplication/json" type="string"/>
         </olive:taskHeaders>
         <olive:properties>
-          <olive:item key="a" value="1" type="integer"/>
-          <olive:item key="b" value="{&#34;a&#34;: &#34;b&#34;}" type="object"/>
+          <olive:property name="a" value="1" type="integer"/>
+          <olive:property name="b" value="{&#34;a&#34;: &#34;b&#34;}" type="object"/>
         </olive:properties>
       </bpmn:extensionElements>
     </bpmn:task>
