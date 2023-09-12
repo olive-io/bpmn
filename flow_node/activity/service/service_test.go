@@ -205,3 +205,53 @@ func TestServiceTaskWithRetry(t *testing.T) {
 	assert.Equal(t, runnum, 2)
 	assert.Equal(t, te.(errors.TaskExecError).Reason, "text error")
 }
+
+func TestServiceTaskWithDataInput(t *testing.T) {
+	task := &schema.Definitions{}
+	LoadTestFile("testdata/service_task_data.bpmn", &task)
+	processElement := (*task.Processes())[0]
+	proc := process.New(&processElement, task)
+	if ins, err := proc.Instantiate(); err == nil {
+		traces := ins.Tracer.Subscribe()
+		err := ins.StartAll(context.Background())
+		if err != nil {
+			t.Fatalf("failed to run the instance: %s", err)
+		}
+		done := make(chan struct{}, 1)
+		go func() {
+			defer close(done)
+			for {
+				var trace tracing.ITrace
+				select {
+				case trace = <-traces:
+				}
+
+				trace = tracing.Unwrap(trace)
+				switch trace := trace.(type) {
+				case flow.Trace:
+				case activity.ActiveTaskTrace:
+					if st, ok := trace.(*service.ActiveTrace); ok {
+						assert.Equal(t, st.DataObjects["in"], map[string]any{"a": "aa"})
+						st.Do(map[string]any{"out": "cc"}, nil, nil, nil)
+					}
+					t.Logf("%#v", trace)
+				case tracing.ErrorTrace:
+					t.Logf("%#v", trace)
+				case flow.CeaseFlowTrace:
+					return
+				default:
+					t.Logf("%#v", trace)
+				}
+			}
+		}()
+
+		select {
+		case <-done:
+		}
+
+		t.Logf("%v\n", ins.Locator.CloneItems("$"))
+		ins.Tracer.Unsubscribe(traces)
+	} else {
+		t.Fatalf("failed to instantiate the process: %s", err)
+	}
+}

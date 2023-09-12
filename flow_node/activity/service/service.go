@@ -16,7 +16,6 @@ package service
 
 import (
 	"context"
-	"strings"
 	"sync/atomic"
 
 	"github.com/olive-io/bpmn/data"
@@ -109,9 +108,7 @@ func (node *ServiceTask) runner(ctx context.Context) {
 						if out.err != nil {
 							aResponse.Err = out.err
 						}
-						for name, do := range out.dataObjects {
-							aResponse.DataObjects[name] = do
-						}
+						aResponse.DataObjects = activity.ApplyTaskDataOutput(node.element, out.dataObjects)
 						for key, value := range out.result {
 							aResponse.Variables[key] = value
 						}
@@ -137,31 +134,10 @@ func (node *ServiceTask) NextAction(flow_interface.T) chan flow_node.IAction {
 		response: response,
 	}
 
-	variables := node.Locator.CloneVariables()
-	headers := map[string]any{}
-	dataSets := map[string]any{}
-	if extension := node.element.ExtensionElementsField; extension != nil {
-		if properties := extension.PropertiesField; properties != nil {
-			fields := properties.ItemFields
-			for _, field := range fields {
-				value := field.ValueFor()
-				if len(strings.TrimSpace(field.Value)) == 0 {
-					value = variables[field.Key]
-				}
-				dataSets[field.Key] = value
-			}
-		}
-		if header := extension.TaskHeaderField; header != nil {
-			fields := header.ItemFields
-			for _, field := range fields {
-				value := field.ValueFor()
-				headers[field.Key] = value
-			}
-		}
-	}
+	headers, dataSets, dataObjects := activity.FetchTaskDataInput(node.Locator, node.element)
 	msg.Headers = headers
 	msg.Properties = dataSets
-	msg.DataObjects = node.Locator.CloneItems("$")
+	msg.DataObjects = dataObjects
 
 	node.runnerChannel <- msg
 	return response

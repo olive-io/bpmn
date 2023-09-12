@@ -334,12 +334,9 @@ func (flow *Flow) Start(ctx context.Context) {
 								for name, do := range res.DataObjects {
 									aware, found := locator.FindItemAwareByName(name)
 									if !found {
-										container := data.NewContainer(nil)
-										container.Put(do)
-										locator.PutItemAwareByName(name, container)
-									} else {
-										aware.Put(do)
+										aware = data.NewContainer(nil)
 									}
+									aware.Put(do)
 								}
 							}
 						}

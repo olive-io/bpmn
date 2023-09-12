@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:olive="http://olive.io/spec/BPMN/MODEL" id="Definitions_1hq5yf7"
+                  targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.11.0">
+    <bpmn:process id="sample" name="sample" isExecutable="true">
+        <bpmn:sequenceFlow id="x1" name="x1" sourceRef="Created" targetRef="Activity_10ehhc5"/>
+        <bpmn:startEvent id="Created" name="start">
+            <bpmn:outgoing>x1</bpmn:outgoing>
+        </bpmn:startEvent>
+        <bpmn:serviceTask id="Activity_10ehhc5">
+            <bpmn:incoming>x1</bpmn:incoming>
+            <bpmn:outgoing>Flow_17llz5a</bpmn:outgoing>
+            <bpmn:extensionElements>
+                <olive:taskDefinition type="service" retries="2"/>
+                <olive:dataInput name="in" targetRef="DataObjectReference_1pbt57j"/>
+                <olive:dataOutput name="out" targetRef="DataObjectReference_0ogh0ik"/>
+            </bpmn:extensionElements>
+        </bpmn:serviceTask>
+        <bpmn:endEvent id="Event_18gtqz3">
+            <bpmn:incoming>Flow_17llz5a</bpmn:incoming>
+        </bpmn:endEvent>
+        <bpmn:sequenceFlow id="Flow_17llz5a" sourceRef="Activity_10ehhc5" targetRef="Event_18gtqz3"/>
+        <bpmn:dataObjectReference id="DataObjectReference_1pbt57j" name="in" dataObjectRef="DataObject_0yhrl3s"/>
+        <bpmn:dataObject id="DataObject_0yhrl3s">
+            <bpmn:extensionElements>
+                <olive:properties>
+                    <olive:item name="a" value="aa" type="string"/>
+                </olive:properties>
+            </bpmn:extensionElements>
+        </bpmn:dataObject>
+        <bpmn:dataObjectReference id="DataObjectReference_0ogh0ik" name="out" dataObjectRef="DataObject_0aefn7u"/>
+        <bpmn:dataObject id="DataObject_0aefn7u"/>
+    </bpmn:process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+        <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="sample">
+            <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Created">
+                <dc:Bounds x="179" y="199" width="36" height="36"/>
+                <bpmndi:BPMNLabel>
+                    <dc:Bounds x="186" y="242" width="22" height="14"/>
+                </bpmndi:BPMNLabel>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Activity_10ehhc5_di" bpmnElement="Activity_10ehhc5">
+                <dc:Bounds x="290" y="177" width="100" height="80"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="Event_18gtqz3_di" bpmnElement="Event_18gtqz3">
+                <dc:Bounds x="472" y="199" width="36" height="36"/>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="DataObjectReference_1pbt57j_di" bpmnElement="DataObjectReference_1pbt57j">
+                <dc:Bounds x="262" y="105" width="36" height="50"/>
+                <bpmndi:BPMNLabel>
+                    <dc:Bounds x="276" y="162" width="9" height="14"/>
+                </bpmndi:BPMNLabel>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape id="DataObjectReference_0ogh0ik_di" bpmnElement="DataObjectReference_0ogh0ik">
+                <dc:Bounds x="352" y="105" width="36" height="50"/>
+                <bpmndi:BPMNLabel>
+                    <dc:Bounds x="362" y="162" width="16" height="14"/>
+                </bpmndi:BPMNLabel>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge id="SequenceFlow_0chsooi_di" bpmnElement="x1">
+                <di:waypoint x="215" y="217"/>
+                <di:waypoint x="290" y="217"/>
+                <bpmndi:BPMNLabel>
+                    <dc:Bounds x="224" y="199" width="12" height="14"/>
+                </bpmndi:BPMNLabel>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge id="Flow_17llz5a_di" bpmnElement="Flow_17llz5a">
+                <di:waypoint x="390" y="217"/>
+                <di:waypoint x="472" y="217"/>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</bpmn:definitions>

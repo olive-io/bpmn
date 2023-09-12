@@ -102,6 +102,12 @@ ready:
 	return
 }
 
+func (do *ObjectContainer) PutItemAwareById(id schema.IdRef, itemAware IItemAware) {
+	do.mu.Lock()
+	defer do.mu.Unlock()
+	do.dataObjects[id] = itemAware
+}
+
 func (do *ObjectContainer) PutItemAwareByName(name string, itemAware IItemAware) {
 	do.mu.Lock()
 	defer do.mu.Unlock()
@@ -110,6 +116,12 @@ func (do *ObjectContainer) PutItemAwareByName(name string, itemAware IItemAware)
 
 func (do *ObjectContainer) Clone() map[string]any {
 	out := make(map[string]any)
+	for name, item := range do.dataObjectReferencesByName {
+		value := item.Get()
+		if value != nil {
+			out[name] = value
+		}
+	}
 	for name, item := range do.dataObjectsByName {
 		value := item.Get()
 		if value != nil {
@@ -283,6 +295,15 @@ func NewFlowDataLocatorFromElement(idGenerator id.IGenerator, element schema.Ele
 				name = idGenerator.New().String()
 			}
 			container := NewContainer(dataObject)
+			dataObjectBody := map[string]any{}
+			if extension := dataObject.ExtensionElementsField; extension != nil {
+				if properties := extension.PropertiesField; properties != nil {
+					for _, item := range properties.ItemFields {
+						dataObjectBody[item.Name] = item.ValueFor()
+					}
+				}
+			}
+			container.Put(dataObjectBody)
 			dataObjectContainer.dataObjectsByName[name] = container
 			if idPtr, present := dataObject.Id(); present {
 				dataObjectContainer.dataObjects[*idPtr] = container
@@ -356,14 +377,14 @@ func NewFlowDataLocatorFromElement(idGenerator id.IGenerator, element schema.Ele
 				for _, item := range header.ItemFields {
 					container := NewContainer(nil)
 					container.Put(item.ValueFor())
-					headerContainer.items[item.Key] = container
+					headerContainer.items[item.Name] = container
 				}
 			}
 			if properties := extensionElements.PropertiesField; properties != nil {
 				for _, item := range properties.ItemFields {
 					container := NewContainer(nil)
 					container.Put(item.ValueFor())
-					propertyContainer.items[item.Key] = container
+					propertyContainer.items[item.Name] = container
 				}
 			}
 		}

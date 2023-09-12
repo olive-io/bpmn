@@ -308,7 +308,7 @@ func (t *TaskDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 }
 
 type Item struct {
-	Key   string   `xml:"key,attr"`
+	Name  string   `xml:"name,attr"`
 	Value string   `xml:"value,attr"`
 	Type  ItemType `xml:"type,attr"`
 }
@@ -326,7 +326,7 @@ func (i *Item) ValueFor() any {
 		f, _ := strconv.ParseFloat(i.Value, 64)
 		return f
 	case ItemTypeObject:
-		obj := map[string]interface{}{}
+		obj := map[string]any{}
 		_ = json.Unmarshal([]byte(i.Value), &obj)
 		return obj
 	default:
@@ -376,6 +376,20 @@ type ExtensionScript struct {
 
 func (p *ExtensionScript) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	out := ExtensionScript(*p)
+	start.Name = xml.Name{
+		Local: OliveNS + start.Name.Local,
+	}
+
+	return e.EncodeElement(out, start)
+}
+
+type ExtensionAssociation struct {
+	Name      string `xml:"name,attr"`
+	TargetRef string `xml:"targetRef,attr"`
+}
+
+func (p *ExtensionAssociation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	out := ExtensionAssociation(*p)
 	start.Name = xml.Name{
 		Local: OliveNS + start.Name.Local,
 	}
