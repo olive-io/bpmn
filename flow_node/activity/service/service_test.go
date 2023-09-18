@@ -83,7 +83,8 @@ func TestServiceTask(t *testing.T) {
 					trace.Execute()
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:
-					t.Fatalf("%#v", trace)
+					t.Errorf("%#v", trace)
+					return
 				case flow.CeaseFlowTrace:
 					return
 				default:

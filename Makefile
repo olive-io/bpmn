@@ -26,6 +26,10 @@ vet:
 test: vet
 	go test -v ./...
 
+build:
+	mkdir -p _output
+	changelog --last --output _output/CHANGELOG.md
+
 clean:
 	rm -fr ./_output
 
