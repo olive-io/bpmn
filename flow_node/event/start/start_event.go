@@ -120,9 +120,9 @@ func (node *Node) runner(ctx context.Context, sender tracing.ISenderHandle) {
 }
 
 func (node *Node) flow(ctx context.Context) {
-	newFlow := flow.New(node.Wiring.Definitions, node, node.Wiring.Tracer,
+	flowable := flow.New(node.Wiring.Definitions, node, node.Wiring.Tracer,
 		node.Wiring.FlowNodeMapping, node.Wiring.FlowWaitGroup, node.idGenerator, nil, node.Locator)
-	newFlow.Start(ctx)
+	flowable.Start(ctx)
 }
 
 func (node *Node) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {

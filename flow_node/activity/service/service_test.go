@@ -158,9 +158,11 @@ func TestServiceTaskWithRetry(t *testing.T) {
 	proc := process.New(&processElement, &testTask)
 	var te error
 	runnum := 0
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	if ins, err := proc.Instantiate(); err == nil {
 		traces := ins.Tracer.Subscribe()
-		err := ins.StartAll(context.Background())
+		err = ins.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

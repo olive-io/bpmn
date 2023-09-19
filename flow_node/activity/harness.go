@@ -130,20 +130,20 @@ func NewHarness(ctx context.Context,
 		catchEvent, err = catch.New(ctx, catchEventFlowNode, &boundaryEvent.CatchEvent)
 		if err != nil {
 			return
-		} else {
-			var actionTransformer flow_node.ActionTransformer
-			if boundaryEvent.CancelActivity() {
-				actionTransformer = func(sequenceFlowId *schema.IdRef, action flow_node.IAction) flow_node.IAction {
-					node.cancellation.Do(func() {
-						<-node.activity.Cancel()
-					})
-					return action
-				}
-			}
-			newFlow := flow.New(node.Definitions, catchEvent, node.Tracer,
-				node.FlowNodeMapping, node.FlowWaitGroup, idGenerator, actionTransformer, node.Locator)
-			newFlow.Start(ctx)
 		}
+
+		var actionTransformer flow_node.ActionTransformer
+		if boundaryEvent.CancelActivity() {
+			actionTransformer = func(sequenceFlowId *schema.IdRef, action flow_node.IAction) flow_node.IAction {
+				node.cancellation.Do(func() {
+					<-node.activity.Cancel()
+				})
+				return action
+			}
+		}
+		flowable := flow.New(node.Definitions, catchEvent, node.Tracer,
+			node.FlowNodeMapping, node.FlowWaitGroup, idGenerator, actionTransformer, node.Locator)
+		flowable.Start(ctx)
 	}
 	sender := node.Tracer.RegisterSender()
 	go node.runner(ctx, sender)

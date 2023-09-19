@@ -225,18 +225,18 @@ func (flow *Flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow
 	if flowNode, found := flow.flowNodeMapping.ResolveElementToFlowNode(target); found {
 		flowId = flow.idGenerator.New()
 		f = func() {
-			newFlow := New(flow.definitions, flowNode, flow.tracer, flow.flowNodeMapping,
+			flowable := New(flow.definitions, flowNode, flow.tracer, flow.flowNodeMapping,
 				flow.flowWaitGroup, flow.idGenerator, actionTransformer, flow.locator)
-			newFlow.id = flowId // important: override id with pre-generated one
+			flowable.id = flowId // important: override id with pre-generated one
 			if idPtr, present := sequenceFlow.Id(); present {
-				newFlow.sequenceFlowId = idPtr
+				flowable.sequenceFlowId = idPtr
 			} else {
 				flow.tracer.Trace(tracing.ErrorTrace{
 					Error: errors.NotFoundError{Expected: fmt.Sprintf("id for sequence flow %#v", sequenceFlow)},
 				})
 			}
-			newFlow.terminate = terminate
-			newFlow.Start(ctx)
+			flowable.terminate = terminate
+			flowable.Start(ctx)
 		}
 		flowed = true
 	} else {

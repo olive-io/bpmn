@@ -492,8 +492,8 @@ func (p *SubProcess) runner(ctx context.Context, out tracing.ITracer) {
 						case flow.CeaseFlowTrace:
 							out.Trace(ProcessLandMarkTrace{Node: p.element})
 							break loop
-						case flow.CompletionTrace:
-							// ignore end event of sub process
+						// case flow.CompletionTrace:
+						// ignore end event of sub process
 						case flow.TerminationTrace:
 							// ignore end event of sub process
 						default:

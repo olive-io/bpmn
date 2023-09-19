@@ -46,11 +46,8 @@ func LoadTestFile(filename string, definitions any) {
 
 var testTask schema.Definitions
 
-func init() {
-	LoadTestFile("testdata/subprocess.bpmn", &testTask)
-}
-
 func TestSubprocess(t *testing.T) {
+	LoadTestFile("testdata/subprocess.bpmn", &testTask)
 	processElement := (*testTask.Processes())[0]
 	proc := process.New(&processElement, &testTask)
 	if instance, err := proc.Instantiate(); err == nil {
@@ -71,7 +68,43 @@ func TestSubprocess(t *testing.T) {
 			case flow.CeaseFlowTrace:
 				break loop
 			//case flow.TerminationTrace:
-			//	t.Fatalf("%#v", trace)
+			//	t.Logf("%#v", trace)
+			case tracing.ErrorTrace:
+				t.Fatalf("%#v", trace)
+			default:
+				t.Logf("%#v", trace)
+			}
+		}
+		instance.Tracer.Unsubscribe(traces)
+	} else {
+		t.Fatalf("failed to instantiate the process: %s", err)
+	}
+}
+
+func TestEmbedSubprocess(t *testing.T) {
+	LoadTestFile("testdata/embed-subprocess.bpmn", &testTask)
+
+	processElement := (*testTask.Processes())[0]
+	proc := process.New(&processElement, &testTask)
+	if instance, err := proc.Instantiate(); err == nil {
+		traces := instance.Tracer.Subscribe()
+		err := instance.StartAll(context.Background())
+		if err != nil {
+			t.Fatalf("failed to run the instance: %s", err)
+		}
+	loop:
+		for {
+			trace := tracing.Unwrap(<-traces)
+			switch trace := trace.(type) {
+			case flow.Trace:
+
+			case activity.ActiveTaskTrace:
+				trace.Execute()
+				t.Logf("%#v", trace)
+			case flow.CeaseFlowTrace:
+				break loop
+			//case flow.TerminationTrace:
+			//	t.Logf("%#v", trace)
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)
 			default:
