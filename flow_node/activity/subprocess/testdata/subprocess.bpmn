@@ -17,10 +17,14 @@
       <bpmn:startEvent id="Event_0dna7s8">
         <bpmn:outgoing>Flow_0atv65h</bpmn:outgoing>
       </bpmn:startEvent>
-      <bpmn:task id="Activity_1wc52rj">
+      <bpmn:serviceTask id="Activity_1wc52rj">
         <bpmn:incoming>Flow_0atv65h</bpmn:incoming>
         <bpmn:outgoing>Flow_0yhpx86</bpmn:outgoing>
-      </bpmn:task>
+        <bpmn:extensionElements>
+          <olive:taskDefinition type="service" retries="2"/>
+          <olive:dataInput name="in" targetRef="DataObjectReference_1pbt57j"/>
+        </bpmn:extensionElements>
+      </bpmn:serviceTask>
       <bpmn:sequenceFlow id="Flow_0atv65h" sourceRef="Event_0dna7s8" targetRef="Activity_1wc52rj" />
       <bpmn:endEvent id="Event_1yuzqvq">
         <bpmn:incoming>Flow_0yhpx86</bpmn:incoming>
@@ -32,6 +36,12 @@
       <bpmn:incoming>Flow_0vwmols</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_0vwmols" sourceRef="Activity_0lymyt1" targetRef="Event_189f4n4" />
+    <bpmn:dataObjectReference id="DataObjectReference_1pbt57j" name="in" dataObjectRef="DataObject_0yhrl3s"/>
+    <bpmn:dataObject id="DataObject_0yhrl3s">
+      <bpmn:extensionElements>
+        <olive:dataObjectBody><![CDATA[{"a": "aa"}]]></olive:dataObjectBody>
+      </bpmn:extensionElements>
+    </bpmn:dataObject>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_131dbre">

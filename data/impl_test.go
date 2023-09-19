@@ -18,10 +18,10 @@ func TestFlowDataLocator_Merge(t *testing.T) {
 	c1 := NewContainer(nil)
 	c1.Put("aa")
 	locator.PutItemAwareByName("a", c1)
-	l1.PutIItemAwareLocator("@", locator)
+	l1.PutIItemAwareLocator(LocatorProperty, locator)
 
 	l2.Merge(l1)
 
-	l2Locator, _ := l2.FindIItemAwareLocator("@")
+	l2Locator, _ := l2.FindIItemAwareLocator(LocatorProperty)
 	assert.Equal(t, l2Locator.Clone()["a"], "aa")
 }

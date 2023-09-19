@@ -45,7 +45,7 @@ func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElemen
 			}
 		}
 
-		awareLocator, found1 := locator.FindIItemAwareLocator("$")
+		awareLocator, found1 := locator.FindIItemAwareLocator(data.LocatorObject)
 		if found1 {
 			for _, dataInput := range extension.DataInput {
 				aWare, ok := awareLocator.FindItemAwareById(dataInput.TargetRef)

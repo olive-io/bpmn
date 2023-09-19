@@ -22,6 +22,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/activity"
@@ -58,12 +59,17 @@ func init() {
 func TestServiceTask(t *testing.T) {
 	processElement := (*testTask.Processes())[0]
 	proc := process.New(&processElement, &testTask)
-	option := instance.WithVariables(map[string]any{
-		"c": map[string]string{"name": "cc"},
-	})
-	if ins, err := proc.Instantiate(option); err == nil {
+	options := []instance.Option{
+		instance.WithVariables(map[string]any{
+			"c": map[string]string{"name": "cc"},
+		}),
+		instance.WithDataObjects(map[string]any{
+			"a": struct{}{},
+		}),
+	}
+	if ins, err := proc.Instantiate(options...); err == nil {
 		traces := ins.Tracer.Subscribe()
-		err := ins.StartAll(context.Background())
+		err = ins.StartAll(context.Background())
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -213,8 +219,11 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 	task := &schema.Definitions{}
 	LoadTestFile("testdata/service_task_data.bpmn", &task)
 	processElement := (*task.Processes())[0]
+	options := []instance.Option{
+		instance.WithDataObjects(map[string]any{"DataObject_0yhrl3s": map[string]any{"a": "ac"}}),
+	}
 	proc := process.New(&processElement, task)
-	if ins, err := proc.Instantiate(); err == nil {
+	if ins, err := proc.Instantiate(options...); err == nil {
 		traces := ins.Tracer.Subscribe()
 		err := ins.StartAll(context.Background())
 		if err != nil {
@@ -234,7 +243,7 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 				case flow.Trace:
 				case activity.ActiveTaskTrace:
 					if st, ok := trace.(*service.ActiveTrace); ok {
-						assert.Equal(t, st.DataObjects["in"], map[string]any{"a": "aa"})
+						assert.Equal(t, st.DataObjects["in"], map[string]any{"a": "ac"})
 						st.Do(map[string]any{"out": "cc"}, nil, nil, nil)
 					}
 					t.Logf("%#v", trace)
@@ -252,7 +261,7 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 		case <-done:
 		}
 
-		t.Logf("%v\n", ins.Locator.CloneItems("$"))
+		t.Logf("%v\n", ins.Locator.CloneItems(data.LocatorObject))
 		ins.Tracer.Unsubscribe(traces)
 	} else {
 		t.Fatalf("failed to instantiate the process: %s", err)

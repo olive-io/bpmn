@@ -21,6 +21,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/olive-io/bpmn/data"
 	_ "github.com/olive-io/bpmn/expression/expr"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/process"
@@ -138,7 +139,7 @@ func TestCondDataObject(t *testing.T) {
 				traces := instance.Tracer.Subscribe()
 				// Set all data objects to false by default, except for `cond`
 				for _, k := range []string{"cond1o", "cond2o"} {
-					locator, _ := instance.Locator.FindIItemAwareLocator("$")
+					locator, _ := instance.Locator.FindIItemAwareLocator(data.LocatorObject)
 					aware, found := locator.FindItemAwareByName(k)
 					require.True(t, found)
 					aware.Put(k == cond)

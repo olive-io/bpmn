@@ -138,6 +138,9 @@
             </xsl:choose>
         </xsl:for-each>
         <xsl:if test="local:struct-case($type/@name) = 'ExtensionElements'">
+            <xsl:text>DataObjectBody *ExtensionDataObjectBody `xml:"http://olive.io/spec/BPMN/MODEL dataObjectBody"`</xsl:text>
+            <xsl:text xml:space="preserve">
+            </xsl:text>
             <xsl:text>TaskDefinitionField *TaskDefinition `xml:"http://olive.io/spec/BPMN/MODEL taskDefinition"`</xsl:text>
             <xsl:text xml:space="preserve">
             </xsl:text>

@@ -38,7 +38,7 @@
       </bpmn:extensionElements>
     </bpmn:task>
     <bpmn:sequenceFlow id="x3" name="x3" sourceRef="either" targetRef="right">
-            <bpmn:conditionExpression id="x3cond"></bpmn:conditionExpression>
+      <bpmn:conditionExpression id="x3cond"><![CDATA[$a > 1]]></bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="x5" name="x5" sourceRef="right" targetRef="join" />
     <bpmn:sequenceFlow id="x4" name="x4" sourceRef="left" targetRef="join" />

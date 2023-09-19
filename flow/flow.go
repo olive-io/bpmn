@@ -17,7 +17,6 @@ package flow
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/olive-io/bpmn/data"
@@ -107,18 +106,18 @@ func (flow *Flow) executeSequenceFlow(ctx context.Context, sequenceFlow *sequenc
 
 			dataSets := map[string]any{}
 			engine := expression.GetEngine(ctx, lang)
-			if locator, found := flow.locator.FindIItemAwareLocator("$"); found {
-				engine.SetItemAwareLocator("$", locator)
+			if locator, found := flow.locator.FindIItemAwareLocator(data.LocatorObject); found {
+				engine.SetItemAwareLocator(data.LocatorObject, locator)
 			}
-			if locator, found := flow.locator.FindIItemAwareLocator("#"); found {
-				engine.SetItemAwareLocator("#", locator)
+			if locator, found := flow.locator.FindIItemAwareLocator(data.LocatorHeader); found {
+				engine.SetItemAwareLocator(data.LocatorHeader, locator)
 			}
 
 			for key, item := range flow.locator.CloneVariables() {
 				dataSets[key] = item
 			}
 
-			source := strings.Trim(*e.TextPayload(), " \n")
+			source := *e.TextPayload()
 			var compiled expression.ICompiledExpression
 			compiled, err = engine.CompileExpression(source)
 			if err != nil {
@@ -329,7 +328,7 @@ func (flow *Flow) Start(ctx context.Context) {
 						}
 
 						if len(res.DataObjects) > 0 {
-							locator, found := flow.locator.FindIItemAwareLocator("$")
+							locator, found := flow.locator.FindIItemAwareLocator(data.LocatorObject)
 							if found {
 								for name, do := range res.DataObjects {
 									aware, found := locator.FindItemAwareByName(name)

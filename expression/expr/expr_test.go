@@ -54,8 +54,7 @@ func (d dataObjects) FindItemAwareByName(name string) (itemAware data.IItemAware
 }
 
 func (d dataObjects) Clone() map[string]any {
-	//TODO implement me
-	panic("implement me")
+	return map[string]any{}
 }
 
 func TestExpr_getDataObject(t *testing.T) {
@@ -68,8 +67,10 @@ func TestExpr_getDataObject(t *testing.T) {
 		"dataObject":  container,
 		"dataObject1": container1,
 	}
-	engine.SetItemAwareLocator("$", objs)
+	engine.SetItemAwareLocator(data.LocatorObject, objs)
 	compiled, err := engine.CompileExpression("$('dataObject1').msg == 'hello'")
+	assert.Nil(t, err)
+	compiled, err = engine.CompileExpression("$('dataObject') == 1")
 	assert.Nil(t, err)
 	result, err := engine.EvaluateExpression(compiled, map[string]interface{}{})
 	assert.Nil(t, err)

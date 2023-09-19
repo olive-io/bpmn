@@ -136,6 +136,25 @@ func WithVariables(variables map[string]any) Option {
 	}
 }
 
+func WithDataObjects(dataObjects map[string]any) Option {
+	return func(ctx context.Context, instance *Instance) context.Context {
+		if instance.Locator == nil {
+			instance.Locator = data.NewFlowDataLocator()
+		}
+		for dataObjectId, dataObject := range dataObjects {
+			locator, found := instance.Locator.FindIItemAwareLocator(data.LocatorObject)
+			if !found {
+				locator = data.NewDataObjectContainer()
+				instance.Locator.PutIItemAwareLocator(data.LocatorObject, locator)
+			}
+			container := data.NewContainer(nil)
+			container.Put(dataObject)
+			locator.PutItemAwareById(dataObjectId, container)
+		}
+		return ctx
+	}
+}
+
 func WithEventDefinitionInstanceBuilder(builder event.IDefinitionInstanceBuilder) Option {
 	return func(ctx context.Context, instance *Instance) context.Context {
 		instance.eventDefinitionInstanceBuilder = builder
@@ -168,8 +187,9 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		instance.idGeneratorBuilder = id.DefaultIdGeneratorBuilder
 	}
 
-	if instance.Locator == nil {
-		instance.Locator = data.NewFlowDataLocator()
+	dataLocator := instance.Locator
+	if dataLocator == nil {
+		dataLocator = data.NewFlowDataLocator()
 	}
 
 	var idGenerator id.IGenerator
@@ -187,12 +207,13 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		return
 	}
 
-	var locator *data.FlowDataLocator
-	locator, err = data.NewFlowDataLocatorFromElement(idGenerator, instance.process)
+	var procLocator *data.FlowDataLocator
+	procLocator, err = data.NewFlowDataLocatorFromElement(idGenerator, instance.process)
 	if err != nil {
 		return
 	}
-	instance.Locator.Merge(locator)
+	procLocator.Merge(dataLocator)
+	instance.Locator = procLocator
 
 	// Flow nodes
 

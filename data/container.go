@@ -57,5 +57,8 @@ func (c *Container) CloneFor(other ILocatorCloner) {
 	if out.ItemAwareInterface == nil {
 		out.ItemAwareInterface = c.ItemAwareInterface
 	}
-	out.Put(c.Get())
+	value := c.Get()
+	if value != nil {
+		out.Put(value)
+	}
 }

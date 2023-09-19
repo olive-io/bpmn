@@ -18,9 +18,16 @@ import (
 	"fmt"
 	"sync"
 
+	json "github.com/json-iterator/go"
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tools/id"
+)
+
+const (
+	LocatorObject   = "$"
+	LocatorHeader   = "#"
+	LocatorProperty = "@"
 )
 
 type ObjectContainer struct {
@@ -297,9 +304,11 @@ func NewFlowDataLocatorFromElement(idGenerator id.IGenerator, element schema.Ele
 			container := NewContainer(dataObject)
 			dataObjectBody := map[string]any{}
 			if extension := dataObject.ExtensionElementsField; extension != nil {
-				if properties := extension.PropertiesField; properties != nil {
-					for _, item := range properties.Property {
-						dataObjectBody[item.Name] = item.ValueFor()
+				if extension.DataObjectBody != nil {
+					err = json.Unmarshal([]byte(extension.DataObjectBody.Body), &dataObjectBody)
+					if err != nil {
+						err = fmt.Errorf("json Unmarshal DataObject %s: %v", *dataObject.IdField, err)
+						return
 					}
 				}
 			}
@@ -389,9 +398,9 @@ func NewFlowDataLocatorFromElement(idGenerator id.IGenerator, element schema.Ele
 			}
 		}
 	}
-	locators["$"] = dataObjectContainer
-	locators["#"] = headerContainer
-	locators["@"] = propertyContainer
+	locators[LocatorObject] = dataObjectContainer
+	locators[LocatorHeader] = headerContainer
+	locators[LocatorProperty] = propertyContainer
 	locator.locators = locators
 
 	return

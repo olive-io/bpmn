@@ -5864,13 +5864,14 @@ func (t *Extension) SetDocumentations(value []Documentation) {
 }
 
 type ExtensionElements struct {
-	TaskDefinitionField *TaskDefinition        `xml:"http://olive.io/spec/BPMN/MODEL taskDefinition"`
-	TaskHeaderField     *TaskHeader            `xml:"http://olive.io/spec/BPMN/MODEL taskHeaders"`
-	PropertiesField     *Properties            `xml:"http://olive.io/spec/BPMN/MODEL properties"`
-	ScriptField         *ExtensionScript       `xml:"http://olive.io/spec/BPMN/MODEL script"`
-	DataInput           []ExtensionAssociation `xml:"http://olive.io/spec/BPMN/MODEL dataInput"`
-	DataOutput          []ExtensionAssociation `xml:"http://olive.io/spec/BPMN/MODEL dataOutput"`
-	TextPayloadField    *Payload               `xml:",chardata"`
+	DataObjectBody      *ExtensionDataObjectBody `xml:"http://olive.io/spec/BPMN/MODEL dataObjectBody"`
+	TaskDefinitionField *TaskDefinition          `xml:"http://olive.io/spec/BPMN/MODEL taskDefinition"`
+	TaskHeaderField     *TaskHeader              `xml:"http://olive.io/spec/BPMN/MODEL taskHeaders"`
+	PropertiesField     *Properties              `xml:"http://olive.io/spec/BPMN/MODEL properties"`
+	ScriptField         *ExtensionScript         `xml:"http://olive.io/spec/BPMN/MODEL script"`
+	DataInput           []ExtensionAssociation   `xml:"http://olive.io/spec/BPMN/MODEL dataInput"`
+	DataOutput          []ExtensionAssociation   `xml:"http://olive.io/spec/BPMN/MODEL dataOutput"`
+	TextPayloadField    *Payload                 `xml:",chardata"`
 }
 
 func DefaultExtensionElements() ExtensionElements {

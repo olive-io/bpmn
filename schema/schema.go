@@ -45,7 +45,11 @@ var mapping = map[string]string{
 type Payload string
 
 func (p *Payload) String() string {
-	return string(*p)
+	text := strings.TrimSpace(string(*p))
+	for strings.HasSuffix(text, "\n") {
+		text = strings.TrimSpace(strings.TrimSuffix(text, "\n"))
+	}
+	return text
 }
 
 // QName XML qualified name (http://books.xmlschemata.org/relaxng/ch19-77287.html)
@@ -390,6 +394,19 @@ type ExtensionAssociation struct {
 
 func (p *ExtensionAssociation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	out := ExtensionAssociation(*p)
+	start.Name = xml.Name{
+		Local: OliveNS + start.Name.Local,
+	}
+
+	return e.EncodeElement(out, start)
+}
+
+type ExtensionDataObjectBody struct {
+	Body string `xml:",chardata"`
+}
+
+func (p *ExtensionDataObjectBody) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	out := ExtensionDataObjectBody(*p)
 	start.Name = xml.Name{
 		Local: OliveNS + start.Name.Local,
 	}

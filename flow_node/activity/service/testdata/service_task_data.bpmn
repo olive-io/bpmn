@@ -26,9 +26,7 @@
         <bpmn:dataObjectReference id="DataObjectReference_1pbt57j" name="in" dataObjectRef="DataObject_0yhrl3s"/>
         <bpmn:dataObject id="DataObject_0yhrl3s">
             <bpmn:extensionElements>
-                <olive:properties>
-                    <olive:property name="a" value="aa" type="string"/>
-                </olive:properties>
+                <olive:dataObjectBody><![CDATA[{"a": "aa"}]]></olive:dataObjectBody>
             </bpmn:extensionElements>
         </bpmn:dataObject>
         <bpmn:dataObjectReference id="DataObjectReference_0ogh0ik" name="out" dataObjectRef="DataObject_0aefn7u"/>

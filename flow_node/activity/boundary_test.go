@@ -75,7 +75,7 @@ func TestNonInterruptingEvent(t *testing.T) {
 func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[string]bool), events ...event.IEvent) {
 	processElement := (*testDoc.Processes())[0]
 	proc := process.New(&processElement, &testDoc)
-	ready := make(chan bool)
+	ready := make(chan bool, 1)
 
 	// explicit tracer
 	tracer := tracing.NewTracer(context.Background())
@@ -105,7 +105,6 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 						// it is indeed listening
 						listening = true
 					}
-
 				}
 			case activity.ActiveBoundaryTrace:
 				if id, present := trace.Node.Id(); present && trace.Start {

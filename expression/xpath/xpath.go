@@ -79,7 +79,7 @@ func (engine *XPath) EvaluateExpression(e expression.ICompiledExpression,
 
 		contextSettings := func(c *exec.ContextSettings) {
 			if engine.itemAwareLocators != nil {
-				c.FunctionLibrary[exec.Name("", "getDataObject")] = engine.getDataObject()
+				c.FunctionLibrary[exec.Name("", data.LocatorObject)] = engine.getDataObject()
 			}
 		}
 
