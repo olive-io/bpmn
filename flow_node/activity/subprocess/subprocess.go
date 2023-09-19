@@ -448,6 +448,7 @@ func (p *SubProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.C
 			// Send out a cease flow trace
 			tracer.Trace(flow.CeaseFlowTrace{})
 		case <-ctx.Done():
+
 		}
 
 	}
@@ -478,7 +479,15 @@ func (p *SubProcess) runner(ctx context.Context, out tracing.ITracer) {
 					traces := p.tracer.Subscribe()
 				loop:
 					for {
-						trace := tracing.Unwrap(<-traces)
+						var trace tracing.ITrace
+						select {
+						case trace = <-traces:
+						case <-ctx.Done():
+							p.Tracer.Trace(flow_node.CancellationTrace{Node: p.element})
+							return
+						}
+
+						trace = tracing.Unwrap(trace)
 						switch trace := trace.(type) {
 						case flow.CeaseFlowTrace:
 							out.Trace(ProcessLandMarkTrace{Node: p.element})
@@ -499,6 +508,7 @@ func (p *SubProcess) runner(ctx context.Context, out tracing.ITracer) {
 			default:
 			}
 		case <-ctx.Done():
+			p.Tracer.Trace(flow_node.CancellationTrace{Node: p.element})
 			return
 		}
 	}

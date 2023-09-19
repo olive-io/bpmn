@@ -103,6 +103,7 @@ func (node *ServiceTask) runner(ctx context.Context) {
 					node.Tracer.Trace(at)
 					select {
 					case <-ctx.Done():
+						node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 						return
 					case out := <-response:
 						if out.err != nil {
@@ -122,6 +123,7 @@ func (node *ServiceTask) runner(ctx context.Context) {
 			default:
 			}
 		case <-ctx.Done():
+			node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 			return
 		}
 	}

@@ -86,6 +86,7 @@ func (node *Task) runner(ctx context.Context) {
 					node.Tracer.Trace(at)
 					select {
 					case <-ctx.Done():
+						node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 						return
 					case action = <-response:
 						m.response <- action
@@ -94,6 +95,7 @@ func (node *Task) runner(ctx context.Context) {
 			default:
 			}
 		case <-ctx.Done():
+			node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 			return
 		}
 	}

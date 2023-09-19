@@ -33,7 +33,7 @@ func main() {
 		proc := process.New(&processElement, &definitions)
 		if instance, err := proc.Instantiate(); err == nil {
 			traces := instance.Tracer.Subscribe()
-			err := instance.StartAll(context.Background())
+			err = instance.StartAll(context.Background())
 			if err != nil {
 				log.Fatalf("failed to run the instance: %s", err)
 			}
