@@ -39,12 +39,35 @@ var mapping = map[string]string{
 	"http://olive.io/spec/BPMN/MODEL":             OliveNS,
 }
 
+// NewIntegerP converts int to *int
+func NewIntegerP[K int | int32 | int64 | uint | uint32 | uint64](i K) *K {
+	return &i
+}
+
+// NewFloatP converts float to *float
+func NewFloatP[F float32 | float64](f F) *F {
+	return &f
+}
+
+// NewStringP converts string to *string
+func NewStringP(s string) *string {
+	return &s
+}
+
+// NewBoolP converts bool to *bool
+func NewBoolP(b bool) *bool {
+	return &b
+}
+
 // Base types
 
 // Payload Reference to TextPayload
 type Payload string
 
 func (p *Payload) String() string {
+	if p == nil {
+		return ""
+	}
 	text := strings.TrimSpace(string(*p))
 	for strings.HasSuffix(text, "\n") {
 		text = strings.TrimSpace(strings.TrimSuffix(text, "\n"))
