@@ -1174,7 +1174,7 @@ func (t *Label) SetBounds(value *Bounds) {
 type Plane struct {
 	Node
 	DiagramElementField []DiagramElement `xml:"http://www.omg.org/spec/DD/20100524/DI DiagramElement"`
-	BPMNShareFields     []BPMNShape      `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNShape"`
+	BPMNShapeFields     []BPMNShape      `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNShape"`
 	BPMNEdgeFields      []BPMNEdge       `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNEdge"`
 }
 

@@ -112,7 +112,7 @@
             </xsl:choose>
         </xsl:for-each>
         <xsl:if test="local:struct-case($type/@name) = 'Plane'">
-            <xsl:text>BPMNShareFields []BPMNShape `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNShape"`
+            <xsl:text>BPMNShapeFields []BPMNShape `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNShape"`
             </xsl:text>
             <xsl:text>BPMNEdgeFields []BPMNEdge `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNEdge"`
             </xsl:text>

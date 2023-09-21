@@ -581,7 +581,6 @@ func (instance *Instance) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx cont
 			tracer.Trace(flow.CeaseFlowTrace{})
 		case <-ctx.Done():
 		}
-
 	}
 }
 

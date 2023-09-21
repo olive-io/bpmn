@@ -33,32 +33,32 @@ func main() {
 		proc := process.New(&processElement, &definitions)
 		if instance, err := proc.Instantiate(); err == nil {
 			traces := instance.Tracer.Subscribe()
-			err = instance.StartAll(context.Background())
+			ctx, cancel := context.WithCancel(context.Background())
+			err = instance.StartAll(ctx)
 			if err != nil {
+				cancel()
 				log.Fatalf("failed to run the instance: %s", err)
 			}
-		loop:
-			for {
-				trace := tracing.Unwrap(<-traces)
-				switch trace := trace.(type) {
-				case flow.Trace:
-					if id, present := trace.Source.Id(); present {
-						if *id == "task" {
-							// success!
-							break loop
-						}
-
+			go func() {
+			LOOP:
+				for {
+					trace := tracing.Unwrap(<-traces)
+					switch trace := trace.(type) {
+					case activity.ActiveTaskTrace:
+						log.Printf("%#v\n", trace)
+						trace.Execute()
+					case tracing.ErrorTrace:
+						log.Fatalf("%#v", trace)
+					case flow.CeaseFlowTrace:
+						break LOOP
+					default:
+						log.Printf("%#v\n", trace)
 					}
-				case activity.ActiveTaskTrace:
-					log.Printf("%#v\n", trace)
-					trace.Execute()
-				case tracing.ErrorTrace:
-					log.Fatalf("%#v", trace)
-				default:
-					log.Printf("%#v\n", trace)
 				}
-			}
+			}()
+			instance.WaitUntilComplete(ctx)
 			instance.Tracer.Unsubscribe(traces)
+			cancel()
 		} else {
 			log.Fatalf("failed to instantiate the process: %s", err)
 		}
