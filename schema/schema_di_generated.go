@@ -88,7 +88,7 @@ func (t *BPMNDiagram) SetBPMNLabelStyle(value []BPMNLabelStyle) {
 
 type BPMNPlane struct {
 	Plane
-	BpmnElementField *QName `xml:"bpmnElement,attr"`
+	BpmnElementField *QName `xml:"bpmnElement,attr,omitempty"`
 }
 
 func DefaultBPMNPlane() BPMNPlane {
@@ -143,10 +143,10 @@ func (t *BPMNPlane) SetBpmnElement(value *QName) {
 
 type BPMNEdge struct {
 	LabeledEdge
-	BpmnElementField        *QName              `xml:"bpmnElement,attr"`
-	SourceElementField      *QName              `xml:"sourceElement,attr"`
-	TargetElementField      *QName              `xml:"targetElement,attr"`
-	MessageVisibleKindField *MessageVisibleKind `xml:"messageVisibleKind,attr"`
+	BpmnElementField        *QName              `xml:"bpmnElement,attr,omitempty"`
+	SourceElementField      *QName              `xml:"sourceElement,attr,omitempty"`
+	TargetElementField      *QName              `xml:"targetElement,attr,omitempty"`
+	MessageVisibleKindField *MessageVisibleKind `xml:"messageVisibleKind,attr,omitempty"`
 	BPMNLabelField          *BPMNLabel          `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNLabel"`
 }
 
@@ -248,13 +248,13 @@ func (t *BPMNEdge) SetBPMNLabel(value *BPMNLabel) {
 
 type BPMNShape struct {
 	LabeledShape
-	BpmnElementField               *QName               `xml:"bpmnElement,attr"`
-	IsHorizontalField              *bool                `xml:"isHorizontal,attr"`
-	IsExpandedField                *bool                `xml:"isExpanded,attr"`
-	IsMarkerVisibleField           *bool                `xml:"isMarkerVisible,attr"`
-	IsMessageVisibleField          *bool                `xml:"isMessageVisible,attr"`
-	ParticipantBandKindField       *ParticipantBandKind `xml:"participantBandKind,attr"`
-	ChoreographyActivityShapeField *QName               `xml:"choreographyActivityShape,attr"`
+	BpmnElementField               *QName               `xml:"bpmnElement,attr,omitempty"`
+	IsHorizontalField              *bool                `xml:"isHorizontal,attr,omitempty"`
+	IsExpandedField                *bool                `xml:"isExpanded,attr,omitempty"`
+	IsMarkerVisibleField           *bool                `xml:"isMarkerVisible,attr,omitempty"`
+	IsMessageVisibleField          *bool                `xml:"isMessageVisible,attr,omitempty"`
+	ParticipantBandKindField       *ParticipantBandKind `xml:"participantBandKind,attr,omitempty"`
+	ChoreographyActivityShapeField *QName               `xml:"choreographyActivityShape,attr,omitempty"`
 	BPMNLabelField                 *BPMNLabel           `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNLabel"`
 }
 
@@ -392,7 +392,7 @@ func (t *BPMNShape) SetBPMNLabel(value *BPMNLabel) {
 
 type BPMNLabel struct {
 	Label
-	LabelStyleField *QName `xml:"labelStyle,attr"`
+	LabelStyleField *QName `xml:"labelStyle,attr,omitempty"`
 }
 
 func DefaultBPMNLabel() BPMNLabel {
@@ -499,12 +499,12 @@ func (t *BPMNLabelStyle) SetFont(value *Font) {
 }
 
 type Font struct {
-	NameField            *string `xml:"name,attr"`
-	SizeField            *Double `xml:"size,attr"`
-	IsBoldField          *bool   `xml:"isBold,attr"`
-	IsItalicField        *bool   `xml:"isItalic,attr"`
-	IsUnderlineField     *bool   `xml:"isUnderline,attr"`
-	IsStrikeThroughField *bool   `xml:"isStrikeThrough,attr"`
+	NameField            *string `xml:"name,attr,omitempty"`
+	SizeField            *Double `xml:"size,attr,omitempty"`
+	IsBoldField          *bool   `xml:"isBold,attr,omitempty"`
+	IsItalicField        *bool   `xml:"isItalic,attr,omitempty"`
+	IsUnderlineField     *bool   `xml:"isUnderline,attr,omitempty"`
+	IsStrikeThroughField *bool   `xml:"isStrikeThrough,attr,omitempty"`
 }
 
 func DefaultFont() Font {
@@ -612,8 +612,8 @@ func (t *Font) SetIsStrikeThrough(value *bool) {
 }
 
 type Point struct {
-	XField Double `xml:"x,attr"`
-	YField Double `xml:"y,attr"`
+	XField Double `xml:"x,attr,omitempty"`
+	YField Double `xml:"y,attr,omitempty"`
 }
 
 func DefaultPoint() Point {
@@ -667,10 +667,10 @@ func (t *Point) SetY(value Double) {
 }
 
 type Bounds struct {
-	XField      Double `xml:"x,attr"`
-	YField      Double `xml:"y,attr"`
-	WidthField  Double `xml:"width,attr"`
-	HeightField Double `xml:"height,attr"`
+	XField      Double `xml:"x,attr,omitempty"`
+	YField      Double `xml:"y,attr,omitempty"`
+	WidthField  Double `xml:"width,attr,omitempty"`
+	HeightField Double `xml:"height,attr,omitempty"`
 }
 
 func DefaultBounds() Bounds {
@@ -742,7 +742,7 @@ func (t *Bounds) SetHeight(value Double) {
 }
 
 type DiagramElement struct {
-	IdField        *Id          `xml:"id,attr"`
+	IdField        *Id          `xml:"id,attr,omitempty"`
 	ExtensionField *DIExtension `xml:"http://www.omg.org/spec/DD/20100524/DI extension"`
 }
 
@@ -804,10 +804,10 @@ func (t *DiagramElement) SetExtension(value *DIExtension) {
 }
 
 type Diagram struct {
-	NameField          *string `xml:"name,attr"`
-	DocumentationField *string `xml:"documentation,attr"`
-	ResolutionField    *Double `xml:"resolution,attr"`
-	IdField            *Id     `xml:"id,attr"`
+	NameField          *string `xml:"name,attr,omitempty"`
+	DocumentationField *string `xml:"documentation,attr,omitempty"`
+	ResolutionField    *Double `xml:"resolution,attr,omitempty"`
+	IdField            *Id     `xml:"id,attr,omitempty"`
 }
 
 func DefaultDiagram() Diagram {
@@ -1227,7 +1227,7 @@ func (t *Plane) SetDiagramElement(value []DiagramElement) {
 }
 
 type Style struct {
-	IdField *Id `xml:"id,attr"`
+	IdField *Id `xml:"id,attr,omitempty"`
 }
 
 func DefaultStyle() Style {

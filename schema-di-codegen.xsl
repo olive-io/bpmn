@@ -83,7 +83,7 @@
             <xsl:value-of select="local:field-type(.)"/>
             <xsl:text xml:space="preserve"> `xml:"</xsl:text>
             <xsl:value-of select="./@name"/>
-            <xsl:text xml:space="preserve">,attr"`
+            <xsl:text xml:space="preserve">,attr,omitempty"`
             </xsl:text>
         </xsl:for-each>
         <xsl:for-each select="local:specific-elements(.)">

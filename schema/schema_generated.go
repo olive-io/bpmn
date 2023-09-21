@@ -33,13 +33,13 @@ type ProcessType string
 type RelationshipDirection string
 type TransactionMethod AnyURI
 type Definitions struct {
-	IdField                     *Id                      `xml:"id,attr"`
-	NameField                   *string                  `xml:"name,attr"`
-	TargetNamespaceField        AnyURI                   `xml:"targetNamespace,attr"`
-	ExpressionLanguageField     *AnyURI                  `xml:"expressionLanguage,attr"`
-	TypeLanguageField           *AnyURI                  `xml:"typeLanguage,attr"`
-	ExporterField               *string                  `xml:"exporter,attr"`
-	ExporterVersionField        *string                  `xml:"exporterVersion,attr"`
+	IdField                     *Id                      `xml:"id,attr,omitempty"`
+	NameField                   *string                  `xml:"name,attr,omitempty"`
+	TargetNamespaceField        AnyURI                   `xml:"targetNamespace,attr,omitempty"`
+	ExpressionLanguageField     *AnyURI                  `xml:"expressionLanguage,attr,omitempty"`
+	TypeLanguageField           *AnyURI                  `xml:"typeLanguage,attr,omitempty"`
+	ExporterField               *string                  `xml:"exporter,attr,omitempty"`
+	ExporterVersionField        *string                  `xml:"exporterVersion,attr,omitempty"`
 	ImportField                 []Import                 `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL import"`
 	ExtensionField              []Extension              `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL extension"`
 	CategoryField               []Category               `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL category"`
@@ -642,9 +642,9 @@ func (t *Definitions) SetRelationships(value []Relationship) {
 }
 
 type Import struct {
-	NamespaceField   AnyURI   `xml:"namespace,attr"`
-	LocationField    string   `xml:"location,attr"`
-	ImportTypeField  AnyURI   `xml:"importType,attr"`
+	NamespaceField   AnyURI   `xml:"namespace,attr,omitempty"`
+	LocationField    string   `xml:"location,attr,omitempty"`
+	ImportTypeField  AnyURI   `xml:"importType,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -711,10 +711,10 @@ func (t *Import) SetImportType(value AnyURI) {
 
 type Activity struct {
 	FlowNode
-	IsForCompensationField                *bool                             `xml:"isForCompensation,attr"`
-	StartQuantityField                    *big.Int                          `xml:"startQuantity,attr"`
-	CompletionQuantityField               *big.Int                          `xml:"completionQuantity,attr"`
-	DefaultField                          *IdRef                            `xml:"default,attr"`
+	IsForCompensationField                *bool                             `xml:"isForCompensation,attr,omitempty"`
+	StartQuantityField                    *big.Int                          `xml:"startQuantity,attr,omitempty"`
+	CompletionQuantityField               *big.Int                          `xml:"completionQuantity,attr,omitempty"`
+	DefaultField                          *IdRef                            `xml:"default,attr,omitempty"`
 	IoSpecificationField                  *InputOutputSpecification         `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL ioSpecification"`
 	PropertyField                         []Property                        `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL property"`
 	DataInputAssociationField             []DataInputAssociation            `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL dataInputAssociation"`
@@ -931,8 +931,8 @@ func (t *Activity) SetStandardLoopCharacteristics(value *StandardLoopCharacteris
 
 type AdHocSubProcess struct {
 	SubProcess
-	CancelRemainingInstancesField *bool          `xml:"cancelRemainingInstances,attr"`
-	OrderingField                 *AdHocOrdering `xml:"ordering,attr"`
+	CancelRemainingInstancesField *bool          `xml:"cancelRemainingInstances,attr,omitempty"`
+	OrderingField                 *AdHocOrdering `xml:"ordering,attr,omitempty"`
 	CompletionConditionField      *AnExpression  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL completionCondition"`
 	TextPayloadField              *Payload       `xml:",chardata"`
 }
@@ -1129,9 +1129,9 @@ func (t *Assignment) SetTo(value AnExpression) {
 
 type Association struct {
 	Artifact
-	SourceRefField            QName                 `xml:"sourceRef,attr"`
-	TargetRefField            QName                 `xml:"targetRef,attr"`
-	AssociationDirectionField *AssociationDirection `xml:"associationDirection,attr"`
+	SourceRefField            QName                 `xml:"sourceRef,attr,omitempty"`
+	TargetRefField            QName                 `xml:"targetRef,attr,omitempty"`
+	AssociationDirectionField *AssociationDirection `xml:"associationDirection,attr,omitempty"`
 	TextPayloadField          *Payload              `xml:",chardata"`
 }
 
@@ -1255,7 +1255,7 @@ func (t *Auditing) FindBy(f ElementPredicate) (result Element, found bool) {
 }
 
 type BaseElement struct {
-	IdField                *Id                `xml:"id,attr"`
+	IdField                *Id                `xml:"id,attr,omitempty"`
 	DocumentationField     []Documentation    `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL documentation"`
 	ExtensionElementsField *ExtensionElements `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL extensionElements"`
 }
@@ -1327,7 +1327,7 @@ func (t *BaseElement) SetExtensionElements(value *ExtensionElements) {
 }
 
 type BaseElementWithMixedContent struct {
-	IdField                *Id                `xml:"id,attr"`
+	IdField                *Id                `xml:"id,attr,omitempty"`
 	DocumentationField     []Documentation    `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL documentation"`
 	ExtensionElementsField *ExtensionElements `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL extensionElements"`
 }
@@ -1400,8 +1400,8 @@ func (t *BaseElementWithMixedContent) SetExtensionElements(value *ExtensionEleme
 
 type BoundaryEvent struct {
 	CatchEvent
-	CancelActivityField *bool    `xml:"cancelActivity,attr"`
-	AttachedToRefField  QName    `xml:"attachedToRef,attr"`
+	CancelActivityField *bool    `xml:"cancelActivity,attr,omitempty"`
+	AttachedToRefField  QName    `xml:"attachedToRef,attr,omitempty"`
 	TextPayloadField    *Payload `xml:",chardata"`
 }
 
@@ -1472,7 +1472,7 @@ func (t *BoundaryEvent) SetAttachedToRef(value QName) {
 
 type BusinessRuleTask struct {
 	Task
-	ImplementationField *Implementation `xml:"implementation,attr"`
+	ImplementationField *Implementation `xml:"implementation,attr,omitempty"`
 	TextPayloadField    *Payload        `xml:",chardata"`
 }
 
@@ -1533,7 +1533,7 @@ func (t *BusinessRuleTask) SetImplementation(value *Implementation) {
 
 type CallableElement struct {
 	RootElement
-	NameField                  *string                   `xml:"name,attr"`
+	NameField                  *string                   `xml:"name,attr,omitempty"`
 	SupportedInterfaceRefField []QName                   `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL supportedInterfaceRef"`
 	IoSpecificationField       *InputOutputSpecification `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL ioSpecification"`
 	IoBindingField             []InputOutputBinding      `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL ioBinding"`
@@ -1636,7 +1636,7 @@ func (t *CallableElement) SetIoBindings(value []InputOutputBinding) {
 
 type CallActivity struct {
 	Activity
-	CalledElementField *QName   `xml:"calledElement,attr"`
+	CalledElementField *QName   `xml:"calledElement,attr,omitempty"`
 	TextPayloadField   *Payload `xml:",chardata"`
 }
 
@@ -1694,7 +1694,7 @@ func (t *CallActivity) SetCalledElement(value *QName) {
 
 type CallChoreography struct {
 	ChoreographyActivity
-	CalledChoreographyRefField  *QName                   `xml:"calledChoreographyRef,attr"`
+	CalledChoreographyRefField  *QName                   `xml:"calledChoreographyRef,attr,omitempty"`
 	ParticipantAssociationField []ParticipantAssociation `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL participantAssociation"`
 	TextPayloadField            *Payload                 `xml:",chardata"`
 }
@@ -1768,7 +1768,7 @@ func (t *CallChoreography) SetParticipantAssociations(value []ParticipantAssocia
 
 type CallConversation struct {
 	ConversationNode
-	CalledCollaborationRefField *QName                   `xml:"calledCollaborationRef,attr"`
+	CalledCollaborationRefField *QName                   `xml:"calledCollaborationRef,attr,omitempty"`
 	ParticipantAssociationField []ParticipantAssociation `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL participantAssociation"`
 	TextPayloadField            *Payload                 `xml:",chardata"`
 }
@@ -1887,7 +1887,7 @@ func (t *CancelEventDefinition) FindBy(f ElementPredicate) (result Element, foun
 
 type CatchEvent struct {
 	Event
-	ParallelMultipleField           *bool                        `xml:"parallelMultiple,attr"`
+	ParallelMultipleField           *bool                        `xml:"parallelMultiple,attr,omitempty"`
 	DataOutputField                 []DataOutput                 `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL dataOutput"`
 	DataOutputAssociationField      []DataOutputAssociation      `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL dataOutputAssociation"`
 	OutputSetField                  *OutputSet                   `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL outputSet"`
@@ -2202,7 +2202,7 @@ func (t *CatchEvent) SetEventDefinitionRefs(value []QName) {
 
 type Category struct {
 	RootElement
-	NameField          *string         `xml:"name,attr"`
+	NameField          *string         `xml:"name,attr,omitempty"`
 	CategoryValueField []CategoryValue `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL categoryValue"`
 	TextPayloadField   *Payload        `xml:",chardata"`
 }
@@ -2276,7 +2276,7 @@ func (t *Category) SetCategoryValues(value []CategoryValue) {
 
 type CategoryValue struct {
 	BaseElement
-	ValueField       *string  `xml:"value,attr"`
+	ValueField       *string  `xml:"value,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -3005,8 +3005,8 @@ func (t *Choreography) SetUserTasks(value []UserTask) {
 
 type ChoreographyActivity struct {
 	FlowNode
-	InitiatingParticipantRefField QName                 `xml:"initiatingParticipantRef,attr"`
-	LoopTypeField                 *ChoreographyLoopType `xml:"loopType,attr"`
+	InitiatingParticipantRefField QName                 `xml:"initiatingParticipantRef,attr,omitempty"`
+	LoopTypeField                 *ChoreographyLoopType `xml:"loopType,attr,omitempty"`
 	ParticipantRefField           []QName               `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL participantRef"`
 	CorrelationKeyField           []CorrelationKey      `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL correlationKey"`
 }
@@ -3144,8 +3144,8 @@ func (t *ChoreographyTask) SetMessageFlowRef(value QName) {
 
 type Collaboration struct {
 	RootElement
-	NameField                    *string                   `xml:"name,attr"`
-	IsClosedField                *bool                     `xml:"isClosed,attr"`
+	NameField                    *string                   `xml:"name,attr,omitempty"`
+	IsClosedField                *bool                     `xml:"isClosed,attr,omitempty"`
 	ParticipantField             []Participant             `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL participant"`
 	MessageFlowField             []MessageFlow             `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL messageFlow"`
 	AssociationField             []Association             `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL association"`
@@ -3473,8 +3473,8 @@ func (t *Collaboration) SetConversationLinks(value []ConversationLink) {
 
 type CompensateEventDefinition struct {
 	EventDefinition
-	WaitForCompletionField *bool    `xml:"waitForCompletion,attr"`
-	ActivityRefField       *QName   `xml:"activityRef,attr"`
+	WaitForCompletionField *bool    `xml:"waitForCompletion,attr,omitempty"`
+	ActivityRefField       *QName   `xml:"activityRef,attr,omitempty"`
 	TextPayloadField       *Payload `xml:",chardata"`
 }
 
@@ -3622,7 +3622,7 @@ func (t *ComplexBehaviorDefinition) SetEvent(value *ImplicitThrowEvent) {
 
 type ComplexGateway struct {
 	Gateway
-	DefaultField             *IdRef        `xml:"default,attr"`
+	DefaultField             *IdRef        `xml:"default,attr,omitempty"`
 	ActivationConditionField *AnExpression `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL activationCondition"`
 	TextPayloadField         *Payload      `xml:",chardata"`
 }
@@ -3803,8 +3803,8 @@ func (t *Conversation) FindBy(f ElementPredicate) (result Element, found bool) {
 
 type ConversationAssociation struct {
 	BaseElement
-	InnerConversationNodeRefField QName    `xml:"innerConversationNodeRef,attr"`
-	OuterConversationNodeRefField QName    `xml:"outerConversationNodeRef,attr"`
+	InnerConversationNodeRefField QName    `xml:"innerConversationNodeRef,attr,omitempty"`
+	OuterConversationNodeRefField QName    `xml:"outerConversationNodeRef,attr,omitempty"`
 	TextPayloadField              *Payload `xml:",chardata"`
 }
 
@@ -3868,9 +3868,9 @@ func (t *ConversationAssociation) SetOuterConversationNodeRef(value QName) {
 
 type ConversationLink struct {
 	BaseElement
-	NameField        *string  `xml:"name,attr"`
-	SourceRefField   QName    `xml:"sourceRef,attr"`
-	TargetRefField   QName    `xml:"targetRef,attr"`
+	NameField        *string  `xml:"name,attr,omitempty"`
+	SourceRefField   QName    `xml:"sourceRef,attr,omitempty"`
+	TargetRefField   QName    `xml:"targetRef,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -3946,7 +3946,7 @@ func (t *ConversationLink) SetTargetRef(value QName) {
 
 type ConversationNode struct {
 	BaseElement
-	NameField           *string          `xml:"name,attr"`
+	NameField           *string          `xml:"name,attr,omitempty"`
 	ParticipantRefField []QName          `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL participantRef"`
 	MessageFlowRefField []QName          `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL messageFlowRef"`
 	CorrelationKeyField []CorrelationKey `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL correlationKey"`
@@ -4026,7 +4026,7 @@ func (t *ConversationNode) SetCorrelationKeys(value []CorrelationKey) {
 
 type CorrelationKey struct {
 	BaseElement
-	NameField                   *string  `xml:"name,attr"`
+	NameField                   *string  `xml:"name,attr,omitempty"`
 	CorrelationPropertyRefField []QName  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL correlationPropertyRef"`
 	TextPayloadField            *Payload `xml:",chardata"`
 }
@@ -4094,8 +4094,8 @@ func (t *CorrelationKey) SetCorrelationPropertyRefs(value []QName) {
 
 type CorrelationProperty struct {
 	RootElement
-	NameField                                   *string                                  `xml:"name,attr"`
-	TypeField                                   *QName                                   `xml:"type,attr"`
+	NameField                                   *string                                  `xml:"name,attr,omitempty"`
+	TypeField                                   *QName                                   `xml:"type,attr,omitempty"`
 	CorrelationPropertyRetrievalExpressionField []CorrelationPropertyRetrievalExpression `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL correlationPropertyRetrievalExpression"`
 	TextPayloadField                            *Payload                                 `xml:",chardata"`
 }
@@ -4181,7 +4181,7 @@ func (t *CorrelationProperty) SetCorrelationPropertyRetrievalExpressions(value [
 
 type CorrelationPropertyBinding struct {
 	BaseElement
-	CorrelationPropertyRefField QName            `xml:"correlationPropertyRef,attr"`
+	CorrelationPropertyRefField QName            `xml:"correlationPropertyRef,attr,omitempty"`
 	DataPathField               FormalExpression `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL dataPath"`
 	TextPayloadField            *Payload         `xml:",chardata"`
 }
@@ -4250,7 +4250,7 @@ func (t *CorrelationPropertyBinding) SetDataPath(value FormalExpression) {
 
 type CorrelationPropertyRetrievalExpression struct {
 	BaseElement
-	MessageRefField  QName            `xml:"messageRef,attr"`
+	MessageRefField  QName            `xml:"messageRef,attr,omitempty"`
 	MessagePathField FormalExpression `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL messagePath"`
 	TextPayloadField *Payload         `xml:",chardata"`
 }
@@ -4319,7 +4319,7 @@ func (t *CorrelationPropertyRetrievalExpression) SetMessagePath(value FormalExpr
 
 type CorrelationSubscription struct {
 	BaseElement
-	CorrelationKeyRefField          QName                        `xml:"correlationKeyRef,attr"`
+	CorrelationKeyRefField          QName                        `xml:"correlationKeyRef,attr,omitempty"`
 	CorrelationPropertyBindingField []CorrelationPropertyBinding `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL correlationPropertyBinding"`
 	TextPayloadField                *Payload                     `xml:",chardata"`
 }
@@ -4490,8 +4490,8 @@ func (t *DataAssociation) SetAssignments(value []Assignment) {
 
 type DataInput struct {
 	ItemAwareElement
-	NameField         *string  `xml:"name,attr"`
-	IsCollectionField *bool    `xml:"isCollection,attr"`
+	NameField         *string  `xml:"name,attr,omitempty"`
+	IsCollectionField *bool    `xml:"isCollection,attr,omitempty"`
 	TextPayloadField  *Payload `xml:",chardata"`
 }
 
@@ -4611,7 +4611,7 @@ func (t *DataInputAssociation) FindBy(f ElementPredicate) (result Element, found
 type DataObject struct {
 	FlowElement
 	ItemAware
-	IsCollectionField *bool    `xml:"isCollection,attr"`
+	IsCollectionField *bool    `xml:"isCollection,attr,omitempty"`
 	TextPayloadField  *Payload `xml:",chardata"`
 }
 
@@ -4679,7 +4679,7 @@ func (t *DataObject) SetIsCollection(value *bool) {
 type DataObjectReference struct {
 	FlowElement
 	ItemAware
-	DataObjectRefField *IdRef   `xml:"dataObjectRef,attr"`
+	DataObjectRefField *IdRef   `xml:"dataObjectRef,attr,omitempty"`
 	TextPayloadField   *Payload `xml:",chardata"`
 }
 
@@ -4742,8 +4742,8 @@ func (t *DataObjectReference) SetDataObjectRef(value *IdRef) {
 
 type DataOutput struct {
 	ItemAwareElement
-	NameField         *string  `xml:"name,attr"`
-	IsCollectionField *bool    `xml:"isCollection,attr"`
+	NameField         *string  `xml:"name,attr,omitempty"`
+	IsCollectionField *bool    `xml:"isCollection,attr,omitempty"`
 	TextPayloadField  *Payload `xml:",chardata"`
 }
 
@@ -4862,7 +4862,7 @@ func (t *DataOutputAssociation) FindBy(f ElementPredicate) (result Element, foun
 
 type DataState struct {
 	BaseElement
-	NameField        *string  `xml:"name,attr"`
+	NameField        *string  `xml:"name,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -4921,9 +4921,9 @@ func (t *DataState) SetName(value *string) {
 type DataStore struct {
 	RootElement
 	ItemAware
-	NameField        *string  `xml:"name,attr"`
-	CapacityField    *big.Int `xml:"capacity,attr"`
-	IsUnlimitedField *bool    `xml:"isUnlimited,attr"`
+	NameField        *string  `xml:"name,attr,omitempty"`
+	CapacityField    *big.Int `xml:"capacity,attr,omitempty"`
+	IsUnlimitedField *bool    `xml:"isUnlimited,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -5015,7 +5015,7 @@ func (t *DataStore) SetIsUnlimited(value *bool) {
 type DataStoreReference struct {
 	FlowElement
 	ItemAware
-	DataStoreRefField *QName   `xml:"dataStoreRef,attr"`
+	DataStoreRefField *QName   `xml:"dataStoreRef,attr,omitempty"`
 	TextPayloadField  *Payload `xml:",chardata"`
 }
 
@@ -5077,8 +5077,8 @@ func (t *DataStoreReference) SetDataStoreRef(value *QName) {
 }
 
 type Documentation struct {
-	IdField          *Id      `xml:"id,attr"`
-	TextFormatField  *string  `xml:"textFormat,attr"`
+	IdField          *Id      `xml:"id,attr,omitempty"`
+	TextFormatField  *string  `xml:"textFormat,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -5237,9 +5237,9 @@ func (t *EndPoint) FindBy(f ElementPredicate) (result Element, found bool) {
 
 type Error struct {
 	RootElement
-	NameField         *string  `xml:"name,attr"`
-	ErrorCodeField    *string  `xml:"errorCode,attr"`
-	StructureRefField *QName   `xml:"structureRef,attr"`
+	NameField         *string  `xml:"name,attr,omitempty"`
+	ErrorCodeField    *string  `xml:"errorCode,attr,omitempty"`
+	StructureRefField *QName   `xml:"structureRef,attr,omitempty"`
 	TextPayloadField  *Payload `xml:",chardata"`
 }
 
@@ -5321,7 +5321,7 @@ func (t *Error) SetStructureRef(value *QName) {
 
 type ErrorEventDefinition struct {
 	EventDefinition
-	ErrorRefField    *QName   `xml:"errorRef,attr"`
+	ErrorRefField    *QName   `xml:"errorRef,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -5379,9 +5379,9 @@ func (t *ErrorEventDefinition) SetErrorRef(value *QName) {
 
 type Escalation struct {
 	RootElement
-	NameField           *string  `xml:"name,attr"`
-	EscalationCodeField *string  `xml:"escalationCode,attr"`
-	StructureRefField   *QName   `xml:"structureRef,attr"`
+	NameField           *string  `xml:"name,attr,omitempty"`
+	EscalationCodeField *string  `xml:"escalationCode,attr,omitempty"`
+	StructureRefField   *QName   `xml:"structureRef,attr,omitempty"`
 	TextPayloadField    *Payload `xml:",chardata"`
 }
 
@@ -5463,7 +5463,7 @@ func (t *Escalation) SetStructureRef(value *QName) {
 
 type EscalationEventDefinition struct {
 	EventDefinition
-	EscalationRefField *QName   `xml:"escalationRef,attr"`
+	EscalationRefField *QName   `xml:"escalationRef,attr,omitempty"`
 	TextPayloadField   *Payload `xml:",chardata"`
 }
 
@@ -5568,8 +5568,8 @@ func (t *Event) SetProperties(value []Property) {
 
 type EventBasedGateway struct {
 	Gateway
-	InstantiateField      *bool                  `xml:"instantiate,attr"`
-	EventGatewayTypeField *EventBasedGatewayType `xml:"eventGatewayType,attr"`
+	InstantiateField      *bool                  `xml:"instantiate,attr,omitempty"`
+	EventGatewayTypeField *EventBasedGatewayType `xml:"eventGatewayType,attr,omitempty"`
 	TextPayloadField      *Payload               `xml:",chardata"`
 }
 
@@ -5677,7 +5677,7 @@ func (t *EventDefinition) FindBy(f ElementPredicate) (result Element, found bool
 
 type ExclusiveGateway struct {
 	Gateway
-	DefaultField     *IdRef   `xml:"default,attr"`
+	DefaultField     *IdRef   `xml:"default,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -5779,8 +5779,8 @@ func (t *Expression) FindBy(f ElementPredicate) (result Element, found bool) {
 }
 
 type Extension struct {
-	DefinitionField     *QName          `xml:"definition,attr"`
-	MustUnderstandField *bool           `xml:"mustUnderstand,attr"`
+	DefinitionField     *QName          `xml:"definition,attr,omitempty"`
+	MustUnderstandField *bool           `xml:"mustUnderstand,attr,omitempty"`
 	DocumentationField  []Documentation `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL documentation"`
 	TextPayloadField    *Payload        `xml:",chardata"`
 }
@@ -5910,7 +5910,7 @@ func (t *ExtensionElements) FindBy(f ElementPredicate) (result Element, found bo
 
 type FlowElement struct {
 	BaseElement
-	NameField             *string     `xml:"name,attr"`
+	NameField             *string     `xml:"name,attr,omitempty"`
 	AuditingField         *Auditing   `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL auditing"`
 	MonitoringField       *Monitoring `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL monitoring"`
 	CategoryValueRefField []QName     `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL categoryValueRef"`
@@ -6053,8 +6053,8 @@ func (t *FlowNode) SetOutgoings(value []QName) {
 
 type FormalExpression struct {
 	Expression
-	LanguageField           *AnyURI  `xml:"language,attr"`
-	EvaluatesToTypeRefField *QName   `xml:"evaluatesToTypeRef,attr"`
+	LanguageField           *AnyURI  `xml:"language,attr,omitempty"`
+	EvaluatesToTypeRefField *QName   `xml:"evaluatesToTypeRef,attr,omitempty"`
 	TextPayloadField        *Payload `xml:",chardata"`
 }
 
@@ -6124,7 +6124,7 @@ func (t *FormalExpression) SetEvaluatesToTypeRef(value *QName) {
 
 type Gateway struct {
 	FlowNode
-	GatewayDirectionField *GatewayDirection `xml:"gatewayDirection,attr"`
+	GatewayDirectionField *GatewayDirection `xml:"gatewayDirection,attr,omitempty"`
 	TextPayloadField      *Payload          `xml:",chardata"`
 }
 
@@ -6186,7 +6186,7 @@ func (t *Gateway) SetGatewayDirection(value *GatewayDirection) {
 
 type GlobalBusinessRuleTask struct {
 	GlobalTask
-	ImplementationField *Implementation `xml:"implementation,attr"`
+	ImplementationField *Implementation `xml:"implementation,attr,omitempty"`
 	TextPayloadField    *Payload        `xml:",chardata"`
 }
 
@@ -6247,7 +6247,7 @@ func (t *GlobalBusinessRuleTask) SetImplementation(value *Implementation) {
 
 type GlobalChoreographyTask struct {
 	Choreography
-	InitiatingParticipantRefField *QName   `xml:"initiatingParticipantRef,attr"`
+	InitiatingParticipantRefField *QName   `xml:"initiatingParticipantRef,attr,omitempty"`
 	TextPayloadField              *Payload `xml:",chardata"`
 }
 
@@ -6395,7 +6395,7 @@ func (t *GlobalManualTask) FindBy(f ElementPredicate) (result Element, found boo
 
 type GlobalScriptTask struct {
 	GlobalTask
-	ScriptLanguageField *AnyURI  `xml:"scriptLanguage,attr"`
+	ScriptLanguageField *AnyURI  `xml:"scriptLanguage,attr,omitempty"`
 	ScriptField         *Script  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL script"`
 	TextPayloadField    *Payload `xml:",chardata"`
 }
@@ -6533,7 +6533,7 @@ func (t *GlobalTask) SetResourceRoles(value []ResourceRole) {
 
 type GlobalUserTask struct {
 	GlobalTask
-	ImplementationField *Implementation `xml:"implementation,attr"`
+	ImplementationField *Implementation `xml:"implementation,attr,omitempty"`
 	RenderingField      []Rendering     `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL rendering"`
 	TextPayloadField    *Payload        `xml:",chardata"`
 }
@@ -6610,7 +6610,7 @@ func (t *GlobalUserTask) SetRenderings(value []Rendering) {
 
 type Group struct {
 	Artifact
-	CategoryValueRefField *QName   `xml:"categoryValueRef,attr"`
+	CategoryValueRefField *QName   `xml:"categoryValueRef,attr,omitempty"`
 	TextPayloadField      *Payload `xml:",chardata"`
 }
 
@@ -6758,7 +6758,7 @@ func (t *ImplicitThrowEvent) FindBy(f ElementPredicate) (result Element, found b
 
 type InclusiveGateway struct {
 	Gateway
-	DefaultField     *IdRef   `xml:"default,attr"`
+	DefaultField     *IdRef   `xml:"default,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -6816,7 +6816,7 @@ func (t *InclusiveGateway) SetDefault(value *IdRef) {
 
 type InputSet struct {
 	BaseElement
-	NameField                    *string  `xml:"name,attr"`
+	NameField                    *string  `xml:"name,attr,omitempty"`
 	DataInputRefsField           []IdRef  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL dataInputRefs"`
 	OptionalInputRefsField       []IdRef  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL optionalInputRefs"`
 	WhileExecutingInputRefsField []IdRef  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL whileExecutingInputRefs"`
@@ -6914,8 +6914,8 @@ func (t *InputSet) SetOutputSetRefses(value []IdRef) {
 
 type Interface struct {
 	RootElement
-	NameField              string      `xml:"name,attr"`
-	ImplementationRefField *QName      `xml:"implementationRef,attr"`
+	NameField              string      `xml:"name,attr,omitempty"`
+	ImplementationRefField *QName      `xml:"implementationRef,attr,omitempty"`
 	OperationField         []Operation `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL operation"`
 	TextPayloadField       *Payload    `xml:",chardata"`
 }
@@ -7088,9 +7088,9 @@ func (t *IntermediateThrowEvent) FindBy(f ElementPredicate) (result Element, fou
 
 type InputOutputBinding struct {
 	BaseElement
-	OperationRefField  QName    `xml:"operationRef,attr"`
-	InputDataRefField  IdRef    `xml:"inputDataRef,attr"`
-	OutputDataRefField IdRef    `xml:"outputDataRef,attr"`
+	OperationRefField  QName    `xml:"operationRef,attr,omitempty"`
+	InputDataRefField  IdRef    `xml:"inputDataRef,attr,omitempty"`
+	OutputDataRefField IdRef    `xml:"outputDataRef,attr,omitempty"`
 	TextPayloadField   *Payload `xml:",chardata"`
 }
 
@@ -7271,7 +7271,7 @@ func (t *InputOutputSpecification) SetOutputSets(value []OutputSet) {
 }
 
 type ItemAware struct {
-	ItemSubjectRefField *QName     `xml:"itemSubjectRef,attr"`
+	ItemSubjectRefField *QName     `xml:"itemSubjectRef,attr,omitempty"`
 	DataStateField      *DataState `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL dataState"`
 }
 
@@ -7365,9 +7365,9 @@ func (t *ItemAwareElement) FindBy(f ElementPredicate) (result Element, found boo
 
 type ItemDefinition struct {
 	RootElement
-	StructureRefField *QName    `xml:"structureRef,attr"`
-	IsCollectionField *bool     `xml:"isCollection,attr"`
-	ItemKindField     *ItemKind `xml:"itemKind,attr"`
+	StructureRefField *QName    `xml:"structureRef,attr,omitempty"`
+	IsCollectionField *bool     `xml:"isCollection,attr,omitempty"`
+	ItemKindField     *ItemKind `xml:"itemKind,attr,omitempty"`
 	TextPayloadField  *Payload  `xml:",chardata"`
 }
 
@@ -7456,8 +7456,8 @@ func (t *ItemDefinition) SetItemKind(value *ItemKind) {
 
 type Lane struct {
 	BaseElement
-	NameField                *string      `xml:"name,attr"`
-	PartitionElementRefField *QName       `xml:"partitionElementRef,attr"`
+	NameField                *string      `xml:"name,attr,omitempty"`
+	PartitionElementRefField *QName       `xml:"partitionElementRef,attr,omitempty"`
 	PartitionElementField    *BaseElement `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL partitionElement"`
 	FlowNodeRefField         []IdRef      `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL flowNodeRef"`
 	ChildLaneSetField        *LaneSet     `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL childLaneSet"`
@@ -7575,7 +7575,7 @@ func (t *Lane) SetChildLaneSet(value *LaneSet) {
 
 type LaneSet struct {
 	BaseElement
-	NameField        *string  `xml:"name,attr"`
+	NameField        *string  `xml:"name,attr,omitempty"`
 	LaneField        []Lane   `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL lane"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
@@ -7649,7 +7649,7 @@ func (t *LaneSet) SetLanes(value []Lane) {
 
 type LinkEventDefinition struct {
 	EventDefinition
-	NameField        string   `xml:"name,attr"`
+	NameField        string   `xml:"name,attr,omitempty"`
 	SourceField      []QName  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL source"`
 	TargetField      *QName   `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL target"`
 	TextPayloadField *Payload `xml:",chardata"`
@@ -7803,8 +7803,8 @@ func (t *ManualTask) FindBy(f ElementPredicate) (result Element, found bool) {
 
 type Message struct {
 	RootElement
-	NameField        *string  `xml:"name,attr"`
-	ItemRefField     *QName   `xml:"itemRef,attr"`
+	NameField        *string  `xml:"name,attr,omitempty"`
+	ItemRefField     *QName   `xml:"itemRef,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -7874,7 +7874,7 @@ func (t *Message) SetItemRef(value *QName) {
 
 type MessageEventDefinition struct {
 	EventDefinition
-	MessageRefField   *QName   `xml:"messageRef,attr"`
+	MessageRefField   *QName   `xml:"messageRef,attr,omitempty"`
 	OperationRefField *QName   `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL operationRef"`
 	TextPayloadField  *Payload `xml:",chardata"`
 }
@@ -7945,10 +7945,10 @@ func (t *MessageEventDefinition) SetOperationRef(value *QName) {
 
 type MessageFlow struct {
 	BaseElement
-	NameField        *string  `xml:"name,attr"`
-	SourceRefField   QName    `xml:"sourceRef,attr"`
-	TargetRefField   QName    `xml:"targetRef,attr"`
-	MessageRefField  *QName   `xml:"messageRef,attr"`
+	NameField        *string  `xml:"name,attr,omitempty"`
+	SourceRefField   QName    `xml:"sourceRef,attr,omitempty"`
+	TargetRefField   QName    `xml:"targetRef,attr,omitempty"`
+	MessageRefField  *QName   `xml:"messageRef,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -8036,8 +8036,8 @@ func (t *MessageFlow) SetMessageRef(value *QName) {
 
 type MessageFlowAssociation struct {
 	BaseElement
-	InnerMessageFlowRefField QName    `xml:"innerMessageFlowRef,attr"`
-	OuterMessageFlowRefField QName    `xml:"outerMessageFlowRef,attr"`
+	InnerMessageFlowRefField QName    `xml:"innerMessageFlowRef,attr,omitempty"`
+	OuterMessageFlowRefField QName    `xml:"outerMessageFlowRef,attr,omitempty"`
 	TextPayloadField         *Payload `xml:",chardata"`
 }
 
@@ -8146,10 +8146,10 @@ func (t *Monitoring) FindBy(f ElementPredicate) (result Element, found bool) {
 
 type MultiInstanceLoopCharacteristics struct {
 	LoopCharacteristics
-	IsSequentialField              *bool                       `xml:"isSequential,attr"`
-	BehaviorField                  *MultiInstanceFlowCondition `xml:"behavior,attr"`
-	OneBehaviorEventRefField       *QName                      `xml:"oneBehaviorEventRef,attr"`
-	NoneBehaviorEventRefField      *QName                      `xml:"noneBehaviorEventRef,attr"`
+	IsSequentialField              *bool                       `xml:"isSequential,attr,omitempty"`
+	BehaviorField                  *MultiInstanceFlowCondition `xml:"behavior,attr,omitempty"`
+	OneBehaviorEventRefField       *QName                      `xml:"oneBehaviorEventRef,attr,omitempty"`
+	NoneBehaviorEventRefField      *QName                      `xml:"noneBehaviorEventRef,attr,omitempty"`
 	LoopCardinalityField           *AnExpression               `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL loopCardinality"`
 	LoopDataInputRefField          *QName                      `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL loopDataInputRef"`
 	LoopDataOutputRefField         *QName                      `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL loopDataOutputRef"`
@@ -8368,8 +8368,8 @@ func (t *MultiInstanceLoopCharacteristics) SetCompletionCondition(value *AnExpre
 
 type Operation struct {
 	BaseElement
-	NameField              string   `xml:"name,attr"`
-	ImplementationRefField *QName   `xml:"implementationRef,attr"`
+	NameField              string   `xml:"name,attr,omitempty"`
+	ImplementationRefField *QName   `xml:"implementationRef,attr,omitempty"`
 	InMessageRefField      QName    `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL inMessageRef"`
 	OutMessageRefField     *QName   `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL outMessageRef"`
 	ErrorRefField          []QName  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL errorRef"`
@@ -8469,7 +8469,7 @@ func (t *Operation) SetErrorRefs(value []QName) {
 
 type OutputSet struct {
 	BaseElement
-	NameField                     *string  `xml:"name,attr"`
+	NameField                     *string  `xml:"name,attr,omitempty"`
 	DataOutputRefsField           []IdRef  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL dataOutputRefs"`
 	OptionalOutputRefsField       []IdRef  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL optionalOutputRefs"`
 	WhileExecutingOutputRefsField []IdRef  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL whileExecutingOutputRefs"`
@@ -8612,8 +8612,8 @@ func (t *ParallelGateway) FindBy(f ElementPredicate) (result Element, found bool
 
 type Participant struct {
 	BaseElement
-	NameField                    *string                  `xml:"name,attr"`
-	ProcessRefField              *QName                   `xml:"processRef,attr"`
+	NameField                    *string                  `xml:"name,attr,omitempty"`
+	ProcessRefField              *QName                   `xml:"processRef,attr,omitempty"`
 	InterfaceRefField            []QName                  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL interfaceRef"`
 	EndPointRefField             []QName                  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL endPointRef"`
 	ParticipantMultiplicityField *ParticipantMultiplicity `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL participantMultiplicity"`
@@ -8787,8 +8787,8 @@ func (t *ParticipantAssociation) SetOuterParticipantRef(value QName) {
 
 type ParticipantMultiplicity struct {
 	BaseElement
-	MinimumField     *int32   `xml:"minimum,attr"`
-	MaximumField     *int32   `xml:"maximum,attr"`
+	MinimumField     *int32   `xml:"minimum,attr,omitempty"`
+	MaximumField     *int32   `xml:"maximum,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -8865,7 +8865,7 @@ func (t *ParticipantMultiplicity) SetMaximum(value *int32) {
 
 type PartnerEntity struct {
 	RootElement
-	NameField           *string  `xml:"name,attr"`
+	NameField           *string  `xml:"name,attr,omitempty"`
 	ParticipantRefField []QName  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL participantRef"`
 	TextPayloadField    *Payload `xml:",chardata"`
 }
@@ -8933,7 +8933,7 @@ func (t *PartnerEntity) SetParticipantRefs(value []QName) {
 
 type PartnerRole struct {
 	RootElement
-	NameField           *string  `xml:"name,attr"`
+	NameField           *string  `xml:"name,attr,omitempty"`
 	ParticipantRefField []QName  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL participantRef"`
 	TextPayloadField    *Payload `xml:",chardata"`
 }
@@ -9091,10 +9091,10 @@ func (t *PotentialOwner) FindBy(f ElementPredicate) (result Element, found bool)
 
 type Process struct {
 	CallableElement
-	ProcessTypeField                  *ProcessType              `xml:"processType,attr"`
-	IsClosedField                     *bool                     `xml:"isClosed,attr"`
-	IsExecutableField                 *bool                     `xml:"isExecutable,attr"`
-	DefinitionalCollaborationRefField *QName                    `xml:"definitionalCollaborationRef,attr"`
+	ProcessTypeField                  *ProcessType              `xml:"processType,attr,omitempty"`
+	IsClosedField                     *bool                     `xml:"isClosed,attr,omitempty"`
+	IsExecutableField                 *bool                     `xml:"isExecutable,attr,omitempty"`
+	DefinitionalCollaborationRefField *QName                    `xml:"definitionalCollaborationRef,attr,omitempty"`
 	AuditingField                     *Auditing                 `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL auditing"`
 	MonitoringField                   *Monitoring               `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL monitoring"`
 	PropertyField                     []Property                `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL property"`
@@ -9999,7 +9999,7 @@ func (t *Process) SetSupportses(value []QName) {
 
 type Property struct {
 	ItemAwareElement
-	NameField        *string  `xml:"name,attr"`
+	NameField        *string  `xml:"name,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -10057,10 +10057,10 @@ func (t *Property) SetName(value *string) {
 
 type ReceiveTask struct {
 	Task
-	ImplementationField *Implementation `xml:"implementation,attr"`
-	InstantiateField    *bool           `xml:"instantiate,attr"`
-	MessageRefField     *QName          `xml:"messageRef,attr"`
-	OperationRefField   *QName          `xml:"operationRef,attr"`
+	ImplementationField *Implementation `xml:"implementation,attr,omitempty"`
+	InstantiateField    *bool           `xml:"instantiate,attr,omitempty"`
+	MessageRefField     *QName          `xml:"messageRef,attr,omitempty"`
+	OperationRefField   *QName          `xml:"operationRef,attr,omitempty"`
 	TextPayloadField    *Payload        `xml:",chardata"`
 }
 
@@ -10160,8 +10160,8 @@ func (t *ReceiveTask) SetOperationRef(value *QName) {
 
 type Relationship struct {
 	BaseElement
-	TypeField        string                 `xml:"type,attr"`
-	DirectionField   *RelationshipDirection `xml:"direction,attr"`
+	TypeField        string                 `xml:"type,attr,omitempty"`
+	DirectionField   *RelationshipDirection `xml:"direction,attr,omitempty"`
 	SourceField      []QName                `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL source"`
 	TargetField      []QName                `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL target"`
 	TextPayloadField *Payload               `xml:",chardata"`
@@ -10293,7 +10293,7 @@ func (t *Rendering) FindBy(f ElementPredicate) (result Element, found bool) {
 
 type Resource struct {
 	RootElement
-	NameField              string              `xml:"name,attr"`
+	NameField              string              `xml:"name,attr,omitempty"`
 	ResourceParameterField []ResourceParameter `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL resourceParameter"`
 	TextPayloadField       *Payload            `xml:",chardata"`
 }
@@ -10423,9 +10423,9 @@ func (t *ResourceAssignmentExpression) SetExpression(value Expression) {
 
 type ResourceParameter struct {
 	BaseElement
-	NameField        *string  `xml:"name,attr"`
-	TypeField        *QName   `xml:"type,attr"`
-	IsRequiredField  *bool    `xml:"isRequired,attr"`
+	NameField        *string  `xml:"name,attr,omitempty"`
+	TypeField        *QName   `xml:"type,attr,omitempty"`
+	IsRequiredField  *bool    `xml:"isRequired,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -10507,7 +10507,7 @@ func (t *ResourceParameter) SetIsRequired(value *bool) {
 
 type ResourceParameterBinding struct {
 	BaseElement
-	ParameterRefField QName      `xml:"parameterRef,attr"`
+	ParameterRefField QName      `xml:"parameterRef,attr,omitempty"`
 	ExpressionField   Expression `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL expression"`
 	TextPayloadField  *Payload   `xml:",chardata"`
 }
@@ -10576,7 +10576,7 @@ func (t *ResourceParameterBinding) SetExpression(value Expression) {
 
 type ResourceRole struct {
 	BaseElement
-	NameField                         *string                       `xml:"name,attr"`
+	NameField                         *string                       `xml:"name,attr,omitempty"`
 	ResourceRefField                  QName                         `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL resourceRef"`
 	ResourceParameterBindingField     []ResourceParameterBinding    `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL resourceParameterBinding"`
 	ResourceAssignmentExpressionField *ResourceAssignmentExpression `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL resourceAssignmentExpression"`
@@ -10710,7 +10710,7 @@ func (t *RootElement) FindBy(f ElementPredicate) (result Element, found bool) {
 
 type ScriptTask struct {
 	Task
-	ScriptFormatField *string  `xml:"scriptFormat,attr"`
+	ScriptFormatField *string  `xml:"scriptFormat,attr,omitempty"`
 	ScriptField       *Script  `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL script"`
 	TextPayloadField  *Payload `xml:",chardata"`
 }
@@ -10825,9 +10825,9 @@ func (t *Script) FindBy(f ElementPredicate) (result Element, found bool) {
 
 type SendTask struct {
 	Task
-	ImplementationField *Implementation `xml:"implementation,attr"`
-	MessageRefField     *QName          `xml:"messageRef,attr"`
-	OperationRefField   *QName          `xml:"operationRef,attr"`
+	ImplementationField *Implementation `xml:"implementation,attr,omitempty"`
+	MessageRefField     *QName          `xml:"messageRef,attr,omitempty"`
+	OperationRefField   *QName          `xml:"operationRef,attr,omitempty"`
 	TextPayloadField    *Payload        `xml:",chardata"`
 }
 
@@ -10912,9 +10912,9 @@ func (t *SendTask) SetOperationRef(value *QName) {
 
 type SequenceFlow struct {
 	FlowElement
-	SourceRefField           IdRef         `xml:"sourceRef,attr"`
-	TargetRefField           IdRef         `xml:"targetRef,attr"`
-	IsImmediateField         *bool         `xml:"isImmediate,attr"`
+	SourceRefField           IdRef         `xml:"sourceRef,attr,omitempty"`
+	TargetRefField           IdRef         `xml:"targetRef,attr,omitempty"`
+	IsImmediateField         *bool         `xml:"isImmediate,attr,omitempty"`
 	ConditionExpressionField *AnExpression `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL conditionExpression"`
 	TextPayloadField         *Payload      `xml:",chardata"`
 }
@@ -11009,8 +11009,8 @@ func (t *SequenceFlow) SetConditionExpression(value *AnExpression) {
 
 type ServiceTask struct {
 	Task
-	ImplementationField *Implementation `xml:"implementation,attr"`
-	OperationRefField   *QName          `xml:"operationRef,attr"`
+	ImplementationField *Implementation `xml:"implementation,attr,omitempty"`
+	OperationRefField   *QName          `xml:"operationRef,attr,omitempty"`
 	TextPayloadField    *Payload        `xml:",chardata"`
 }
 
@@ -11083,8 +11083,8 @@ func (t *ServiceTask) SetOperationRef(value *QName) {
 
 type Signal struct {
 	RootElement
-	NameField         *string  `xml:"name,attr"`
-	StructureRefField *QName   `xml:"structureRef,attr"`
+	NameField         *string  `xml:"name,attr,omitempty"`
+	StructureRefField *QName   `xml:"structureRef,attr,omitempty"`
 	TextPayloadField  *Payload `xml:",chardata"`
 }
 
@@ -11154,7 +11154,7 @@ func (t *Signal) SetStructureRef(value *QName) {
 
 type SignalEventDefinition struct {
 	EventDefinition
-	SignalRefField   *QName   `xml:"signalRef,attr"`
+	SignalRefField   *QName   `xml:"signalRef,attr,omitempty"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
 
@@ -11212,8 +11212,8 @@ func (t *SignalEventDefinition) SetSignalRef(value *QName) {
 
 type StandardLoopCharacteristics struct {
 	LoopCharacteristics
-	TestBeforeField    *bool        `xml:"testBefore,attr"`
-	LoopMaximumField   *big.Int     `xml:"loopMaximum,attr"`
+	TestBeforeField    *bool        `xml:"testBefore,attr,omitempty"`
+	LoopMaximumField   *big.Int     `xml:"loopMaximum,attr,omitempty"`
 	LoopConditionField AnExpression `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL loopCondition"`
 	TextPayloadField   *Payload     `xml:",chardata"`
 }
@@ -11301,7 +11301,7 @@ func (t *StandardLoopCharacteristics) SetLoopCondition(value AnExpression) {
 
 type StartEvent struct {
 	CatchEvent
-	IsInterruptingField *bool    `xml:"isInterrupting,attr"`
+	IsInterruptingField *bool    `xml:"isInterrupting,attr,omitempty"`
 	TextPayloadField    *Payload `xml:",chardata"`
 }
 
@@ -12211,7 +12211,7 @@ func (t *SubConversation) SetSubConversations(value []SubConversation) {
 
 type SubProcess struct {
 	Activity
-	TriggeredByEventField       *bool                    `xml:"triggeredByEvent,attr"`
+	TriggeredByEventField       *bool                    `xml:"triggeredByEvent,attr,omitempty"`
 	LaneSetField                []LaneSet                `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL laneSet"`
 	AdHocSubProcessField        []AdHocSubProcess        `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL adHocSubProcess"`
 	BoundaryEventField          []BoundaryEvent          `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL boundaryEvent"`
@@ -13071,7 +13071,7 @@ func (t *TerminateEventDefinition) FindBy(f ElementPredicate) (result Element, f
 
 type TextAnnotation struct {
 	Artifact
-	TextFormatField  *string  `xml:"textFormat,attr"`
+	TextFormatField  *string  `xml:"textFormat,attr,omitempty"`
 	TextField        *Text    `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL text"`
 	TextPayloadField *Payload `xml:",chardata"`
 }
@@ -13590,7 +13590,7 @@ func (t *TimerEventDefinition) SetTimeCycle(value *AnExpression) {
 
 type Transaction struct {
 	SubProcess
-	MethodField      *TransactionMethod `xml:"method,attr"`
+	MethodField      *TransactionMethod `xml:"method,attr,omitempty"`
 	TextPayloadField *Payload           `xml:",chardata"`
 }
 
@@ -13651,7 +13651,7 @@ func (t *Transaction) SetMethod(value *TransactionMethod) {
 
 type UserTask struct {
 	Task
-	ImplementationField *Implementation `xml:"implementation,attr"`
+	ImplementationField *Implementation `xml:"implementation,attr,omitempty"`
 	RenderingField      []Rendering     `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL rendering"`
 	TextPayloadField    *Payload        `xml:",chardata"`
 }
