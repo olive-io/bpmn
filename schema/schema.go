@@ -59,6 +59,11 @@ func NewBoolP(b bool) *bool {
 	return &b
 }
 
+// NewQName converts string to *QName
+func NewQName(s string) *QName {
+	return (*QName)(&s)
+}
+
 // Base types
 
 // Payload Reference to TextPayload
@@ -437,8 +442,7 @@ func (p *ExtensionDataObjectBody) MarshalXML(e *xml.Encoder, start xml.StartElem
 	return e.EncodeElement(out, start)
 }
 
-type DIExtension struct {
-}
+type DIExtension struct{}
 
 func (t *DIExtension) FindBy(f ElementPredicate) (result Element, found bool) {
 	return
