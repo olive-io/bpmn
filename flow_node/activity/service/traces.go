@@ -35,31 +35,17 @@ func WithProperties(properties map[string]any) DoOption {
 	}
 }
 
-func WithErrSkip(err error) DoOption {
+func WithErrHandle(err error, ch <-chan flow_node.ErrHandler) DoOption {
 	return func(rsp *callResponse) {
 		rsp.err = err
-		rsp.handler = &flow_node.ErrHandler{
-			Model: flow_node.HandleSkip,
-		}
+		rsp.handlerCh = ch
 	}
 }
 
-func WithErrRetry(err error, retries int32) DoOption {
+func WithErr(err error) DoOption {
 	return func(rsp *callResponse) {
 		rsp.err = err
-		rsp.handler = &flow_node.ErrHandler{
-			Model:   flow_node.HandleRetry,
-			Retries: retries,
-		}
-	}
-}
-
-func WithErrExit(err error) DoOption {
-	return func(rsp *callResponse) {
-		rsp.err = err
-		rsp.handler = &flow_node.ErrHandler{
-			Model: flow_node.HandleExit,
-		}
+		rsp.handlerCh = nil
 	}
 }
 
@@ -67,7 +53,7 @@ type callResponse struct {
 	dataObjects map[string]any
 	properties  map[string]any
 	err         error
-	handler     *flow_node.ErrHandler
+	handlerCh   <-chan flow_node.ErrHandler
 }
 
 type ActiveTrace struct {

@@ -311,27 +311,31 @@ func (flow *Flow) Start(ctx context.Context) {
 								return
 							}
 
-							handler := res.Handler
-							switch handler.Model {
-							case flow_node.HandleRetry:
-								if flow.retry == nil {
-									retry := &Retry{}
-									if extension, present := source.ExtensionElements(); present {
-										if taskDefinition := extension.TaskDefinitionField; taskDefinition != nil {
-											retry.Reset(taskDefinition.Retries)
+							select {
+							case handler := <-res.Handler:
+								switch handler.Mode {
+								case flow_node.HandleRetry:
+									if flow.retry == nil {
+										retry := &Retry{}
+										if extension, present := source.ExtensionElements(); present {
+											if taskDefinition := extension.TaskDefinitionField; taskDefinition != nil {
+												retry.Reset(taskDefinition.Retries)
+											}
 										}
+										flow.retry = retry
 									}
-									flow.retry = retry
-								}
 
-								flow.retry.Reset(handler.Retries)
-								if flow.retry.IsContinue() {
-									flow.retry.Step()
-									goto await
+									flow.retry.Reset(handler.Retries)
+									if flow.retry.IsContinue() {
+										flow.retry.Step()
+										goto await
+									}
+									return
+								case flow_node.HandleSkip:
+								case flow_node.HandleExit:
+									return
 								}
-								return
-							case flow_node.HandleSkip:
-							case flow_node.HandleExit:
+							case <-ctx.Done():
 								return
 							}
 						}

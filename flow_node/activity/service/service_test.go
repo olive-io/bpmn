@@ -21,10 +21,12 @@ import (
 	"fmt"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/flow"
+	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/flow_node/activity/service"
 	"github.com/olive-io/bpmn/process"
@@ -133,7 +135,7 @@ func TestServiceTaskWithError(t *testing.T) {
 				case flow.Trace:
 				case activity.ActiveTaskTrace:
 					if st, ok := trace.(*service.ActiveTrace); ok {
-						st.Do(service.WithErrSkip(fmt.Errorf("text error")))
+						st.Do(service.WithErr(fmt.Errorf("text error")))
 					}
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:
@@ -187,8 +189,13 @@ func TestServiceTaskWithRetry(t *testing.T) {
 				case activity.ActiveTaskTrace:
 					runnum += 1
 					if st, ok := trace.(*service.ActiveTrace); ok {
-						retry := int32(1)
-						st.Do(service.WithErrRetry(fmt.Errorf("text error"), retry))
+						handler := make(chan flow_node.ErrHandler, 1)
+						go func() {
+							time.Sleep(time.Second * 1)
+							retry := int32(1)
+							handler <- flow_node.ErrHandler{Mode: flow_node.HandleRetry, Retries: retry}
+						}()
+						st.Do(service.WithErrHandle(fmt.Errorf("text error"), handler))
 					}
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:

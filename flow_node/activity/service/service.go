@@ -113,9 +113,7 @@ func (node *ServiceTask) runner(ctx context.Context) {
 						for key, value := range out.properties {
 							aResponse.Variables[key] = value
 						}
-						if out.handler != nil {
-							aResponse.Handler = out.handler
-						}
+						aResponse.Handler = out.handlerCh
 						m.response <- action
 					}
 

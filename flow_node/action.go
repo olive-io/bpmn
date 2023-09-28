@@ -41,7 +41,7 @@ type FlowActionResponse struct {
 	DataObjects map[string]data.IItem
 	Variables   map[string]data.IItem
 	Err         error
-	Handler     *ErrHandler
+	Handler     <-chan ErrHandler
 }
 
 type ErrHandleMode int
@@ -53,7 +53,7 @@ const (
 )
 
 type ErrHandler struct {
-	Model   ErrHandleMode
+	Mode    ErrHandleMode
 	Retries int32
 }
 
