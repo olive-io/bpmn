@@ -133,7 +133,7 @@ func TestServiceTaskWithError(t *testing.T) {
 				case flow.Trace:
 				case activity.ActiveTaskTrace:
 					if st, ok := trace.(*service.ActiveTrace); ok {
-						st.Do(nil, nil, fmt.Errorf("text error"), nil)
+						st.Do(service.WithErrSkip(fmt.Errorf("text error")))
 					}
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:
@@ -188,7 +188,7 @@ func TestServiceTaskWithRetry(t *testing.T) {
 					runnum += 1
 					if st, ok := trace.(*service.ActiveTrace); ok {
 						retry := int32(1)
-						st.Do(nil, nil, fmt.Errorf("text error"), &retry)
+						st.Do(service.WithErrRetry(fmt.Errorf("text error"), retry))
 					}
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:
@@ -244,7 +244,7 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 				case activity.ActiveTaskTrace:
 					if st, ok := trace.(*service.ActiveTrace); ok {
 						assert.Equal(t, st.DataObjects["in"], map[string]any{"a": "ac"})
-						st.Do(map[string]any{"out": "cc"}, nil, nil, nil)
+						st.Do(service.WithObjects(map[string]any{"out": "cc"}))
 					}
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:

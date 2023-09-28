@@ -307,24 +307,33 @@ func (flow *Flow) Start(ctx context.Context) {
 								Reason: res.Err.Error(),
 							}})
 
-							if flow.retry == nil {
-								retry := &Retry{}
-								if extension, present := source.ExtensionElements(); present {
-									if taskDefinition := extension.TaskDefinitionField; taskDefinition != nil {
-										retry.Reset(taskDefinition.Retries)
-									}
-								}
-								flow.retry = retry
+							if res.Handler == nil {
+								return
 							}
 
-							if res.Retries != nil {
-								flow.retry.Reset(*res.Retries)
+							handler := res.Handler
+							switch handler.Model {
+							case flow_node.HandleRetry:
+								if flow.retry == nil {
+									retry := &Retry{}
+									if extension, present := source.ExtensionElements(); present {
+										if taskDefinition := extension.TaskDefinitionField; taskDefinition != nil {
+											retry.Reset(taskDefinition.Retries)
+										}
+									}
+									flow.retry = retry
+								}
+
+								flow.retry.Reset(handler.Retries)
+								if flow.retry.IsContinue() {
+									flow.retry.Step()
+									goto await
+								}
+								return
+							case flow_node.HandleSkip:
+							case flow_node.HandleExit:
+								return
 							}
-							if flow.retry.IsContinue() {
-								flow.retry.Step()
-								goto await
-							}
-							return
 						}
 
 						if len(res.DataObjects) > 0 {

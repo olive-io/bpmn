@@ -17,14 +17,57 @@ package service
 import (
 	"context"
 
+	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
 )
 
+type DoOption func(*callResponse)
+
+func WithObjects(dataObjects map[string]any) DoOption {
+	return func(rsp *callResponse) {
+		rsp.dataObjects = dataObjects
+	}
+}
+
+func WithProperties(properties map[string]any) DoOption {
+	return func(rsp *callResponse) {
+		rsp.properties = properties
+	}
+}
+
+func WithErrSkip(err error) DoOption {
+	return func(rsp *callResponse) {
+		rsp.err = err
+		rsp.handler = &flow_node.ErrHandler{
+			Model: flow_node.HandleSkip,
+		}
+	}
+}
+
+func WithErrRetry(err error, retries int32) DoOption {
+	return func(rsp *callResponse) {
+		rsp.err = err
+		rsp.handler = &flow_node.ErrHandler{
+			Model:   flow_node.HandleRetry,
+			Retries: retries,
+		}
+	}
+}
+
+func WithErrExit(err error) DoOption {
+	return func(rsp *callResponse) {
+		rsp.err = err
+		rsp.handler = &flow_node.ErrHandler{
+			Model: flow_node.HandleExit,
+		}
+	}
+}
+
 type callResponse struct {
 	dataObjects map[string]any
-	result      map[string]any
+	properties  map[string]any
 	err         error
-	retries     *int32
+	handler     *flow_node.ErrHandler
 }
 
 type ActiveTrace struct {
@@ -40,8 +83,12 @@ type ActiveTrace struct {
 
 func (t *ActiveTrace) TraceInterface() {}
 
-func (t *ActiveTrace) Do(dataObjects, result map[string]any, err error, retries *int32) {
-	t.response <- callResponse{dataObjects: dataObjects, result: result, err: err, retries: retries}
+func (t *ActiveTrace) Do(options ...DoOption) {
+	var response callResponse
+	for _, opt := range options {
+		opt(&response)
+	}
+	t.response <- response
 }
 
 func (t *ActiveTrace) Execute() {

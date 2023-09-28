@@ -40,8 +40,21 @@ type Terminate func(sequenceFlowId *schema.IdRef) chan bool
 type FlowActionResponse struct {
 	DataObjects map[string]data.IItem
 	Variables   map[string]data.IItem
-	Retries     *int32
 	Err         error
+	Handler     *ErrHandler
+}
+
+type ErrHandleMode int
+
+const (
+	HandleRetry ErrHandleMode = iota + 1
+	HandleSkip
+	HandleExit
+)
+
+type ErrHandler struct {
+	Model   ErrHandleMode
+	Retries int32
 }
 
 type FlowAction struct {

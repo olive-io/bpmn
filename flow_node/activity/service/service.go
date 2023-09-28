@@ -110,11 +110,11 @@ func (node *ServiceTask) runner(ctx context.Context) {
 							aResponse.Err = out.err
 						}
 						aResponse.DataObjects = activity.ApplyTaskDataOutput(node.element, out.dataObjects)
-						for key, value := range out.result {
+						for key, value := range out.properties {
 							aResponse.Variables[key] = value
 						}
-						if out.retries != nil {
-							aResponse.Retries = out.retries
+						if out.handler != nil {
+							aResponse.Handler = out.handler
 						}
 						m.response <- action
 					}
