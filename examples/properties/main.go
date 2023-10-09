@@ -8,6 +8,7 @@ import (
 
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/activity"
+	"github.com/olive-io/bpmn/flow_node/activity/service"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
@@ -58,6 +59,13 @@ func main() {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case flow.Trace:
+				case *service.ActiveTrace:
+					trace.Do(service.WithProperties(
+						map[string]any{
+							"c": map[string]string{"name": "cc1"},
+							"a": 1,
+						}),
+					)
 				case activity.ActiveTaskTrace:
 					trace.Execute()
 					log.Printf("%#v", trace)
@@ -76,6 +84,8 @@ func main() {
 		case <-done:
 		}
 
+		pros := ins.Locator.CloneVariables()
+		log.Printf("%#v", pros)
 		ins.Tracer.Unsubscribe(traces)
 	} else {
 		log.Fatalf("failed to instantiate the process: %s", err)
