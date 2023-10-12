@@ -60,3 +60,9 @@ type VisitTrace struct {
 }
 
 func (t VisitTrace) TraceInterface() {}
+
+type LeaveTrace struct {
+	Node schema.FlowNodeInterface
+}
+
+func (t LeaveTrace) TraceInterface() {}

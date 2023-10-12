@@ -59,7 +59,7 @@ func TestScriptTask(t *testing.T) {
 	})
 	if instance, err := proc.Instantiate(option); err == nil {
 		traces := instance.Tracer.Subscribe()
-		err := instance.StartAll(context.Background())
+		err = instance.StartAll(context.Background())
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

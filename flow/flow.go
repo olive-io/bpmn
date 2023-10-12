@@ -166,6 +166,7 @@ func (flow *Flow) handleSequenceFlow(ctx context.Context, sequenceFlow *sequence
 		return
 	}
 
+	flow.tracer.Trace(LeaveTrace{Node: flow.current.Element()})
 	target, err := sequenceFlow.Target()
 	if err != nil {
 		flow.tracer.Trace(tracing.ErrorTrace{Error: err})
@@ -298,6 +299,7 @@ func (flow *Flow) Start(ctx context.Context) {
 					}
 					a.ProbeReport(results)
 				case flow_node.FlowAction:
+
 					if res := a.Response; res != nil {
 						if res.Err != nil {
 							source := flow.current.Element()
