@@ -16,9 +16,13 @@ package script
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync/atomic"
 
 	"github.com/olive-io/bpmn/data"
+	"github.com/olive-io/bpmn/errors"
+	"github.com/olive-io/bpmn/expression"
 	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
@@ -90,29 +94,115 @@ func (node *ScriptTask) runner(ctx context.Context) {
 					}
 
 					response := make(chan submitResponse, 1)
-					at := &ActiveTrace{
-						Context:     node.ctx,
-						Activity:    node,
-						DataObjects: m.DataObjects,
-						Headers:     m.Headers,
-						Properties:  m.Properties,
-						response:    response,
+
+					extension := node.element.ExtensionElementsField
+					taskDef := extension.TaskDefinitionField
+					if taskDef == nil {
+						taskDef = &schema.TaskDefinition{Type: "expression"}
 					}
 
-					node.Tracer.Trace(at)
-					select {
-					case <-ctx.Done():
-						node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
-						return
-					case out := <-response:
-						if out.err != nil {
-							aResponse.Err = out.err
+					switch taskDef.Type {
+					case "expression":
+						lang := *node.Definitions.ExpressionLanguage()
+						engine := expression.GetEngine(ctx, lang)
+
+						dataSets := make(map[string]any)
+						for key, value := range m.Properties {
+							dataSets[key] = value
 						}
-						for key, value := range out.result {
-							aResponse.Variables[key] = value
+						for key, value := range m.DataObjects {
+							dataSets[key] = value
 						}
+
+						if extension.ScriptField != nil {
+							if !strings.HasPrefix(extension.ScriptField.Expression, "=") {
+								aResponse.Err = errors.InvalidArgumentError{
+									Expected: "script expression must start with '=', (like '=a+b')",
+									Actual:   "(" + extension.ScriptField.Expression + ")",
+								}
+								m.response <- action
+								return
+							}
+							expr := strings.TrimPrefix(extension.ScriptField.Expression, "=")
+							compiled, err := engine.CompileExpression(expr)
+							if err != nil {
+								aResponse.Err = errors.InvalidArgumentError{
+									Expected: "must be a legal expression",
+									Actual:   err.Error(),
+								}
+								m.response <- action
+								return
+							}
+
+							result, err := engine.EvaluateExpression(compiled, dataSets)
+							if err != nil {
+								aResponse.Err = errors.TaskExecError{Id: node.FlowNodeId, Reason: err.Error()}
+								m.response <- action
+								return
+							}
+
+							key := extension.ScriptField.Result
+							noMatchedErr := errors.InvalidArgumentError{
+								Expected: fmt.Sprintf("boolean result in conditionExpression (%s)", expr),
+								Actual:   result,
+							}
+
+							switch extension.ScriptField.ResultType {
+							case schema.ItemTypeBoolean:
+								if v, ok := result.(bool); !ok {
+									aResponse.Err = noMatchedErr
+								} else {
+									aResponse.Variables[key] = v
+								}
+							case schema.ItemTypeString:
+								if v, ok := result.(string); !ok {
+									aResponse.Err = noMatchedErr
+								} else {
+									aResponse.Variables[key] = v
+								}
+							case schema.ItemTypeInteger:
+								if v, ok := result.(int); !ok {
+									aResponse.Err = noMatchedErr
+								} else {
+									aResponse.Variables[key] = v
+								}
+							case schema.ItemTypeFloat:
+								if v, ok := result.(float64); !ok {
+									aResponse.Err = noMatchedErr
+								} else {
+									aResponse.Variables[key] = v
+								}
+							}
+						}
+
 						m.response <- action
+
+					default:
+						at := &ActiveTrace{
+							Context:     node.ctx,
+							Activity:    node,
+							DataObjects: m.DataObjects,
+							Headers:     m.Headers,
+							Properties:  m.Properties,
+							response:    response,
+						}
+
+						node.Tracer.Trace(at)
+						select {
+						case <-ctx.Done():
+							node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
+							return
+						case out := <-response:
+							if out.err != nil {
+								aResponse.Err = out.err
+							}
+							for key, value := range out.result {
+								aResponse.Variables[key] = value
+							}
+							m.response <- action
+						}
 					}
+
 				}()
 			default:
 			}

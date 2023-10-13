@@ -27,6 +27,9 @@ import (
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
+	"github.com/stretchr/testify/assert"
+
+	_ "github.com/olive-io/bpmn/expression/expr"
 	_ "github.com/stretchr/testify/assert"
 )
 
@@ -86,6 +89,8 @@ func TestScriptTask(t *testing.T) {
 			}
 		}
 		instance.Tracer.Unsubscribe(traces)
+		vv, _ := instance.Locator.GetVariable("sum")
+		assert.Equal(t, vv, 4)
 	} else {
 		t.Fatalf("failed to instantiate the process: %s", err)
 	}

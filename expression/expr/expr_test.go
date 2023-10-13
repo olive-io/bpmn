@@ -35,6 +35,19 @@ func TestExpr(t *testing.T) {
 	assert.True(t, result.(bool))
 }
 
+func TestExprSum(t *testing.T) {
+	var engine expression.IEngine = New(context.Background())
+	compiled, err := engine.CompileExpression("a + b")
+	assert.Nil(t, err)
+	result, err := engine.EvaluateExpression(compiled, map[string]interface{}{
+		"a": 1,
+		"b": 2,
+	})
+	assert.Nil(t, err)
+	_, ok := result.(int)
+	assert.True(t, ok)
+}
+
 type dataObjects map[string]data.IItemAware
 
 func (d dataObjects) PutItemAwareById(id schema.IdRef, itemAware data.IItemAware) {

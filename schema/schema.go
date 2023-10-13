@@ -402,8 +402,9 @@ func (p *Properties) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 }
 
 type ExtensionScript struct {
-	Expression string `xml:"expression,attr"`
-	Result     string `xml:"result,attr"`
+	Expression string   `xml:"expression,attr"`
+	Result     string   `xml:"result,attr"`
+	ResultType ItemType `xml:"resultType,attr"`
 }
 
 func (p *ExtensionScript) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
