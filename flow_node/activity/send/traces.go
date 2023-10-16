@@ -12,50 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package script
+package send
 
 import (
 	"context"
 
-	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
 )
 
 type DoOption func(*doResponse)
 
-func WithProperties(properties map[string]any) DoOption {
-	return func(rsp *doResponse) {
-		rsp.properties = properties
-	}
-}
-
-func WithErrHandle(err error, ch <-chan flow_node.ErrHandler) DoOption {
-	return func(rsp *doResponse) {
-		rsp.err = err
-		rsp.handlerCh = ch
-	}
-}
-
 func WithErr(err error) DoOption {
 	return func(rsp *doResponse) {
 		rsp.err = err
-		rsp.handlerCh = nil
 	}
 }
 
 type doResponse struct {
-	properties map[string]any
-	err        error
-	handlerCh  <-chan flow_node.ErrHandler
+	err error
 }
 
 type ActiveTrace struct {
-	Context     context.Context
-	Activity    activity.Activity
-	DataObjects map[string]any
-	Headers     map[string]any
-	Properties  map[string]any
-	response    chan doResponse
+	context.Context
+	Activity activity.Activity
+	Type     string
+	Headers  map[string]any
+	response chan doResponse
 }
 
 func (t *ActiveTrace) TraceInterface() {}

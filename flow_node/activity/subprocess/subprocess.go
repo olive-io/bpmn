@@ -27,6 +27,7 @@ import (
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/flow_node/activity/script"
+	"github.com/olive-io/bpmn/flow_node/activity/send"
 	"github.com/olive-io/bpmn/flow_node/activity/service"
 	"github.com/olive-io/bpmn/flow_node/activity/task"
 	"github.com/olive-io/bpmn/flow_node/activity/user"
@@ -233,6 +234,24 @@ func New(ctx context.Context,
 			}
 			var harness *activity.Harness
 			scriptTask := script.NewScriptTask(ctx, element)
+			harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, scriptTask)
+			if err != nil {
+				return
+			}
+			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
+			if err != nil {
+				return
+			}
+		}
+
+		for i := range *subProcess.SendTasks() {
+			element := &(*subProcess.SendTasks())[i]
+			wiring, err = wiringMaker(&element.FlowNode)
+			if err != nil {
+				return
+			}
+			var harness *activity.Harness
+			scriptTask := send.NewSendTask(ctx, element)
 			harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, scriptTask)
 			if err != nil {
 				return

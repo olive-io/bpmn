@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package user
+package send
 
 import (
 	"context"
@@ -43,21 +43,21 @@ type cancelMessage struct {
 
 func (m cancelMessage) message() {}
 
-type UserTask struct {
+type SendTask struct {
 	*flow_node.Wiring
 	ctx           context.Context
 	cancel        context.CancelFunc
-	element       *schema.UserTask
+	element       *schema.SendTask
 	runnerChannel chan imessage
 }
 
-func NewUserTask(ctx context.Context, task *schema.UserTask) activity.Constructor {
+func NewSendTask(ctx context.Context, task *schema.SendTask) activity.Constructor {
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
 		done := &atomic.Bool{}
 		done.Store(false)
-		taskNode := &UserTask{
+		taskNode := &SendTask{
 			Wiring:        wiring,
 			ctx:           ctx,
 			cancel:        cancel,
@@ -70,7 +70,7 @@ func NewUserTask(ctx context.Context, task *schema.UserTask) activity.Constructo
 	}
 }
 
-func (node *UserTask) runner(ctx context.Context) {
+func (node *SendTask) runner(ctx context.Context) {
 	for {
 		select {
 		case msg := <-node.runnerChannel:
@@ -90,11 +90,15 @@ func (node *UserTask) runner(ctx context.Context) {
 
 					response := make(chan doResponse, 1)
 					at := &ActiveTrace{
-						Context:    node.ctx,
-						Activity:   node,
-						Headers:    m.Headers,
-						Properties: m.Properties,
-						response:   response,
+						Context:  node.ctx,
+						Activity: node,
+						Headers:  m.Headers,
+						response: response,
+					}
+
+					if node.element.ExtensionElementsField != nil &&
+						node.element.ExtensionElementsField.TaskDefinitionField != nil {
+						at.Type = node.element.ExtensionElementsField.TaskDefinitionField.Type
 					}
 
 					node.Tracer.Trace(at)
@@ -105,9 +109,6 @@ func (node *UserTask) runner(ctx context.Context) {
 					case out := <-response:
 						if out.err != nil {
 							aResponse.Err = out.err
-						}
-						for key, value := range out.properties {
-							aResponse.Variables[key] = value
 						}
 					}
 
@@ -122,26 +123,25 @@ func (node *UserTask) runner(ctx context.Context) {
 	}
 }
 
-func (node *UserTask) NextAction(t flow_interface.T) chan flow_node.IAction {
+func (node *SendTask) NextAction(t flow_interface.T) chan flow_node.IAction {
 	response := make(chan flow_node.IAction, 1)
 
 	msg := nextActionMessage{
 		response: response,
 	}
 
-	headers, dataSets, _ := activity.FetchTaskDataInput(node.Locator, node.element)
+	headers, _, _ := activity.FetchTaskDataInput(node.Locator, node.element)
 	msg.Headers = headers
-	msg.Properties = dataSets
 
 	node.runnerChannel <- msg
 	return response
 }
 
-func (node *UserTask) Element() schema.FlowNodeInterface {
+func (node *SendTask) Element() schema.FlowNodeInterface {
 	return node.element
 }
 
-func (node *UserTask) Cancel() <-chan bool {
+func (node *SendTask) Cancel() <-chan bool {
 	response := make(chan bool)
 	node.runnerChannel <- cancelMessage{response: response}
 	return response

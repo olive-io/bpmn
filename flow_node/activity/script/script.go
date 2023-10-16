@@ -93,7 +93,7 @@ func (node *ScriptTask) runner(ctx context.Context) {
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
-					response := make(chan submitResponse, 1)
+					response := make(chan doResponse, 1)
 
 					extension := node.element.ExtensionElementsField
 					taskDef := extension.TaskDefinitionField
@@ -196,9 +196,10 @@ func (node *ScriptTask) runner(ctx context.Context) {
 							if out.err != nil {
 								aResponse.Err = out.err
 							}
-							for key, value := range out.result {
+							for key, value := range out.properties {
 								aResponse.Variables[key] = value
 							}
+							aResponse.Handler = out.handlerCh
 							m.response <- action
 						}
 					}

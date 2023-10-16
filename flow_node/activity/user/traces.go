@@ -20,9 +20,23 @@ import (
 	"github.com/olive-io/bpmn/flow_node/activity"
 )
 
-type submitResponse struct {
-	result map[string]any
-	err    error
+type DoOption func(*doResponse)
+
+func WithProperties(properties map[string]any) DoOption {
+	return func(rsp *doResponse) {
+		rsp.properties = properties
+	}
+}
+
+func WithErr(err error) DoOption {
+	return func(rsp *doResponse) {
+		rsp.err = err
+	}
+}
+
+type doResponse struct {
+	properties map[string]any
+	err        error
 }
 
 type ActiveTrace struct {
@@ -30,15 +44,19 @@ type ActiveTrace struct {
 	Activity   activity.Activity
 	Headers    map[string]any
 	Properties map[string]any
-	response   chan submitResponse
+	response   chan doResponse
 }
 
 func (t *ActiveTrace) TraceInterface() {}
 
-func (t *ActiveTrace) Submit(result map[string]any, err error) {
-	t.response <- submitResponse{result: result, err: err}
+func (t *ActiveTrace) Do(options ...DoOption) {
+	var response doResponse
+	for _, opt := range options {
+		opt(&response)
+	}
+	t.response <- response
 }
 
 func (t *ActiveTrace) Execute() {
-	t.response <- submitResponse{}
+	t.response <- doResponse{}
 }
