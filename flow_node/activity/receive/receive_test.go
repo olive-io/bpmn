@@ -75,7 +75,7 @@ func TestReceiveTask(t *testing.T) {
 					}
 				}
 			case *receive.ActiveTrace:
-				trace.Execute()
+				trace.Do(receive.WithProperties(map[string]any{"a": "b"}))
 				t.Logf("%#v", trace)
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)

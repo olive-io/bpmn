@@ -14,7 +14,7 @@
             <bpmn:extensionElements>
                 <olive:taskDefinition type="kafka"/>
                 <olive:taskHeaders>
-                    <olive:header name="kafka-topic" value="payment" type="string"/>
+                    <olive:header name="topic" value="payment" type="string"/>
                 </olive:taskHeaders>
             </bpmn:extensionElements>
         </bpmn:receiveTask>
