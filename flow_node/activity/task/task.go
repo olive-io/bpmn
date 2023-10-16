@@ -17,6 +17,7 @@ package task
 import (
 	"context"
 
+	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
@@ -74,9 +75,15 @@ func (node *Task) runner(ctx context.Context) {
 				m.response <- true
 			case nextActionMessage:
 				go func() {
-					var action flow_node.IAction
+					aResponse := &flow_node.FlowActionResponse{
+						Variables: map[string]data.IItem{},
+					}
+					action := flow_node.FlowAction{
+						Response:      aResponse,
+						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
+					}
 
-					response := make(chan flow_node.IAction, 1)
+					response := make(chan doResponse, 1)
 					at := &ActiveTrace{
 						Context:  node.ctx,
 						Activity: node,
@@ -88,9 +95,11 @@ func (node *Task) runner(ctx context.Context) {
 					case <-ctx.Done():
 						node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 						return
-					case action = <-response:
-						m.response <- action
+					case <-response:
+
 					}
+
+					m.response <- action
 				}()
 			default:
 			}

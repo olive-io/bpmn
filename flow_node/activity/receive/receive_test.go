@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package send_test
+package receive_test
 
 import (
 	"context"
@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/flow_node/activity/send"
+	"github.com/olive-io/bpmn/flow_node/activity/receive"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
@@ -48,10 +48,10 @@ func LoadTestFile(filename string, definitions any) {
 var testTask schema.Definitions
 
 func init() {
-	LoadTestFile("testdata/send_task.bpmn", &testTask)
+	LoadTestFile("testdata/receive_task.bpmn", &testTask)
 }
 
-func TestSendTask(t *testing.T) {
+func TestReceiveTask(t *testing.T) {
 	processElement := (*testTask.Processes())[0]
 	proc := process.New(&processElement, &testTask)
 	option := instance.WithVariables(map[string]any{
@@ -74,7 +74,7 @@ func TestSendTask(t *testing.T) {
 						//break loop
 					}
 				}
-			case *send.ActiveTrace:
+			case *receive.ActiveTrace:
 				trace.Execute()
 				t.Logf("%#v", trace)
 			case tracing.ErrorTrace:

@@ -12,28 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package task
-
-import (
-	"context"
-
-	"github.com/olive-io/bpmn/flow_node/activity"
-)
-
-type doResponse struct{}
-
-type ActiveTrace struct {
-	Context  context.Context
-	Activity activity.Activity
-	response chan doResponse
-}
-
-func (t *ActiveTrace) TraceInterface() {}
-
-func (t *ActiveTrace) Do() {
-	t.response <- doResponse{}
-}
-
-func (t *ActiveTrace) Execute() {
-	t.response <- doResponse{}
-}
+package receive

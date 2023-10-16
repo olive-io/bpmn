@@ -8,21 +8,21 @@
         <bpmn:startEvent id="start">
             <bpmn:outgoing>Flow_1hox6h5</bpmn:outgoing>
         </bpmn:startEvent>
-        <bpmn:sendTask id="publish-message" name="publish message">
+        <bpmn:receiveTask id="receive-message" name="receive message">
             <bpmn:incoming>Flow_1hox6h5</bpmn:incoming>
             <bpmn:outgoing>Flow_0rnfgnz</bpmn:outgoing>
             <bpmn:extensionElements>
                 <olive:taskDefinition type="kafka"/>
                 <olive:taskHeaders>
-                    <olive:header name="topic" value="payment" type="string"/>
+                    <olive:header name="kafka-topic" value="payment" type="string"/>
                 </olive:taskHeaders>
             </bpmn:extensionElements>
-        </bpmn:sendTask>
-        <bpmn:sequenceFlow id="Flow_1hox6h5" sourceRef="start" targetRef="publish-message"/>
+        </bpmn:receiveTask>
+        <bpmn:sequenceFlow id="Flow_1hox6h5" sourceRef="start" targetRef="receive-message"/>
         <bpmn:endEvent id="end">
             <bpmn:incoming>Flow_0rnfgnz</bpmn:incoming>
         </bpmn:endEvent>
-        <bpmn:sequenceFlow id="Flow_0rnfgnz" sourceRef="publish-message" targetRef="end"/>
+        <bpmn:sequenceFlow id="Flow_0rnfgnz" sourceRef="receive-message" targetRef="end"/>
     </bpmn:process>
     <bpmndi:BPMNDiagram id="BPMNDiagram_1">
         <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_148nk6n">

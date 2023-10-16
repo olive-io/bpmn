@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package send
+package receive
 
 import (
 	"context"
@@ -22,6 +22,12 @@ import (
 
 type DoOption func(*doResponse)
 
+func WithProperties(properties map[string]any) DoOption {
+	return func(rsp *doResponse) {
+		rsp.properties = properties
+	}
+}
+
 func WithErr(err error) DoOption {
 	return func(rsp *doResponse) {
 		rsp.err = err
@@ -29,16 +35,16 @@ func WithErr(err error) DoOption {
 }
 
 type doResponse struct {
-	err error
+	properties map[string]any
+	err        error
 }
 
 type ActiveTrace struct {
 	context.Context
-	Activity   activity.Activity
-	Type       string
-	Headers    map[string]any
-	Properties map[string]any
-	response   chan doResponse
+	Activity activity.Activity
+	Type     string
+	Headers  map[string]any
+	response chan doResponse
 }
 
 func (t *ActiveTrace) TraceInterface() {}
