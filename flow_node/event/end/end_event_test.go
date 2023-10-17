@@ -25,7 +25,6 @@ import (
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
-	_ "github.com/stretchr/testify/assert"
 )
 
 //go:embed testdata

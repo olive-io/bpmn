@@ -30,7 +30,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	_ "github.com/olive-io/bpmn/expression/expr"
-	_ "github.com/stretchr/testify/assert"
 )
 
 //go:embed testdata
