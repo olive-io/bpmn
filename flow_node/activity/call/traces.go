@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package service
+package call
 
 import (
 	"context"
 
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
+	"github.com/olive-io/bpmn/schema"
 )
 
 type DoOption func(*doResponse)
@@ -57,15 +58,11 @@ type doResponse struct {
 }
 
 type ActiveTrace struct {
-	context.Context
-	Activity    activity.Activity
-	Headers     map[string]any
-	Properties  map[string]any
-	DataObjects map[string]any
-	response    chan doResponse
+	Context       context.Context
+	Activity      activity.Activity
+	CalledElement *schema.ExtensionCalledElement
+	response      chan doResponse
 }
-
-//func (t *ActiveTrace) TraceInterface() {}
 
 func (t *ActiveTrace) TraceInterface() {}
 

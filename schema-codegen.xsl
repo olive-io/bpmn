@@ -153,6 +153,9 @@
             <xsl:text>ScriptField *ExtensionScript `xml:"http://olive.io/spec/BPMN/MODEL script"`</xsl:text>
             <xsl:text xml:space="preserve">
             </xsl:text>
+            <xsl:text>CalledElement *ExtensionCalledElement `xml:"http://olive.io/spec/BPMN/MODEL calledElement"`</xsl:text>
+            <xsl:text xml:space="preserve">
+            </xsl:text>
             <xsl:text>DataInput []ExtensionAssociation `xml:"http://olive.io/spec/BPMN/MODEL dataInput"`</xsl:text>
             <xsl:text xml:space="preserve">
             </xsl:text>

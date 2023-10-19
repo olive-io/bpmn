@@ -26,6 +26,7 @@ import (
 	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
+	"github.com/olive-io/bpmn/flow_node/activity/call"
 	"github.com/olive-io/bpmn/flow_node/activity/receive"
 	"github.com/olive-io/bpmn/flow_node/activity/script"
 	"github.com/olive-io/bpmn/flow_node/activity/send"
@@ -169,6 +170,23 @@ func New(ctx context.Context,
 				return
 			}
 			err = flowNodeMapping.RegisterElementToFlowNode(element, intermediateCatchEvent)
+			if err != nil {
+				return
+			}
+		}
+
+		for i := range *subProcess.CallActivities() {
+			element := &(*subProcess.CallActivities())[i]
+			wiring, err = wiringMaker(&element.FlowNode)
+			if err != nil {
+				return
+			}
+			var harness *activity.Harness
+			harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, call.NewCallActivity(ctx, element))
+			if err != nil {
+				return
+			}
+			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
 			if err != nil {
 				return
 			}

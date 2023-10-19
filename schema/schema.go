@@ -443,6 +443,25 @@ func (p *ExtensionDataObjectBody) MarshalXML(e *xml.Encoder, start xml.StartElem
 	return e.EncodeElement(out, start)
 }
 
+type ExtensionCalledElement struct {
+	DefinitionId string `xml:"definitionId,attr"`
+	ProcessId    string `xml:"processId,attr"`
+	// propagateAllChildVariables If this attribute is set (default: true), all variables of the
+	// created process instance are propagated to the call activity. This behavior can be customized
+	// by defining output mappings at the call activity. The output mappings are applied on completing
+	// the call activity and only those variables that are defined in the output mappings are propagated.
+	PropagateAllChildVariables bool `xml:"propagateAllChildVariables,attr"`
+}
+
+func (p *ExtensionCalledElement) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	out := ExtensionCalledElement(*p)
+	start.Name = xml.Name{
+		Local: OliveNS + start.Name.Local,
+	}
+
+	return e.EncodeElement(out, start)
+}
+
 type DIExtension struct{}
 
 func (t *DIExtension) FindBy(f ElementPredicate) (result Element, found bool) {

@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package service
+package call
 
 import (
 	"context"
-	"sync/atomic"
 
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/flow/flow_interface"
@@ -30,10 +29,7 @@ type imessage interface {
 }
 
 type nextActionMessage struct {
-	Headers     map[string]any
-	Properties  map[string]any
-	DataObjects map[string]any
-	response    chan flow_node.IAction
+	response chan flow_node.IAction
 }
 
 func (m nextActionMessage) message() {}
@@ -44,21 +40,19 @@ type cancelMessage struct {
 
 func (m cancelMessage) message() {}
 
-type ServiceTask struct {
+type CallActivity struct {
 	*flow_node.Wiring
 	ctx           context.Context
 	cancel        context.CancelFunc
-	element       *schema.ServiceTask
+	element       *schema.CallActivity
 	runnerChannel chan imessage
 }
 
-func NewServiceTask(ctx context.Context, task *schema.ServiceTask) activity.Constructor {
+func NewCallActivity(ctx context.Context, task *schema.CallActivity) activity.Constructor {
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
-		done := &atomic.Bool{}
-		done.Store(false)
-		taskNode := &ServiceTask{
+		taskNode := &CallActivity{
 			Wiring:        wiring,
 			ctx:           ctx,
 			cancel:        cancel,
@@ -71,7 +65,7 @@ func NewServiceTask(ctx context.Context, task *schema.ServiceTask) activity.Cons
 	}
 }
 
-func (node *ServiceTask) runner(ctx context.Context) {
+func (node *CallActivity) runner(ctx context.Context) {
 	for {
 		select {
 		case msg := <-node.runnerChannel:
@@ -82,8 +76,7 @@ func (node *ServiceTask) runner(ctx context.Context) {
 			case nextActionMessage:
 				go func() {
 					aResponse := &flow_node.FlowActionResponse{
-						DataObjects: map[string]data.IItem{},
-						Variables:   map[string]data.IItem{},
+						Variables: map[string]data.IItem{},
 					}
 					action := flow_node.FlowAction{
 						Response:      aResponse,
@@ -92,13 +85,17 @@ func (node *ServiceTask) runner(ctx context.Context) {
 
 					response := make(chan doResponse, 1)
 					at := &ActiveTrace{
-						Context:     node.ctx,
-						Activity:    node,
-						Headers:     m.Headers,
-						Properties:  m.Properties,
-						DataObjects: m.DataObjects,
-						response:    response,
+						Context:  node.ctx,
+						Activity: node,
+						response: response,
 					}
+
+					extensionElement := node.element.ExtensionElementsField
+					if extensionElement == nil || extensionElement.CalledElement == nil {
+						m.response <- action
+						return
+					}
+					at.CalledElement = extensionElement.CalledElement
 
 					node.Tracer.Trace(at)
 					select {
@@ -116,7 +113,6 @@ func (node *ServiceTask) runner(ctx context.Context) {
 						aResponse.Handler = out.handlerCh
 						m.response <- action
 					}
-
 				}()
 			default:
 			}
@@ -127,27 +123,17 @@ func (node *ServiceTask) runner(ctx context.Context) {
 	}
 }
 
-func (node *ServiceTask) NextAction(flow_interface.T) chan flow_node.IAction {
+func (node *CallActivity) NextAction(flow_interface.T) chan flow_node.IAction {
 	response := make(chan flow_node.IAction, 1)
-
-	msg := nextActionMessage{
-		response: response,
-	}
-
-	headers, dataSets, dataObjects := activity.FetchTaskDataInput(node.Locator, node.element)
-	msg.Headers = headers
-	msg.Properties = dataSets
-	msg.DataObjects = dataObjects
-
-	node.runnerChannel <- msg
+	node.runnerChannel <- nextActionMessage{response: response}
 	return response
 }
 
-func (node *ServiceTask) Element() schema.FlowNodeInterface {
+func (node *CallActivity) Element() schema.FlowNodeInterface {
 	return node.element
 }
 
-func (node *ServiceTask) Cancel() <-chan bool {
+func (node *CallActivity) Cancel() <-chan bool {
 	response := make(chan bool)
 	node.runnerChannel <- cancelMessage{response: response}
 	return response
