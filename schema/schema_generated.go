@@ -5870,6 +5870,7 @@ type ExtensionElements struct {
 	PropertiesField     *Properties              `xml:"http://olive.io/spec/BPMN/MODEL properties"`
 	ScriptField         *ExtensionScript         `xml:"http://olive.io/spec/BPMN/MODEL script"`
 	CalledElement       *ExtensionCalledElement  `xml:"http://olive.io/spec/BPMN/MODEL calledElement"`
+	CalledDecision      *ExtensionCalledDecision `xml:"http://olive.io/spec/BPMN/MODEL calledDecision"`
 	DataInput           []ExtensionAssociation   `xml:"http://olive.io/spec/BPMN/MODEL dataInput"`
 	DataOutput          []ExtensionAssociation   `xml:"http://olive.io/spec/BPMN/MODEL dataOutput"`
 	TextPayloadField    *Payload                 `xml:",chardata"`

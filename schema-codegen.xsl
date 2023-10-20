@@ -156,6 +156,9 @@
             <xsl:text>CalledElement *ExtensionCalledElement `xml:"http://olive.io/spec/BPMN/MODEL calledElement"`</xsl:text>
             <xsl:text xml:space="preserve">
             </xsl:text>
+            <xsl:text>CalledDecision *ExtensionCalledDecision `xml:"http://olive.io/spec/BPMN/MODEL calledDecision"`</xsl:text>
+            <xsl:text xml:space="preserve">
+            </xsl:text>
             <xsl:text>DataInput []ExtensionAssociation `xml:"http://olive.io/spec/BPMN/MODEL dataInput"`</xsl:text>
             <xsl:text xml:space="preserve">
             </xsl:text>

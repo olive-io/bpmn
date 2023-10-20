@@ -25,6 +25,7 @@ import (
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
+	"github.com/olive-io/bpmn/flow_node/activity/business_rule"
 	"github.com/olive-io/bpmn/flow_node/activity/call"
 	"github.com/olive-io/bpmn/flow_node/activity/receive"
 	"github.com/olive-io/bpmn/flow_node/activity/script"
@@ -300,6 +301,23 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, intermediateCatchEvent)
+		if err != nil {
+			return
+		}
+	}
+
+	for i := range *instance.process.BusinessRuleTasks() {
+		element := &(*instance.process.BusinessRuleTasks())[i]
+		wiring, err = wiringMaker(&element.FlowNode)
+		if err != nil {
+			return
+		}
+		var harness *activity.Harness
+		harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, business_rule.NewBusinessRuleTask(ctx, element))
+		if err != nil {
+			return
+		}
+		err = instance.flowNodeMapping.RegisterElementToFlowNode(element, harness)
 		if err != nil {
 			return
 		}

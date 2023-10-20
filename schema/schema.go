@@ -462,6 +462,20 @@ func (p *ExtensionCalledElement) MarshalXML(e *xml.Encoder, start xml.StartEleme
 	return e.EncodeElement(out, start)
 }
 
+type ExtensionCalledDecision struct {
+	DecisionId string `xml:"decisionId,attr"`
+	Result     string `xml:"result,attr"`
+}
+
+func (p *ExtensionCalledDecision) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	out := ExtensionCalledDecision(*p)
+	start.Name = xml.Name{
+		Local: OliveNS + start.Name.Local,
+	}
+
+	return e.EncodeElement(out, start)
+}
+
 type DIExtension struct{}
 
 func (t *DIExtension) FindBy(f ElementPredicate) (result Element, found bool) {
