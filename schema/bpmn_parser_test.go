@@ -26,22 +26,21 @@ import (
 //go:embed testdata
 var testdata embed.FS
 
-func LoadTestFile(filename string, definitions any) {
+func LoadTestFile(filename string) *Definitions {
 	var err error
 	src, err := testdata.ReadFile(filename)
 	if err != nil {
 		log.Fatalf("Can't read file %s: %v", filename, err)
 	}
-	err = xml.Unmarshal(src, definitions)
+	definitions, err := Parse(src)
 	if err != nil {
-		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+		log.Fatalf("Can't parse file %s: %v", filename, err)
 	}
+	return definitions
 }
 
 func TestParseSample(t *testing.T) {
-	var sampleDoc Definitions
-	var err error
-	LoadTestFile("testdata/sample.bpmn", &sampleDoc)
+	sampleDoc := LoadTestFile("testdata/sample.bpmn")
 	processes := sampleDoc.Processes()
 	assert.Equal(t, 1, len(*processes))
 
@@ -54,8 +53,7 @@ func TestParseSample(t *testing.T) {
 }
 
 func TestParseSampleNs(t *testing.T) {
-	var sampleDoc Definitions
-	LoadTestFile("testdata/sample_ns.bpmn", &sampleDoc)
+	sampleDoc := LoadTestFile("testdata/sample_ns.bpmn")
 	processes := sampleDoc.Processes()
 	assert.Equal(t, 1, len(*processes))
 }
