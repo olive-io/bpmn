@@ -19,3 +19,5 @@ github.com/stretchr/testify/assert
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
+# github.com/olive-io/bpmn => ./FORBIDDEN_DEPENDENCY
+# github.com/olive-io/bpmn/schema => ./FORBIDDEN_DEPENDENCY

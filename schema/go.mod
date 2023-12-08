@@ -14,3 +14,10 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+// Bad imports are sometimes causing attempts to pull that code.
+// This makes the error more explicit.
+replace (
+	github.com/olive-io/bpmn => ./FORBIDDEN_DEPENDENCY
+	github.com/olive-io/bpmn/schema => ./FORBIDDEN_DEPENDENCY
+)
