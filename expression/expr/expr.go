@@ -18,8 +18,8 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/antonmedv/expr"
-	"github.com/antonmedv/expr/vm"
+	"github.com/expr-lang/expr"
+	"github.com/expr-lang/expr/vm"
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/expression"
@@ -27,7 +27,7 @@ import (
 
 // Expr language engine
 //
-// https://github.com/antonmedv/expr
+// https://github.com/expr-lang/expr
 type Expr struct {
 	ctx               context.Context
 	itemAwareLocators map[string]data.IItemAwareLocator
@@ -93,7 +93,7 @@ func (engine *Expr) EvaluateExpression(e expression.ICompiledExpression,
 		result, err = expr.Run(exp, actualData)
 	} else {
 		err = errors.InvalidArgumentError{
-			Expected: "CompiledExpression to be *github.com/antonmedv/expr/vm#Program",
+			Expected: "CompiledExpression to be *github.com/expr-lang/expr/vm#Program",
 			Actual:   reflect.TypeOf(e),
 		}
 	}
@@ -101,7 +101,7 @@ func (engine *Expr) EvaluateExpression(e expression.ICompiledExpression,
 }
 
 func init() {
-	expression.RegisterEngine("https://github.com/antonmedv/expr", func(ctx context.Context) expression.IEngine {
+	expression.RegisterEngine("https://github.com/expr-lang/expr", func(ctx context.Context) expression.IEngine {
 		return New(ctx)
 	})
 }

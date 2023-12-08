@@ -67,6 +67,8 @@ func (instance *Instance) Id() id.Id {
 	return instance.id
 }
 
+func (instance *Instance) Process() *schema.Process { return instance.process }
+
 func (instance *Instance) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	instance.eventConsumersLock.RLock()
 	// We're copying the list of consumers here to ensure that
@@ -124,6 +126,13 @@ func WithEventIngress(consumer event.IConsumer) Option {
 func WithEventEgress(source event.ISource) Option {
 	return func(ctx context.Context, instance *Instance) context.Context {
 		instance.EventEgress = source
+		return ctx
+	}
+}
+
+func WithLocator(locator *data.FlowDataLocator) Option {
+	return func(ctx context.Context, instance *Instance) context.Context {
+		instance.Locator = locator
 		return ctx
 	}
 }
