@@ -225,7 +225,9 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 	task := &schema.Definitions{}
 	LoadTestFile("testdata/service_task_data.bpmn", &task)
 	processElement := (*task.Processes())[0]
+	locator := data.NewFlowDataLocator()
 	options := []instance.Option{
+		instance.WithLocator(locator),
 		instance.WithDataObjects(map[string]any{"DataObject_0yhrl3s": map[string]any{"a": "ac"}}),
 	}
 	proc := process.New(&processElement, task)
@@ -250,7 +252,7 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 				case activity.ActiveTaskTrace:
 					if st, ok := trace.(*service.ActiveTrace); ok {
 						assert.Equal(t, st.DataObjects["in"], map[string]any{"a": "ac"})
-						st.Do(service.WithObjects(map[string]any{"out": "cc"}))
+						st.Do(service.WithObjects(map[string]any{"out": map[string]any{"a": "cc"}}))
 					}
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:
@@ -267,7 +269,7 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 		case <-done:
 		}
 
-		t.Logf("%v\n", ins.Locator.CloneItems(data.LocatorObject))
+		t.Logf("%v\n", locator.CloneItems(data.LocatorObject))
 		ins.Tracer.Unsubscribe(traces)
 	} else {
 		t.Fatalf("failed to instantiate the process: %s", err)

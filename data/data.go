@@ -147,4 +147,5 @@ type IFlowDataLocator interface {
 	GetVariable(name string) (value any, found bool)
 	SetVariable(name string, value any)
 	CloneVariables() map[string]any
+	Merge(other IFlowDataLocator)
 }

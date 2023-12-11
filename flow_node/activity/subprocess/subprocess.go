@@ -103,12 +103,11 @@ func New(ctx context.Context,
 			runnerChannel:          make(chan imessage, len(parentWiring.Incoming)*2+1),
 		}
 
-		var locator *data.FlowDataLocator
-		locator, err = data.NewFlowDataLocatorFromElement(idGenerator, subProcess)
+		locator := parentWiring.Locator
+		err = data.ElementToLocator(locator, idGenerator, subProcess)
 		if err != nil {
 			return
 		}
-		locator.Merge(parentWiring.Locator.(*data.FlowDataLocator))
 
 		wiringMaker := func(element *schema.FlowNode) (*flow_node.Wiring, error) {
 			return flow_node.NewWiring(

@@ -54,7 +54,7 @@ type Instance struct {
 	flowWaitGroup                  sync.WaitGroup
 	complete                       sync.RWMutex
 	idGenerator                    id.IGenerator
-	Locator                        *data.FlowDataLocator
+	Locator                        data.IFlowDataLocator
 	EventIngress                   event.IConsumer
 	EventEgress                    event.ISource
 	idGeneratorBuilder             id.IGeneratorBuilder
@@ -130,7 +130,7 @@ func WithEventEgress(source event.ISource) Option {
 	}
 }
 
-func WithLocator(locator *data.FlowDataLocator) Option {
+func WithLocator(locator data.IFlowDataLocator) Option {
 	return func(ctx context.Context, instance *Instance) context.Context {
 		instance.Locator = locator
 		return ctx
@@ -200,9 +200,8 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		instance.idGeneratorBuilder = id.DefaultIdGeneratorBuilder
 	}
 
-	dataLocator := instance.Locator
-	if dataLocator == nil {
-		dataLocator = data.NewFlowDataLocator()
+	if instance.Locator == nil {
+		instance.Locator = data.NewFlowDataLocator()
 	}
 
 	var idGenerator id.IGenerator
@@ -220,13 +219,10 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 		return
 	}
 
-	var procLocator *data.FlowDataLocator
-	procLocator, err = data.NewFlowDataLocatorFromElement(idGenerator, instance.process)
+	err = data.ElementToLocator(instance.Locator, idGenerator, instance.process)
 	if err != nil {
 		return
 	}
-	procLocator.Merge(dataLocator)
-	instance.Locator = procLocator
 
 	// Flow nodes
 

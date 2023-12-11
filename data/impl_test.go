@@ -25,3 +25,38 @@ func TestFlowDataLocator_Merge(t *testing.T) {
 	l2Locator, _ := l2.FindIItemAwareLocator(LocatorProperty)
 	assert.Equal(t, l2Locator.Clone()["a"], "aa")
 }
+
+func TestFlowDataLocator_CloneItems(t *testing.T) {
+	l := NewFlowDataLocator()
+	aware := NewContainer(nil)
+	aware.Put("hello")
+	container := NewDataObjectContainer()
+	container.PutItemAwareById("id", aware)
+	container.PutItemAwareByName("in", aware)
+	l.PutIItemAwareLocator(LocatorObject, container)
+
+	containerOut, ok := l.FindIItemAwareLocator(LocatorObject)
+	if !assert.True(t, ok) {
+		return
+	}
+
+	if !assert.Equal(t, containerOut, container) {
+		return
+	}
+
+	awareOut, ok := container.FindItemAwareById("id")
+	if !assert.True(t, ok) {
+		return
+	}
+
+	if !assert.Equal(t, awareOut, aware) {
+		return
+	}
+
+	awareOut.Put("hello")
+
+	items := l.CloneItems(LocatorObject)
+	if !assert.Equal(t, items["id"], "hello") {
+		return
+	}
+}

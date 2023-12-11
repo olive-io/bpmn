@@ -123,13 +123,7 @@ func (do *ObjectContainer) PutItemAwareByName(name string, itemAware IItemAware)
 
 func (do *ObjectContainer) Clone() map[string]any {
 	out := make(map[string]any)
-	for name, item := range do.dataObjectReferencesByName {
-		value := item.Get()
-		if value != nil {
-			out[name] = value
-		}
-	}
-	for name, item := range do.dataObjectsByName {
+	for name, item := range do.dataObjects {
 		value := item.Get()
 		if value != nil {
 			out[name] = value
@@ -282,14 +276,8 @@ func NewFlowDataLocator() *FlowDataLocator {
 	return f
 }
 
-func NewFlowDataLocatorFromElement(idGenerator id.IGenerator, element schema.Element) (locator *FlowDataLocator, err error) {
-	locator = NewFlowDataLocator()
-
-	locators := make(map[string]IItemAwareLocator)
+func ElementToLocator(locator IFlowDataLocator, idGenerator id.IGenerator, element schema.Element) (err error) {
 	dataObjectContainer := NewDataObjectContainer()
-	headerContainer := NewHeaderContainer()
-	propertyContainer := NewPropertyContainer()
-
 	if impl, ok := element.(interface {
 		DataObjects() *[]schema.DataObject
 	}); ok {
@@ -357,7 +345,6 @@ func NewFlowDataLocatorFromElement(idGenerator id.IGenerator, element schema.Ele
 				dataObjectContainer.dataObjectReferences[*idPtr] = container
 			}
 		}
-
 	}
 
 	if impl, ok := element.(interface {
@@ -379,6 +366,25 @@ func NewFlowDataLocatorFromElement(idGenerator id.IGenerator, element schema.Ele
 		}
 	}
 
+	dol, found := locator.FindIItemAwareLocator(LocatorObject)
+	if found {
+		cloneFor, ok := dol.(ILocatorCloner)
+		if ok {
+			cloneFor.CloneFor(dataObjectContainer)
+		}
+	}
+	locator.PutIItemAwareLocator(LocatorObject, dataObjectContainer)
+
+	headerContainer, found := locator.FindIItemAwareLocator(LocatorHeader)
+	if !found {
+		headerContainer = NewHeaderContainer()
+		locator.PutIItemAwareLocator(LocatorHeader, headerContainer)
+	}
+	propertyContainer, found := locator.FindIItemAwareLocator(LocatorProperty)
+	if !found {
+		propertyContainer = NewPropertyContainer()
+		locator.PutIItemAwareLocator(LocatorProperty, propertyContainer)
+	}
 	if impl, ok := element.(schema.BaseElementInterface); ok {
 		extensionElements, present := impl.ExtensionElements()
 		if present {
@@ -386,45 +392,41 @@ func NewFlowDataLocatorFromElement(idGenerator id.IGenerator, element schema.Ele
 				for _, item := range headers.Header {
 					container := NewContainer(nil)
 					container.Put(item.ValueFor())
-					headerContainer.items[item.Name] = container
+					headerContainer.PutItemAwareByName(item.Name, container)
 				}
 			}
 			if properties := extensionElements.PropertiesField; properties != nil {
 				for _, property := range properties.Property {
 					container := NewContainer(nil)
 					container.Put(property.ValueFor())
-					propertyContainer.items[property.Name] = container
+					propertyContainer.PutItemAwareByName(property.Name, container)
 				}
 			}
 		}
 	}
-	locators[LocatorObject] = dataObjectContainer
-	locators[LocatorHeader] = headerContainer
-	locators[LocatorProperty] = propertyContainer
-	locator.locators = locators
 
 	return
 }
 
-func (f *FlowDataLocator) Merge(other *FlowDataLocator) {
+func (f *FlowDataLocator) Merge(other IFlowDataLocator) {
 	for key, value := range other.CloneVariables() {
 		f.SetVariable(key, value)
 	}
 
-	f.lmu.Lock()
-	for name, out := range other.locators {
-		in, ok := f.locators[name]
-		if ok {
-			impl1, ok1 := in.(ILocatorCloner)
-			impl2, ok2 := out.(ILocatorCloner)
-			if ok1 && ok2 {
-				impl2.CloneFor(impl1)
+	for _, name := range []string{LocatorObject, LocatorHeader, LocatorProperty} {
+		if out, ok := other.FindIItemAwareLocator(name); ok {
+			in, ok := f.FindIItemAwareLocator(name)
+			if ok {
+				impl1, ok1 := in.(ILocatorCloner)
+				impl2, ok2 := out.(ILocatorCloner)
+				if ok1 && ok2 {
+					impl2.CloneFor(impl1)
+				}
+			} else {
+				f.PutIItemAwareLocator(name, out)
 			}
-		} else {
-			f.locators[name] = out
 		}
 	}
-	f.lmu.Unlock()
 }
 
 func (f *FlowDataLocator) FindIItemAwareLocator(name string) (locator IItemAwareLocator, found bool) {
