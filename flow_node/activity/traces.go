@@ -29,5 +29,6 @@ func (b ActiveBoundaryTrace) TraceInterface() {}
 // ActiveTaskTrace describes common channel handler for all tasks
 type ActiveTaskTrace interface {
 	tracing.ITrace
+	GetActivity() Activity
 	Execute()
 }

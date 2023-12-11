@@ -34,6 +34,10 @@ func (t *ActiveTrace) Do() {
 	t.response <- doResponse{}
 }
 
+func (t *ActiveTrace) GetActivity() activity.Activity {
+	return t.Activity
+}
+
 func (t *ActiveTrace) Execute() {
 	t.response <- doResponse{}
 }

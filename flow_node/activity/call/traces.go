@@ -74,6 +74,10 @@ func (t *ActiveTrace) Do(options ...DoOption) {
 	t.response <- response
 }
 
+func (t *ActiveTrace) GetActivity() activity.Activity {
+	return t.Activity
+}
+
 func (t *ActiveTrace) Execute() {
 	t.response <- doResponse{}
 }
