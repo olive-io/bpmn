@@ -49,6 +49,15 @@ func TestParseSample(t *testing.T) {
 		return
 	}
 
+	element, found := sampleDoc.FindBy(ExactId("left"))
+	if !assert.True(t, found) {
+		return
+	}
+
+	id, _ := element.(BaseElementInterface).Id()
+	name, _ := element.(FlowElementInterface).Name()
+	t.Log(*id, *name)
+
 	t.Log(string(out))
 }
 
