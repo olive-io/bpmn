@@ -76,8 +76,8 @@ func TestScriptTask(t *testing.T) {
 						//break loop
 					}
 				}
-			case activity.ActiveTaskTrace:
-				trace.Execute()
+			case *activity.Trace:
+				trace.Do()
 				t.Logf("%#v", trace)
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)

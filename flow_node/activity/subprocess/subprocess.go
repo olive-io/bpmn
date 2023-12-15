@@ -597,6 +597,10 @@ func (p *SubProcess) Element() schema.FlowNodeInterface {
 	return p.element
 }
 
+func (p *SubProcess) Type() activity.Type {
+	return activity.SubprocessType
+}
+
 func (p *SubProcess) Cancel() <-chan bool {
 	response := make(chan bool)
 	p.runnerChannel <- cancelMessage{response: response}

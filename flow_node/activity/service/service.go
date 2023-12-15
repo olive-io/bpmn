@@ -16,7 +16,6 @@ package service
 
 import (
 	"context"
-	"sync/atomic"
 
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/flow/flow_interface"
@@ -56,8 +55,6 @@ func NewServiceTask(ctx context.Context, task *schema.ServiceTask) activity.Cons
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
-		done := &atomic.Bool{}
-		done.Store(false)
 		taskNode := &ServiceTask{
 			Wiring:        wiring,
 			ctx:           ctx,
@@ -90,15 +87,15 @@ func (node *ServiceTask) runner(ctx context.Context) {
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
-					response := make(chan doResponse, 1)
-					at := &ActiveTrace{
-						Context:     node.ctx,
-						Activity:    node,
-						Headers:     m.Headers,
-						Properties:  m.Properties,
-						DataObjects: m.DataObjects,
-						response:    response,
-					}
+					response := make(chan activity.DoResponse, 1)
+					at := activity.NewTraceBuilder().
+						Context(node.ctx).
+						Activity(node).
+						Headers(m.Headers).
+						Properties(m.Properties).
+						DataObjects(m.DataObjects).
+						Response(response).
+						Build()
 
 					node.Tracer.Trace(at)
 					select {
@@ -106,14 +103,14 @@ func (node *ServiceTask) runner(ctx context.Context) {
 						node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 						return
 					case out := <-response:
-						if out.err != nil {
-							aResponse.Err = out.err
+						if out.Err != nil {
+							aResponse.Err = out.Err
 						}
-						aResponse.DataObjects = activity.ApplyTaskDataOutput(node.element, out.dataObjects)
-						for key, value := range out.properties {
+						aResponse.DataObjects = activity.ApplyTaskDataOutput(node.element, out.DataObjects)
+						for key, value := range out.Properties {
 							aResponse.Variables[key] = value
 						}
-						aResponse.Handler = out.handlerCh
+						aResponse.Handler = out.HandlerCh
 						m.response <- action
 					}
 
@@ -145,6 +142,10 @@ func (node *ServiceTask) NextAction(flow_interface.T) chan flow_node.IAction {
 
 func (node *ServiceTask) Element() schema.FlowNodeInterface {
 	return node.element
+}
+
+func (node *ServiceTask) Type() activity.Type {
+	return activity.ServiceType
 }
 
 func (node *ServiceTask) Cancel() <-chan bool {

@@ -44,9 +44,9 @@ func main() {
 				for {
 					trace := tracing.Unwrap(<-traces)
 					switch trace := trace.(type) {
-					case activity.ActiveTaskTrace:
+					case *activity.Trace:
 						log.Printf("%#v\n", trace)
-						trace.Execute()
+						trace.Do()
 					case tracing.ErrorTrace:
 						log.Fatalf("%#v", trace)
 					case flow.CeaseFlowTrace:

@@ -24,7 +24,6 @@ import (
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/activity"
-	"github.com/olive-io/bpmn/flow_node/activity/task"
 	"github.com/olive-io/bpmn/flow_node/event/catch"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
@@ -138,22 +137,20 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 						break loop1
 					}
 				}
-			case activity.ActiveTaskTrace:
-				if v, ok := trace.(*task.ActiveTrace); ok {
-					if id, present := v.Activity.Element().Id(); present {
-						if *id == "task" {
-							//v.Execute()
-							go func() {
-								select {
-								case <-ready:
-									v.Execute()
-								}
-							}()
-						} else {
-							v.Execute()
-						}
+			case *activity.Trace:
+				if id, present := trace.GetActivity().Element().Id(); present {
+					if *id == "task" {
+						//v.Execute()
+						go func() {
+							select {
+							case <-ready:
+								trace.Do()
+							}
+						}()
 					} else {
+						trace.Do()
 					}
+				} else {
 				}
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)

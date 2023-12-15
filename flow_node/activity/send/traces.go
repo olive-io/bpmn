@@ -14,47 +14,4 @@
 
 package send
 
-import (
-	"context"
-
-	"github.com/olive-io/bpmn/flow_node/activity"
-)
-
-type DoOption func(*doResponse)
-
-func WithErr(err error) DoOption {
-	return func(rsp *doResponse) {
-		rsp.err = err
-	}
-}
-
-type doResponse struct {
-	err error
-}
-
-type ActiveTrace struct {
-	context.Context
-	Activity   activity.Activity
-	Type       string
-	Headers    map[string]any
-	Properties map[string]any
-	response   chan doResponse
-}
-
-func (t *ActiveTrace) TraceInterface() {}
-
-func (t *ActiveTrace) Do(options ...DoOption) {
-	var response doResponse
-	for _, opt := range options {
-		opt(&response)
-	}
-	t.response <- response
-}
-
-func (t *ActiveTrace) GetActivity() activity.Activity {
-	return t.Activity
-}
-
-func (t *ActiveTrace) Execute() {
-	t.response <- doResponse{}
-}
+type TypeKey struct{}

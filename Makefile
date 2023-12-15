@@ -30,6 +30,9 @@ build:
 	mkdir -p _output
 	changelog --last --output _output/CHANGELOG.md
 
+generate:
+	cd schema && go generate ./... && goimports -w schema_generated.go schema_generated_test.go schema_di_generated.go
+
 clean:
 	rm -fr ./_output
 

@@ -8,7 +8,6 @@ import (
 
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/activity"
-	"github.com/olive-io/bpmn/flow_node/activity/service"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
@@ -59,16 +58,13 @@ func main() {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case flow.Trace:
-				case *service.ActiveTrace:
-					trace.Do(service.WithProperties(
+				case *activity.Trace:
+					trace.Do(activity.WithProperties(
 						map[string]any{
 							"c": map[string]string{"name": "cc1"},
 							"a": 1,
 						}),
 					)
-				case activity.ActiveTaskTrace:
-					trace.Execute()
-					log.Printf("%#v", trace)
 				case tracing.ErrorTrace:
 					log.Fatalf("%#v", trace)
 					return

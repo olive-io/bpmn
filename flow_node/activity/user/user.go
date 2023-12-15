@@ -16,7 +16,6 @@ package user
 
 import (
 	"context"
-	"sync/atomic"
 
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/flow/flow_interface"
@@ -55,8 +54,6 @@ func NewUserTask(ctx context.Context, task *schema.UserTask) activity.Constructo
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
-		done := &atomic.Bool{}
-		done.Store(false)
 		taskNode := &UserTask{
 			Wiring:        wiring,
 			ctx:           ctx,
@@ -88,14 +85,14 @@ func (node *UserTask) runner(ctx context.Context) {
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
-					response := make(chan doResponse, 1)
-					at := &ActiveTrace{
-						Context:    node.ctx,
-						Activity:   node,
-						Headers:    m.Headers,
-						Properties: m.Properties,
-						response:   response,
-					}
+					response := make(chan activity.DoResponse, 1)
+					at := activity.NewTraceBuilder().
+						Context(node.ctx).
+						Activity(node).
+						Headers(m.Headers).
+						Properties(m.Properties).
+						Response(response).
+						Build()
 
 					node.Tracer.Trace(at)
 					select {
@@ -103,10 +100,10 @@ func (node *UserTask) runner(ctx context.Context) {
 						node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 						return
 					case out := <-response:
-						if out.err != nil {
-							aResponse.Err = out.err
+						if out.Err != nil {
+							aResponse.Err = out.Err
 						}
-						for key, value := range out.properties {
+						for key, value := range out.Properties {
 							aResponse.Variables[key] = value
 						}
 					}
@@ -139,6 +136,10 @@ func (node *UserTask) NextAction(t flow_interface.T) chan flow_node.IAction {
 
 func (node *UserTask) Element() schema.FlowNodeInterface {
 	return node.element
+}
+
+func (node *UserTask) Type() activity.Type {
+	return activity.UserType
 }
 
 func (node *UserTask) Cancel() <-chan bool {

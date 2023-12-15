@@ -83,12 +83,12 @@ func (node *Task) runner(ctx context.Context) {
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
-					response := make(chan doResponse, 1)
-					at := &ActiveTrace{
-						Context:  node.ctx,
-						Activity: node,
-						response: response,
-					}
+					response := make(chan activity.DoResponse, 1)
+					at := activity.NewTraceBuilder().
+						Context(node.ctx).
+						Activity(node).
+						Response(response).
+						Build()
 
 					node.Tracer.Trace(at)
 					select {
@@ -118,6 +118,10 @@ func (node *Task) NextAction(flow_interface.T) chan flow_node.IAction {
 
 func (node *Task) Element() schema.FlowNodeInterface {
 	return node.element
+}
+
+func (node *Task) Type() activity.Type {
+	return activity.TaskType
 }
 
 func (node *Task) Cancel() <-chan bool {

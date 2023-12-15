@@ -70,8 +70,8 @@ func TestTask(t *testing.T) {
 					}
 
 				}
-			case activity.ActiveTaskTrace:
-				trace.Execute()
+			case *activity.Trace:
+				trace.Do()
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)
 			default:

@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/flow_node/activity/user"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
@@ -66,9 +66,9 @@ func TestUserTask(t *testing.T) {
 		for {
 			trace := tracing.Unwrap(<-traces)
 			switch trace := trace.(type) {
-			case *user.ActiveTrace:
+			case *activity.Trace:
 				trace.Do()
-				id, _ := trace.Activity.Element().Id()
+				id, _ := trace.GetActivity().Element().Id()
 				t.Logf("task [%s] done", *id)
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)

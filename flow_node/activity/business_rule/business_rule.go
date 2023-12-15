@@ -83,19 +83,19 @@ func (node *BusinessRuleTask) runner(ctx context.Context) {
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
-					response := make(chan doResponse, 1)
-					at := &ActiveTrace{
-						Context:  node.ctx,
-						Activity: node,
-						response: response,
-					}
-
 					extensionElement := node.element.ExtensionElementsField
 					if extensionElement == nil || extensionElement.CalledDecision == nil {
 						m.response <- action
 						return
 					}
-					at.CalledDecision = extensionElement.CalledDecision
+
+					response := make(chan activity.DoResponse, 1)
+					at := activity.NewTraceBuilder().
+						Context(node.ctx).
+						Value(CalledKey{}, extensionElement.CalledDecision).
+						Activity(node).
+						Response(response).
+						Build()
 
 					node.Tracer.Trace(at)
 					select {
@@ -103,13 +103,13 @@ func (node *BusinessRuleTask) runner(ctx context.Context) {
 						node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 						return
 					case out := <-response:
-						if out.err != nil {
-							aResponse.Err = out.err
+						if out.Err != nil {
+							aResponse.Err = out.Err
 						}
-						for key, value := range out.properties {
+						for key, value := range out.Properties {
 							aResponse.Variables[key] = value
 						}
-						aResponse.Handler = out.handlerCh
+						aResponse.Handler = out.HandlerCh
 						m.response <- action
 					}
 				}()
@@ -130,6 +130,10 @@ func (node *BusinessRuleTask) NextAction(flow_interface.T) chan flow_node.IActio
 
 func (node *BusinessRuleTask) Element() schema.FlowNodeInterface {
 	return node.element
+}
+
+func (node *BusinessRuleTask) Type() activity.Type {
+	return activity.BusinessRuleType
 }
 
 func (node *BusinessRuleTask) Cancel() <-chan bool {

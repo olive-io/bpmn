@@ -83,19 +83,20 @@ func (node *CallActivity) runner(ctx context.Context) {
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
-					response := make(chan doResponse, 1)
-					at := &ActiveTrace{
-						Context:  node.ctx,
-						Activity: node,
-						response: response,
-					}
+					response := make(chan activity.DoResponse, 1)
 
 					extensionElement := node.element.ExtensionElementsField
 					if extensionElement == nil || extensionElement.CalledElement == nil {
 						m.response <- action
 						return
 					}
-					at.CalledElement = extensionElement.CalledElement
+
+					at := activity.NewTraceBuilder().
+						Context(node.ctx).
+						Value(CalledKey{}, extensionElement.CalledElement).
+						Activity(node).
+						Response(response).
+						Build()
 
 					node.Tracer.Trace(at)
 					select {
@@ -103,14 +104,14 @@ func (node *CallActivity) runner(ctx context.Context) {
 						node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 						return
 					case out := <-response:
-						if out.err != nil {
-							aResponse.Err = out.err
+						if out.Err != nil {
+							aResponse.Err = out.Err
 						}
-						aResponse.DataObjects = activity.ApplyTaskDataOutput(node.element, out.dataObjects)
-						for key, value := range out.properties {
+						aResponse.DataObjects = activity.ApplyTaskDataOutput(node.element, out.DataObjects)
+						for key, value := range out.Properties {
 							aResponse.Variables[key] = value
 						}
-						aResponse.Handler = out.handlerCh
+						aResponse.Handler = out.HandlerCh
 						m.response <- action
 					}
 				}()
@@ -131,6 +132,10 @@ func (node *CallActivity) NextAction(flow_interface.T) chan flow_node.IAction {
 
 func (node *CallActivity) Element() schema.FlowNodeInterface {
 	return node.element
+}
+
+func (node *CallActivity) Type() activity.Type {
+	return activity.CallType
 }
 
 func (node *CallActivity) Cancel() <-chan bool {

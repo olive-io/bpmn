@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/flow_node/activity/user"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
@@ -58,8 +58,8 @@ func main() {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case flow.Trace:
-				case *user.ActiveTrace:
-					id, _ := trace.Activity.Element().Id()
+				case *activity.Trace:
+					id, _ := trace.GetActivity().Element().Id()
 					if _, ok := cache[*id]; ok {
 						// already executed, skip it
 						break
@@ -67,7 +67,7 @@ func main() {
 
 					cache[*id] = struct{}{}
 
-					uid := trace.Properties["uid"]
+					uid := trace.GetProperties()["uid"]
 					users[uid.(string)] = "waiting"
 
 					//TODO: waiting for client requesting

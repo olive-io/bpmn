@@ -16,7 +16,6 @@ package receive
 
 import (
 	"context"
-	"sync/atomic"
 
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/flow/flow_interface"
@@ -55,8 +54,6 @@ func NewReceiveTask(ctx context.Context, task *schema.ReceiveTask) activity.Cons
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
-		done := &atomic.Bool{}
-		done.Store(false)
 		taskNode := &ReceiveTask{
 			Wiring:        wiring,
 			ctx:           ctx,
@@ -88,18 +85,20 @@ func (node *ReceiveTask) runner(ctx context.Context) {
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
-					response := make(chan doResponse, 1)
-					at := &ActiveTrace{
-						Context:  node.ctx,
-						Activity: node,
-						Headers:  m.Headers,
-						response: response,
-					}
-
+					rctx := node.ctx
 					if node.element.ExtensionElementsField != nil &&
 						node.element.ExtensionElementsField.TaskDefinitionField != nil {
-						at.Type = node.element.ExtensionElementsField.TaskDefinitionField.Type
+						rt := node.element.ExtensionElementsField.TaskDefinitionField.Type
+						rctx = context.WithValue(rctx, TypeKey{}, rt)
 					}
+
+					response := make(chan activity.DoResponse, 1)
+					at := activity.NewTraceBuilder().
+						Context(rctx).
+						Activity(node).
+						Headers(m.Headers).
+						Response(response).
+						Build()
 
 					node.Tracer.Trace(at)
 					select {
@@ -107,10 +106,10 @@ func (node *ReceiveTask) runner(ctx context.Context) {
 						node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 						return
 					case out := <-response:
-						if out.err != nil {
-							aResponse.Err = out.err
+						if out.Err != nil {
+							aResponse.Err = out.Err
 						}
-						for key, value := range out.properties {
+						for key, value := range out.Properties {
 							aResponse.Variables[key] = value
 						}
 					}
@@ -142,6 +141,10 @@ func (node *ReceiveTask) NextAction(t flow_interface.T) chan flow_node.IAction {
 
 func (node *ReceiveTask) Element() schema.FlowNodeInterface {
 	return node.element
+}
+
+func (node *ReceiveTask) Type() activity.Type {
+	return activity.ReceiveType
 }
 
 func (node *ReceiveTask) Cancel() <-chan bool {

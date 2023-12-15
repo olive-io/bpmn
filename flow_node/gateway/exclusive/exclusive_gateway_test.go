@@ -135,8 +135,8 @@ func TestExclusiveGatewayWithDefault(t *testing.T) {
 						t.Fatalf("can't find sequence flow target: %#v", err)
 					}
 				}
-			case activity.ActiveTaskTrace:
-				trace.Execute()
+			case *activity.Trace:
+				trace.Do()
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)
 			default:
@@ -183,8 +183,8 @@ func TestExclusiveGatewayWithNoDefault(t *testing.T) {
 						t.Fatalf("can't find sequence flow target: %#v", err)
 					}
 				}
-			case activity.ActiveTaskTrace:
-				trace.Execute()
+			case *activity.Trace:
+				trace.Do()
 			case tracing.ErrorTrace:
 				var target exclusive.NoEffectiveSequenceFlows
 				if errors.As(trace.Error, &target) {
@@ -234,8 +234,8 @@ func TestExclusiveGatewayIncompleteJoin(t *testing.T) {
 				} else {
 					t.Fatalf("can't find element with FlowNodeId %#v", id)
 				}
-			case activity.ActiveTaskTrace:
-				trace.Execute()
+			case *activity.Trace:
+				trace.Do()
 			case flow.CeaseFlowTrace:
 				break loop
 			case tracing.ErrorTrace:

@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/flow_node/activity/receive"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
@@ -73,8 +73,8 @@ func TestReceiveTask(t *testing.T) {
 						//break loop
 					}
 				}
-			case *receive.ActiveTrace:
-				trace.Do(receive.WithProperties(map[string]any{"a": "b"}))
+			case *activity.Trace:
+				trace.Do(activity.WithProperties(map[string]any{"a": "b"}))
 				t.Logf("%#v", trace)
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)

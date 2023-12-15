@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/flow_node/activity/call"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
@@ -63,9 +64,10 @@ func TestCallActivity(t *testing.T) {
 			trace := tracing.Unwrap(<-traces)
 			switch trace := trace.(type) {
 			case flow.Trace:
-			case *call.ActiveTrace:
-				trace.Execute()
-				t.Logf("call process [%s] in [%s]", trace.CalledElement.ProcessId, trace.CalledElement.DefinitionId)
+			case *activity.Trace:
+				trace.Do()
+				calledElement := trace.Context().Value(call.CalledKey{}).(*schema.ExtensionCalledElement)
+				t.Logf("call process [%s] in [%s]", calledElement.ProcessId, calledElement.DefinitionId)
 				t.Logf("%#v", trace)
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)

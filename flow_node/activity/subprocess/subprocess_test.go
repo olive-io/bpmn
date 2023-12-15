@@ -61,8 +61,8 @@ func TestSubprocess(t *testing.T) {
 			switch trace := trace.(type) {
 			case flow.Trace:
 
-			case activity.ActiveTaskTrace:
-				trace.Execute()
+			case *activity.Trace:
+				trace.Do()
 				t.Logf("%#v", trace)
 			case flow.CeaseFlowTrace:
 				break loop
@@ -97,8 +97,8 @@ func TestEmbedSubprocess(t *testing.T) {
 			switch trace := trace.(type) {
 			case flow.Trace:
 
-			case activity.ActiveTaskTrace:
-				trace.Execute()
+			case *activity.Trace:
+				trace.Do()
 				t.Logf("%#v", trace)
 			case flow.CeaseFlowTrace:
 				break loop

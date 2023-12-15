@@ -88,8 +88,8 @@ func TestInclusiveGateway(t *testing.T) {
 						t.Fatalf("can't find sequence flow target: %#v", err)
 					}
 				}
-			case activity.ActiveTaskTrace:
-				trace.Execute()
+			case *activity.Trace:
+				trace.Do()
 			case flow.CeaseFlowTrace:
 				// should only reach `end` once
 				assert.Equal(t, 1, endReached)
@@ -147,8 +147,8 @@ func TestInclusiveGatewayDefault(t *testing.T) {
 						t.Fatalf("can't find sequence flow target: %#v", err)
 					}
 				}
-			case activity.ActiveTaskTrace:
-				trace.Execute()
+			case *activity.Trace:
+				trace.Do()
 			case flow.CeaseFlowTrace:
 				// should only reach `end` once
 				assert.Equal(t, 1, endReached)

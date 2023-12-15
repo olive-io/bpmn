@@ -28,7 +28,6 @@ import (
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
-	"github.com/olive-io/bpmn/flow_node/activity/service"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
@@ -86,8 +85,8 @@ func TestServiceTask(t *testing.T) {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case flow.Trace:
-				case activity.ActiveTaskTrace:
-					trace.Execute()
+				case *activity.Trace:
+					trace.Do()
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:
 					t.Errorf("%#v", trace)
@@ -132,10 +131,8 @@ func TestServiceTaskWithError(t *testing.T) {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case flow.Trace:
-				case activity.ActiveTaskTrace:
-					if st, ok := trace.(*service.ActiveTrace); ok {
-						st.Do(service.WithErr(fmt.Errorf("text error")))
-					}
+				case *activity.Trace:
+					trace.Do(activity.WithErr(fmt.Errorf("text error")))
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:
 					te = trace.Error
@@ -185,17 +182,15 @@ func TestServiceTaskWithRetry(t *testing.T) {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case flow.Trace:
-				case activity.ActiveTaskTrace:
+				case *activity.Trace:
 					runnum += 1
-					if st, ok := trace.(*service.ActiveTrace); ok {
-						handler := make(chan flow_node.ErrHandler, 1)
-						go func() {
-							time.Sleep(time.Second * 1)
-							retry := int32(1)
-							handler <- flow_node.ErrHandler{Mode: flow_node.HandleRetry, Retries: retry}
-						}()
-						st.Do(service.WithErrHandle(fmt.Errorf("text error"), handler))
-					}
+					handler := make(chan flow_node.ErrHandler, 1)
+					go func() {
+						time.Sleep(time.Second * 1)
+						retry := int32(1)
+						handler <- flow_node.ErrHandler{Mode: flow_node.HandleRetry, Retries: retry}
+					}()
+					trace.Do(activity.WithErrHandle(fmt.Errorf("text error"), handler))
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:
 					te = trace.Error
@@ -249,11 +244,9 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case flow.Trace:
-				case activity.ActiveTaskTrace:
-					if st, ok := trace.(*service.ActiveTrace); ok {
-						assert.Equal(t, st.DataObjects["in"], map[string]any{"a": "ac"})
-						st.Do(service.WithObjects(map[string]any{"out": map[string]any{"a": "cc"}}))
-					}
+				case *activity.Trace:
+					assert.Equal(t, trace.GetDataObjects()["in"], map[string]any{"a": "ac"})
+					trace.Do(activity.WithObjects(map[string]any{"out": map[string]any{"a": "cc"}}))
 					t.Logf("%#v", trace)
 				case tracing.ErrorTrace:
 					t.Logf("%#v", trace)

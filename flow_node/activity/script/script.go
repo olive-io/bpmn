@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync/atomic"
 
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/errors"
@@ -60,8 +59,6 @@ func NewScriptTask(ctx context.Context, task *schema.ScriptTask) activity.Constr
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
-		done := &atomic.Bool{}
-		done.Store(false)
 		taskNode := &ScriptTask{
 			Wiring:        wiring,
 			ctx:           ctx,
@@ -93,7 +90,7 @@ func (node *ScriptTask) runner(ctx context.Context) {
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
-					response := make(chan doResponse, 1)
+					response := make(chan activity.DoResponse, 1)
 
 					extension := node.element.ExtensionElementsField
 					taskDef := extension.TaskDefinitionField
@@ -178,14 +175,13 @@ func (node *ScriptTask) runner(ctx context.Context) {
 						m.response <- action
 
 					default:
-						at := &ActiveTrace{
-							Context:     node.ctx,
-							Activity:    node,
-							DataObjects: m.DataObjects,
-							Headers:     m.Headers,
-							Properties:  m.Properties,
-							response:    response,
-						}
+						at := activity.NewTraceBuilder().
+							Context(node.ctx).
+							Activity(node).
+							Headers(m.Headers).
+							Properties(m.Properties).
+							Response(response).
+							Build()
 
 						node.Tracer.Trace(at)
 						select {
@@ -193,13 +189,13 @@ func (node *ScriptTask) runner(ctx context.Context) {
 							node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 							return
 						case out := <-response:
-							if out.err != nil {
-								aResponse.Err = out.err
+							if out.Err != nil {
+								aResponse.Err = out.Err
 							}
-							for key, value := range out.properties {
+							for key, value := range out.Properties {
 								aResponse.Variables[key] = value
 							}
-							aResponse.Handler = out.handlerCh
+							aResponse.Handler = out.HandlerCh
 							m.response <- action
 						}
 					}
@@ -232,6 +228,10 @@ func (node *ScriptTask) NextAction(t flow_interface.T) chan flow_node.IAction {
 
 func (node *ScriptTask) Element() schema.FlowNodeInterface {
 	return node.element
+}
+
+func (node *ScriptTask) Type() activity.Type {
+	return activity.ScriptType
 }
 
 func (node *ScriptTask) Cancel() <-chan bool {

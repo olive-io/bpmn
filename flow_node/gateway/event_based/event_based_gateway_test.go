@@ -124,8 +124,8 @@ func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...ev
 						ch <- reached
 						return
 					}
-				case activity.ActiveTaskTrace:
-					trace.Execute()
+				case *activity.Trace:
+					trace.Do()
 				case flow.CeaseFlowTrace:
 					ch <- reached
 					return

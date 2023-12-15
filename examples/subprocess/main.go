@@ -58,8 +58,8 @@ func main() {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case flow.Trace:
-				case activity.ActiveTaskTrace:
-					trace.Execute()
+				case *activity.Trace:
+					trace.Do()
 					log.Printf("%#v", trace)
 				case tracing.ErrorTrace:
 					log.Fatalf("%#v", trace)

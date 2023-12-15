@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/flow"
+	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/flow_node/activity/business_rule"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
@@ -63,9 +64,10 @@ func TestBusinessRuleTask(t *testing.T) {
 			trace := tracing.Unwrap(<-traces)
 			switch trace := trace.(type) {
 			case flow.Trace:
-			case *business_rule.ActiveTrace:
-				t.Logf("call decisionId [%s]", trace.CalledDecision.DecisionId)
-				trace.Do(business_rule.WithProperties(map[string]any{trace.CalledDecision.Result: "3"}))
+			case *activity.Trace:
+				calledDecision := trace.Context().Value(business_rule.CalledKey{}).(*schema.ExtensionCalledDecision)
+				t.Logf("call decisionId [%s]", calledDecision.DecisionId)
+				trace.Do(activity.WithProperties(map[string]any{calledDecision.Result: "3"}))
 			case tracing.ErrorTrace:
 				t.Fatalf("%#v", trace)
 			case flow.CeaseFlowTrace:
