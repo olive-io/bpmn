@@ -159,14 +159,17 @@ func (t *Trace) GetProperties() map[string]any {
 }
 
 func (t *Trace) Do(options ...DoOption) {
+	select {
+	case <-t.done:
+		return
+	default:
+	}
+
 	var response DoResponse
 	for _, opt := range options {
 		opt(&response)
 	}
-	select {
-	case <-t.done:
-	default:
-		t.response <- response
-		close(t.done)
-	}
+
+	t.response <- response
+	close(t.done)
 }

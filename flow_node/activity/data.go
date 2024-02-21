@@ -21,10 +21,10 @@ import (
 	"github.com/olive-io/bpmn/schema"
 )
 
-func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElementInterface) (headers, dataSets, dataObjects map[string]any) {
+func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElementInterface) (headers, properties, dataObjects map[string]any) {
 	variables := locator.CloneVariables()
 	headers = map[string]any{}
-	dataSets = map[string]any{}
+	properties = map[string]any{}
 	dataObjects = map[string]any{}
 	if extension, found := element.ExtensionElements(); found {
 		if header := extension.TaskHeaderField; header != nil {
@@ -34,14 +34,14 @@ func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElemen
 				headers[field.Name] = value
 			}
 		}
-		if properties := extension.PropertiesField; properties != nil {
-			fields := properties.Property
+		if property := extension.PropertiesField; property != nil {
+			fields := property.Property
 			for _, field := range fields {
 				value := field.ValueFor()
 				if len(strings.TrimSpace(field.Value)) == 0 {
 					value = variables[field.Name]
 				}
-				dataSets[field.Name] = value
+				properties[field.Name] = value
 			}
 		}
 

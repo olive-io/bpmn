@@ -126,9 +126,9 @@ func (node *UserTask) NextAction(t flow_interface.T) chan flow_node.IAction {
 		response: response,
 	}
 
-	headers, dataSets, _ := activity.FetchTaskDataInput(node.Locator, node.element)
+	headers, properties, _ := activity.FetchTaskDataInput(node.Locator, node.element)
 	msg.Headers = headers
-	msg.Properties = dataSets
+	msg.Properties = properties
 
 	node.runnerChannel <- msg
 	return response

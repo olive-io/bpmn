@@ -319,6 +319,7 @@ type ItemType string
 
 const (
 	ItemTypeObject  ItemType = "object"
+	ItemTypeArray   ItemType = "array"
 	ItemTypeInteger ItemType = "integer"
 	ItemTypeString  ItemType = "string"
 	ItemTypeBoolean ItemType = "boolean"
@@ -357,6 +358,10 @@ func (i *Item) ValueFor() any {
 	case ItemTypeFloat:
 		f, _ := strconv.ParseFloat(i.Value, 64)
 		return f
+	case ItemTypeArray:
+		var arr []any
+		_ = json.Unmarshal([]byte(i.Value), &arr)
+		return arr
 	case ItemTypeObject:
 		obj := map[string]any{}
 		_ = json.Unmarshal([]byte(i.Value), &obj)

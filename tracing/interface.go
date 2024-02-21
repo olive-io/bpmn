@@ -60,7 +60,7 @@ type ITracer interface {
 // The purpose of it is to allow components to produce traces that will
 // be wrapped into additional context, without being aware of it.
 //
-// Typically this would be done by creating a NewTraceTransformingTracer tracer
+// Typically, this would be done by creating a NewTraceTransformingTracer tracer
 // over the original one and passing it to such components.
 //
 // Consumers looking for individual traces should use Unwrap to retrieve

@@ -104,7 +104,7 @@ func (flow *Flow) executeSequenceFlow(ctx context.Context, sequenceFlow *sequenc
 				lang = *flow.definitions.ExpressionLanguage()
 			}
 
-			dataSets := map[string]any{}
+			properties := map[string]any{}
 			engine := expression.GetEngine(ctx, lang)
 			if locator, found := flow.locator.FindIItemAwareLocator(data.LocatorObject); found {
 				engine.SetItemAwareLocator(data.LocatorObject, locator)
@@ -114,7 +114,7 @@ func (flow *Flow) executeSequenceFlow(ctx context.Context, sequenceFlow *sequenc
 			}
 
 			for key, item := range flow.locator.CloneVariables() {
-				dataSets[key] = item
+				properties[key] = item
 			}
 
 			source := *e.TextPayload()
@@ -126,7 +126,7 @@ func (flow *Flow) executeSequenceFlow(ctx context.Context, sequenceFlow *sequenc
 				return
 			}
 			var abstractResult expression.IResult
-			abstractResult, err = engine.EvaluateExpression(compiled, dataSets)
+			abstractResult, err = engine.EvaluateExpression(compiled, properties)
 			if err != nil {
 				result = false
 				flow.tracer.Trace(tracing.ErrorTrace{Error: err})

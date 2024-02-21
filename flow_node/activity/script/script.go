@@ -103,12 +103,12 @@ func (node *ScriptTask) runner(ctx context.Context) {
 						lang := *node.Definitions.ExpressionLanguage()
 						engine := expression.GetEngine(ctx, lang)
 
-						dataSets := make(map[string]any)
+						properties := make(map[string]any)
 						for key, value := range m.Properties {
-							dataSets[key] = value
+							properties[key] = value
 						}
 						for key, value := range m.DataObjects {
-							dataSets[key] = value
+							properties[key] = value
 						}
 
 						if extension.ScriptField != nil {
@@ -131,7 +131,7 @@ func (node *ScriptTask) runner(ctx context.Context) {
 								return
 							}
 
-							result, err := engine.EvaluateExpression(compiled, dataSets)
+							result, err := engine.EvaluateExpression(compiled, properties)
 							if err != nil {
 								aResponse.Err = errors.TaskExecError{Id: node.FlowNodeId, Reason: err.Error()}
 								m.response <- action
@@ -217,9 +217,9 @@ func (node *ScriptTask) NextAction(t flow_interface.T) chan flow_node.IAction {
 		response: response,
 	}
 
-	headers, dataSets, dataObjects := activity.FetchTaskDataInput(node.Locator, node.element)
+	headers, properties, dataObjects := activity.FetchTaskDataInput(node.Locator, node.element)
 	msg.Headers = headers
-	msg.Properties = dataSets
+	msg.Properties = properties
 	msg.DataObjects = dataObjects
 
 	node.runnerChannel <- msg

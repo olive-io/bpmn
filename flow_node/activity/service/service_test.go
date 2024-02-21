@@ -62,6 +62,7 @@ func TestServiceTask(t *testing.T) {
 	options := []instance.Option{
 		instance.WithVariables(map[string]any{
 			"c": map[string]string{"name": "cc"},
+			"d": []int32{1, 2, 3},
 		}),
 		instance.WithDataObjects(map[string]any{
 			"a": struct{}{},
@@ -88,6 +89,8 @@ func TestServiceTask(t *testing.T) {
 				case *activity.Trace:
 					trace.Do()
 					t.Logf("%#v", trace)
+					properties := trace.GetProperties()
+					t.Logf("properties: %#v", properties)
 				case tracing.ErrorTrace:
 					t.Errorf("%#v", trace)
 					return
