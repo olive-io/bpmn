@@ -58,9 +58,7 @@ func (engine *XPath) CompileExpression(source string) (result expression.ICompil
 	return
 }
 
-func (engine *XPath) EvaluateExpression(e expression.ICompiledExpression,
-	datum interface{},
-) (result expression.IResult, err error) {
+func (engine *XPath) EvaluateExpression(e expression.ICompiledExpression, datum interface{}) (result expression.IResult, err error) {
 	if expr, ok := e.(*grammar.Grammar); ok {
 		// Here, in order to save some prototyping type,
 		// instead of implementing `parser.Parser` for `interface{}`,
@@ -79,7 +77,7 @@ func (engine *XPath) EvaluateExpression(e expression.ICompiledExpression,
 
 		contextSettings := func(c *exec.ContextSettings) {
 			if engine.itemAwareLocators != nil {
-				c.FunctionLibrary[exec.Name("", data.LocatorObject)] = engine.getDataObject()
+				c.FunctionLibrary[exec.XmlName{Local: data.LocatorObject}] = engine.getDataObject()
 			}
 		}
 

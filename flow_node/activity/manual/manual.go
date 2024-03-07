@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package send
+package manual
 
 import (
 	"context"
@@ -29,9 +29,7 @@ type imessage interface {
 }
 
 type nextActionMessage struct {
-	Headers    map[string]any
-	Properties map[string]any
-	response   chan flow_node.IAction
+	response chan flow_node.IAction
 }
 
 func (m nextActionMessage) message() {}
@@ -46,11 +44,11 @@ type Node struct {
 	*flow_node.Wiring
 	ctx           context.Context
 	cancel        context.CancelFunc
-	element       *schema.SendTask
+	element       *schema.ManualTask
 	runnerChannel chan imessage
 }
 
-func NewSendTask(ctx context.Context, task *schema.SendTask) activity.Constructor {
+func NewManualTask(ctx context.Context, task *schema.ManualTask) activity.Constructor {
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
@@ -85,19 +83,10 @@ func (node *Node) runner(ctx context.Context) {
 						SequenceFlows: flow_node.AllSequenceFlows(&node.Outgoing),
 					}
 
-					tctx := node.ctx
-					if node.element.ExtensionElementsField != nil &&
-						node.element.ExtensionElementsField.TaskDefinitionField != nil {
-						st := node.element.ExtensionElementsField.TaskDefinitionField.Type
-						tctx = context.WithValue(tctx, TypeKey{}, st)
-					}
-
 					response := make(chan activity.DoResponse, 1)
 					at := activity.NewTraceBuilder().
-						Context(tctx).
+						Context(node.ctx).
 						Activity(node).
-						Headers(m.Headers).
-						Properties(m.Properties).
 						Response(response).
 						Build()
 
@@ -106,10 +95,8 @@ func (node *Node) runner(ctx context.Context) {
 					case <-ctx.Done():
 						node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
 						return
-					case out := <-response:
-						if out.Err != nil {
-							aResponse.Err = out.Err
-						}
+					case <-response:
+
 					}
 
 					m.response <- action
@@ -123,18 +110,9 @@ func (node *Node) runner(ctx context.Context) {
 	}
 }
 
-func (node *Node) NextAction(t flow_interface.T) chan flow_node.IAction {
+func (node *Node) NextAction(flow_interface.T) chan flow_node.IAction {
 	response := make(chan flow_node.IAction, 1)
-
-	msg := nextActionMessage{
-		response: response,
-	}
-
-	headers, properties, _ := activity.FetchTaskDataInput(node.Locator, node.element)
-	msg.Headers = headers
-	msg.Properties = properties
-
-	node.runnerChannel <- msg
+	node.runnerChannel <- nextActionMessage{response: response}
 	return response
 }
 
@@ -143,7 +121,7 @@ func (node *Node) Element() schema.FlowNodeInterface {
 }
 
 func (node *Node) Type() activity.Type {
-	return activity.SendType
+	return activity.TaskType
 }
 
 func (node *Node) Cancel() <-chan bool {

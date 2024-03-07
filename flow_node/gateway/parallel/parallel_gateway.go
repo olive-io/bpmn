@@ -66,7 +66,6 @@ func (node *Node) flowWhenReady() {
 		sequenceFlows := flow_node.AllSequenceFlows(&node.Outgoing)
 		gateway.DistributeFlows(awaitingActions, sequenceFlows)
 	}
-
 }
 
 func (node *Node) runner(ctx context.Context, sender tracing.ISenderHandle) {

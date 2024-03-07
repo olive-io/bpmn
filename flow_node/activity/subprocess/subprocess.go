@@ -28,6 +28,7 @@ import (
 	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/flow_node/activity/business_rule"
 	"github.com/olive-io/bpmn/flow_node/activity/call"
+	"github.com/olive-io/bpmn/flow_node/activity/manual"
 	"github.com/olive-io/bpmn/flow_node/activity/receive"
 	"github.com/olive-io/bpmn/flow_node/activity/script"
 	"github.com/olive-io/bpmn/flow_node/activity/send"
@@ -217,6 +218,23 @@ func New(ctx context.Context,
 			}
 			var harness *activity.Harness
 			harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, task.NewTask(ctx, element))
+			if err != nil {
+				return
+			}
+			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
+			if err != nil {
+				return
+			}
+		}
+
+		for i := range *subProcess.ManualTasks() {
+			element := &(*subProcess.ManualTasks())[i]
+			wiring, err = wiringMaker(&element.FlowNode)
+			if err != nil {
+				return
+			}
+			var harness *activity.Harness
+			harness, err = activity.NewHarness(ctx, wiring, &element.FlowNode, idGenerator, manual.NewManualTask(ctx, element))
 			if err != nil {
 				return
 			}

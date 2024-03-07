@@ -40,7 +40,7 @@ type cancelMessage struct {
 
 func (m cancelMessage) message() {}
 
-type Task struct {
+type Node struct {
 	*flow_node.Wiring
 	ctx           context.Context
 	cancel        context.CancelFunc
@@ -52,7 +52,7 @@ func NewTask(ctx context.Context, task *schema.Task) activity.Constructor {
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
-		taskNode := &Task{
+		taskNode := &Node{
 			Wiring:        wiring,
 			ctx:           ctx,
 			cancel:        cancel,
@@ -65,7 +65,7 @@ func NewTask(ctx context.Context, task *schema.Task) activity.Constructor {
 	}
 }
 
-func (node *Task) runner(ctx context.Context) {
+func (node *Node) runner(ctx context.Context) {
 	for {
 		select {
 		case msg := <-node.runnerChannel:
@@ -110,21 +110,21 @@ func (node *Task) runner(ctx context.Context) {
 	}
 }
 
-func (node *Task) NextAction(flow_interface.T) chan flow_node.IAction {
+func (node *Node) NextAction(flow_interface.T) chan flow_node.IAction {
 	response := make(chan flow_node.IAction, 1)
 	node.runnerChannel <- nextActionMessage{response: response}
 	return response
 }
 
-func (node *Task) Element() schema.FlowNodeInterface {
+func (node *Node) Element() schema.FlowNodeInterface {
 	return node.element
 }
 
-func (node *Task) Type() activity.Type {
+func (node *Node) Type() activity.Type {
 	return activity.TaskType
 }
 
-func (node *Task) Cancel() <-chan bool {
+func (node *Node) Cancel() <-chan bool {
 	response := make(chan bool)
 	node.runnerChannel <- cancelMessage{response: response}
 	return response

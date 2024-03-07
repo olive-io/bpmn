@@ -5,8 +5,7 @@
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
                   xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0ze8hv1"
-                  targetNamespace="http://bpmn.io/schema/bpmn" expressionLanguage="https://github.com/expr-lang/expr"
-                  exporter="Camunda Modeler" exporterVersion="4.7.0">
+                  targetNamespace="http://bpmn.io/schema/bpmn" expressionLanguage="https://github.com/expr-lang/expr">
     <bpmn:process id="Process_1x1ofcw" isExecutable="true">
         <bpmn:startEvent id="start">
             <bpmn:outgoing>Flow_0pfwx9r</bpmn:outgoing>

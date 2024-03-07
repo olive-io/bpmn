@@ -47,7 +47,7 @@ type cancelMessage struct {
 
 func (m cancelMessage) message() {}
 
-type ScriptTask struct {
+type Node struct {
 	*flow_node.Wiring
 	ctx           context.Context
 	cancel        context.CancelFunc
@@ -59,7 +59,7 @@ func NewScriptTask(ctx context.Context, task *schema.ScriptTask) activity.Constr
 	return func(wiring *flow_node.Wiring) (node activity.Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
-		taskNode := &ScriptTask{
+		taskNode := &Node{
 			Wiring:        wiring,
 			ctx:           ctx,
 			cancel:        cancel,
@@ -72,7 +72,7 @@ func NewScriptTask(ctx context.Context, task *schema.ScriptTask) activity.Constr
 	}
 }
 
-func (node *ScriptTask) runner(ctx context.Context) {
+func (node *Node) runner(ctx context.Context) {
 	for {
 		select {
 		case msg := <-node.runnerChannel:
@@ -210,7 +210,7 @@ func (node *ScriptTask) runner(ctx context.Context) {
 	}
 }
 
-func (node *ScriptTask) NextAction(t flow_interface.T) chan flow_node.IAction {
+func (node *Node) NextAction(t flow_interface.T) chan flow_node.IAction {
 	response := make(chan flow_node.IAction, 1)
 
 	msg := nextActionMessage{
@@ -226,15 +226,15 @@ func (node *ScriptTask) NextAction(t flow_interface.T) chan flow_node.IAction {
 	return response
 }
 
-func (node *ScriptTask) Element() schema.FlowNodeInterface {
+func (node *Node) Element() schema.FlowNodeInterface {
 	return node.element
 }
 
-func (node *ScriptTask) Type() activity.Type {
+func (node *Node) Type() activity.Type {
 	return activity.ScriptType
 }
 
-func (node *ScriptTask) Cancel() <-chan bool {
+func (node *Node) Cancel() <-chan bool {
 	response := make(chan bool)
 	node.runnerChannel <- cancelMessage{response: response}
 	return response
