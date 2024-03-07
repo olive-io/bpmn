@@ -22,11 +22,11 @@ import (
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/event/catch"
+	clock2 "github.com/olive-io/bpmn/pkg/clock"
+	"github.com/olive-io/bpmn/pkg/timer"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
-	clock2 "github.com/olive-io/bpmn/tools/clock"
-	"github.com/olive-io/bpmn/tools/timer"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/require"
 )

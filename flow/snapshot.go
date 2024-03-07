@@ -15,8 +15,8 @@
 package flow
 
 import (
+	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/sequence_flow"
-	"github.com/olive-io/bpmn/tools/id"
 )
 
 type Snapshot struct {

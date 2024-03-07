@@ -19,10 +19,10 @@ import (
 	"sync"
 
 	"github.com/olive-io/bpmn/event"
+	"github.com/olive-io/bpmn/pkg/logic"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tools/logic"
 	"github.com/olive-io/bpmn/tracing"
 )
 

@@ -42,8 +42,8 @@ import (
 	"github.com/olive-io/bpmn/flow_node/gateway/exclusive"
 	"github.com/olive-io/bpmn/flow_node/gateway/inclusive"
 	"github.com/olive-io/bpmn/flow_node/gateway/parallel"
+	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tools/id"
 	"github.com/olive-io/bpmn/tracing"
 )
 

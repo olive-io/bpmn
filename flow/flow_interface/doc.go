@@ -15,8 +15,8 @@
 package flow_interface
 
 import (
+	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/sequence_flow"
-	"github.com/olive-io/bpmn/tools/id"
 )
 
 // T specifies an interface for BPMN flows

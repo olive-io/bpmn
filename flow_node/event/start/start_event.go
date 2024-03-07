@@ -21,9 +21,9 @@ import (
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
+	"github.com/olive-io/bpmn/pkg/id"
+	"github.com/olive-io/bpmn/pkg/logic"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tools/id"
-	"github.com/olive-io/bpmn/tools/logic"
 	"github.com/olive-io/bpmn/tracing"
 )
 

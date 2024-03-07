@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/olive-io/bpmn/pkg/clock"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tools/clock"
 	"github.com/qri-io/iso8601"
 	"github.com/stretchr/testify/require"
 )

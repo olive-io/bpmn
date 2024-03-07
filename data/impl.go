@@ -20,8 +20,8 @@ import (
 
 	json "github.com/json-iterator/go"
 	"github.com/olive-io/bpmn/errors"
+	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tools/id"
 )
 
 const (

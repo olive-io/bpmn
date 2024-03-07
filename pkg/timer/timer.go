@@ -19,8 +19,8 @@ import (
 	"time"
 
 	"github.com/olive-io/bpmn/errors"
+	"github.com/olive-io/bpmn/pkg/clock"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tools/clock"
 	"github.com/qri-io/iso8601"
 )
 

@@ -22,12 +22,13 @@ import (
 	"testing"
 
 	"github.com/olive-io/bpmn/data"
-	_ "github.com/olive-io/bpmn/expression/expr"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/require"
+
+	_ "github.com/olive-io/bpmn/expression/expr"
 )
 
 //go:embed testdata

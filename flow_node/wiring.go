@@ -21,9 +21,9 @@ import (
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/event"
+	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/sequence_flow"
-	"github.com/olive-io/bpmn/tools/id"
 	"github.com/olive-io/bpmn/tracing"
 )
 

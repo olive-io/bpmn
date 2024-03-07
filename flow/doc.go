@@ -1,5 +1,3 @@
-// Package flow is a process that connects flow nodes, activating
-// them and carrying out their actions forward
 // Copyright 2023 The bpmn Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
