@@ -21,7 +21,7 @@ import (
 
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/model"
-	clock2 "github.com/olive-io/bpmn/pkg/clock"
+	"github.com/olive-io/bpmn/pkg/clock"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 	"github.com/stretchr/testify/require"
@@ -34,8 +34,8 @@ func init() {
 }
 
 func TestTimerStartEventInstantiation(t *testing.T) {
-	c := clock2.NewMock()
-	ctx := clock2.ToContext(context.Background(), c)
+	c := clock.NewMock()
+	ctx := clock.ToContext(context.Background(), c)
 	tracer := tracing.NewTracer(ctx)
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))
 	m := model.New(&testTimerStartEventInstantiation, model.WithContext(ctx), model.WithTracer(tracer))
@@ -78,8 +78,8 @@ func init() {
 }
 
 func TestRecurringTimerStartEventInstantiation(t *testing.T) {
-	c := clock2.NewMock()
-	ctx := clock2.ToContext(context.Background(), c)
+	c := clock.NewMock()
+	ctx := clock.ToContext(context.Background(), c)
 	tracer := tracing.NewTracer(ctx)
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))
 	m := model.New(&testRecurringTimerStartEventInstantiation, model.WithContext(ctx), model.WithTracer(tracer))

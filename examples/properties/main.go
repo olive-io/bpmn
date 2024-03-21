@@ -54,50 +54,47 @@ func main() {
 			"a": struct{}{},
 		}),
 	}
-	if ins, err := proc.Instantiate(options...); err == nil {
-		traces := ins.Tracer.Subscribe()
-		err = ins.StartAll(context.Background())
-		if err != nil {
-			log.Fatalf("failed to run the instance: %s", err)
-		}
-		done := make(chan struct{}, 1)
-		go func() {
-			defer close(done)
-			for {
-				var trace tracing.ITrace
-				select {
-				case trace = <-traces:
-				}
-
-				trace = tracing.Unwrap(trace)
-				switch trace := trace.(type) {
-				case flow.Trace:
-				case *activity.Trace:
-					trace.Do(activity.WithProperties(
-						map[string]any{
-							"c": map[string]string{"name": "cc1"},
-							"a": 1,
-						}),
-					)
-				case tracing.ErrorTrace:
-					log.Fatalf("%#v", trace)
-					return
-				case flow.CeaseFlowTrace:
-					return
-				default:
-					log.Printf("%#v", trace)
-				}
-			}
-		}()
-
-		select {
-		case <-done:
-		}
-
-		pros := ins.Locator.CloneVariables()
-		log.Printf("%#v", pros)
-		ins.Tracer.Unsubscribe(traces)
-	} else {
+	ctx := context.Background()
+	ins, err := proc.Instantiate(options...)
+	if err != nil {
 		log.Fatalf("failed to instantiate the process: %s", err)
+		return
 	}
+	traces := ins.Tracer.Subscribe()
+	err = ins.StartAll(ctx)
+	if err != nil {
+		log.Fatalf("failed to run the instance: %s", err)
+	}
+	go func() {
+		for {
+			var trace tracing.ITrace
+			select {
+			case trace = <-traces:
+			}
+
+			trace = tracing.Unwrap(trace)
+			switch trace := trace.(type) {
+			case flow.Trace:
+			case *activity.Trace:
+				trace.Do(activity.WithProperties(
+					map[string]any{
+						"c": map[string]string{"name": "cc1"},
+						"a": 2,
+					}),
+				)
+			case tracing.ErrorTrace:
+				log.Fatalf("%#v", trace)
+				return
+			case flow.CeaseFlowTrace:
+				return
+			default:
+				log.Printf("%#v", trace)
+			}
+		}
+	}()
+	ins.WaitUntilComplete(ctx)
+
+	pros := ins.Locator.CloneVariables()
+	log.Printf("%#v", pros)
+	ins.Tracer.Unsubscribe(traces)
 }

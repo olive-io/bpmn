@@ -302,7 +302,6 @@ func (flow *Flow) Start(ctx context.Context) {
 					}
 					a.ProbeReport(results)
 				case flow_node.FlowAction:
-
 					if res := a.Response; res != nil {
 						if res.Err != nil {
 							source := flow.current.Element()

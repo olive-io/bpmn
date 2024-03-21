@@ -3,17 +3,17 @@ module github.com/olive-io/bpmn
 go 1.18
 
 require (
-	github.com/ChrisTrenkamp/xsel v0.9.13
+	github.com/ChrisTrenkamp/xsel v0.9.15
 	github.com/Chronokeeper/anyxml v0.0.0-20160530174208-54457d8e98c6
 	github.com/bits-and-blooms/bitset v1.13.0
 	github.com/expr-lang/expr v1.16.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/json-iterator/go v1.1.12
 	github.com/muyo/sno v1.2.1
-	github.com/olive-io/bpmn/schema v1.1.0
+	github.com/olive-io/bpmn/schema v1.2.0
 	github.com/qri-io/iso8601 v0.1.0
-	github.com/stretchr/testify v1.8.4
-	golang.org/x/sys v0.17.0
+	github.com/stretchr/testify v1.9.0
+	golang.org/x/sys v0.18.0
 )
 
 require (
