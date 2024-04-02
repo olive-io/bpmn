@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/json-iterator/go v1.1.12
 	github.com/muyo/sno v1.2.1
-	github.com/olive-io/bpmn/schema v1.2.0
+	github.com/olive-io/bpmn/schema v1.3.0
 	github.com/qri-io/iso8601 v0.1.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/sys v0.18.0
