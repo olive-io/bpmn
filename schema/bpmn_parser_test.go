@@ -44,7 +44,7 @@ func TestParseSample(t *testing.T) {
 	processes := sampleDoc.Processes()
 	assert.Equal(t, 1, len(*processes))
 
-	out, err := xml.MarshalIndent(&sampleDoc, "", " ")
+	_, err := xml.MarshalIndent(&sampleDoc, "", " ")
 	if !assert.NoError(t, err) {
 		return
 	}
@@ -58,7 +58,17 @@ func TestParseSample(t *testing.T) {
 	name, _ := element.(FlowElementInterface).Name()
 	t.Log(*id, *name)
 
-	t.Log(string(out))
+	element, found = sampleDoc.FindBy(ExactId("right"))
+	if !assert.True(t, found) {
+		return
+	}
+
+	extension, ok := element.(FlowNodeInterface).ExtensionElements()
+	if !assert.True(t, ok) {
+		return
+	}
+
+	t.Log(extension.TaskHeaderField.Header[0])
 }
 
 func TestParseSampleNs(t *testing.T) {

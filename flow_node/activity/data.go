@@ -30,6 +30,9 @@ func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElemen
 		if header := extension.TaskHeaderField; header != nil {
 			fields := header.Header
 			for _, field := range fields {
+				if field.Type == "" {
+					field.Type = schema.ItemTypeString
+				}
 				value := field.ValueFor()
 				headers[field.Name] = value
 			}

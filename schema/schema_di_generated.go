@@ -64,9 +64,15 @@ func (t *BPMNDiagram) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *BPMNDiagram) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *BPMNDiagram) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type BPMNDiagramUnmarshaler BPMNDiagram
+	out := BPMNDiagramUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = BPMNDiagram(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *BPMNDiagram) BPMNPlane() (result *BPMNPlane) {
@@ -125,9 +131,15 @@ func (t *BPMNPlane) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *BPMNPlane) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *BPMNPlane) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type BPMNPlaneUnmarshaler BPMNPlane
+	out := BPMNPlaneUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = BPMNPlane(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *BPMNPlane) BpmnElement() (result *QName, present bool) {
@@ -192,9 +204,15 @@ func (t *BPMNEdge) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *BPMNEdge) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *BPMNEdge) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type BPMNEdgeUnmarshaler BPMNEdge
+	out := BPMNEdgeUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = BPMNEdge(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *BPMNEdge) BpmnElement() (result *QName, present bool) {
@@ -306,9 +324,15 @@ func (t *BPMNShape) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *BPMNShape) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *BPMNShape) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type BPMNShapeUnmarshaler BPMNShape
+	out := BPMNShapeUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = BPMNShape(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *BPMNShape) BpmnElement() (result *QName, present bool) {
@@ -429,9 +453,15 @@ func (t *BPMNLabel) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *BPMNLabel) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *BPMNLabel) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type BPMNLabelUnmarshaler BPMNLabel
+	out := BPMNLabelUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = BPMNLabel(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *BPMNLabel) LabelStyle() (result *QName, present bool) {
@@ -484,9 +514,15 @@ func (t *BPMNLabelStyle) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 	return e.EncodeElement(out, start)
 }
 
-func (t *BPMNLabelStyle) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *BPMNLabelStyle) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type BPMNLabelStyleUnmarshaler BPMNLabelStyle
+	out := BPMNLabelStyleUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = BPMNLabelStyle(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *BPMNLabelStyle) Font() (result *Font) {
@@ -545,9 +581,15 @@ func (t *Font) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Font) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *Font) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type FontUnmarshaler Font
+	out := FontUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = Font(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *Font) Name() (result *string, present bool) {
@@ -646,9 +688,15 @@ func (t *Point) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Point) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *Point) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type PointUnmarshaler Point
+	out := PointUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = Point(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *Point) X() (result Double) {
@@ -707,9 +755,15 @@ func (t *Bounds) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Bounds) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *Bounds) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type BoundsUnmarshaler Bounds
+	out := BoundsUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = Bounds(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *Bounds) X() (result Double) {
@@ -780,9 +834,15 @@ func (t *DiagramElement) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 	return e.EncodeElement(out, start)
 }
 
-func (t *DiagramElement) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *DiagramElement) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type DiagramElementUnmarshaler DiagramElement
+	out := DiagramElementUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = DiagramElement(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *DiagramElement) Id() (result *Id, present bool) {
@@ -844,9 +904,15 @@ func (t *Diagram) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Diagram) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *Diagram) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type DiagramUnmarshaler Diagram
+	out := DiagramUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = Diagram(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *Diagram) Name() (result *string, present bool) {
@@ -926,9 +992,15 @@ func (t *Node) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Node) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *Node) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type NodeUnmarshaler Node
+	out := NodeUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = Node(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 type Edge struct {
@@ -970,9 +1042,15 @@ func (t *Edge) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Edge) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *Edge) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type EdgeUnmarshaler Edge
+	out := EdgeUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = Edge(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *Edge) Waypoints() (result *[]Point) {
@@ -1019,9 +1097,15 @@ func (t *LabeledEdge) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *LabeledEdge) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *LabeledEdge) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type LabeledEdgeUnmarshaler LabeledEdge
+	out := LabeledEdgeUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = LabeledEdge(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 type Shape struct {
@@ -1063,9 +1147,15 @@ func (t *Shape) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Shape) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *Shape) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type ShapeUnmarshaler Shape
+	out := ShapeUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = Shape(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *Shape) Bounds() (result *Bounds) {
@@ -1113,9 +1203,15 @@ func (t *LabeledShape) MarshalXML(e *xml.Encoder, start xml.StartElement) error 
 	return e.EncodeElement(out, start)
 }
 
-func (t *LabeledShape) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *LabeledShape) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type LabeledShapeUnmarshaler LabeledShape
+	out := LabeledShapeUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = LabeledShape(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 type Label struct {
@@ -1157,9 +1253,15 @@ func (t *Label) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Label) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *Label) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type LabelUnmarshaler Label
+	out := LabelUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = Label(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *Label) Bounds() (result *Bounds) {
@@ -1212,9 +1314,15 @@ func (t *Plane) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Plane) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *Plane) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type PlaneUnmarshaler Plane
+	out := PlaneUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = Plane(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *Plane) DiagramElement() (result *[]DiagramElement) {
@@ -1258,9 +1366,15 @@ func (t *Style) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Style) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *Style) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type StyleUnmarshaler Style
+	out := StyleUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = Style(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func (t *Style) Id() (result *Id, present bool) {

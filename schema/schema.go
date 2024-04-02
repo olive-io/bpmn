@@ -16,6 +16,7 @@ package schema
 
 import (
 	"encoding/xml"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -311,7 +312,7 @@ func PreMarshal(element Element, encoder *xml.Encoder, start *xml.StartElement) 
 	}
 }
 
-func PreUnmarshal(element Element, decoder *xml.Decoder, start *xml.StartElement) {
+func PostUnmarshal(element Element, decoder *xml.Decoder, start *xml.StartElement) {
 	return
 }
 
@@ -367,8 +368,42 @@ func (i *Item) ValueFor() any {
 		_ = json.Unmarshal([]byte(i.Value), &obj)
 		return obj
 	default:
-		return nil
+		return i.Value
 	}
+}
+
+func (i *Item) ValueTo(dst any) error {
+	rv := reflect.ValueOf(dst)
+	if rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+
+	if rv.Kind() == reflect.String && i.Type == ItemTypeString {
+		rv.SetString(i.Value)
+	} else if rv.Kind() == reflect.Map && i.Type == ItemTypeObject {
+		if err := json.Unmarshal([]byte(i.Value), &dst); err != nil {
+			return err
+		}
+	} else if rv.Kind() == reflect.Struct && i.Type == ItemTypeObject {
+		if err := json.Unmarshal([]byte(i.Value), &dst); err != nil {
+			return err
+		}
+	} else if rv.Kind() == reflect.Slice && i.Type == ItemTypeArray {
+		if err := json.Unmarshal([]byte(i.Value), &dst); err != nil {
+			return err
+		}
+	} else if rv.CanInt() && i.Type == ItemTypeInteger {
+		n, _ := strconv.ParseInt(i.Value, 10, 64)
+		rv.SetInt(n)
+	} else if rv.CanUint() && i.Type == ItemTypeInteger {
+		n, _ := strconv.ParseUint(i.Value, 10, 64)
+		rv.SetUint(n)
+	} else if rv.CanFloat() && i.Type == ItemTypeFloat {
+		f, _ := strconv.ParseFloat(i.Value, 10)
+		rv.SetFloat(f)
+	}
+
+	return fmt.Errorf("not matched")
 }
 
 func (i *Item) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -377,7 +412,29 @@ func (i *Item) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		Local: OliveNS + start.Name.Local,
 	}
 
-	return e.EncodeElement(out, start)
+	if out.Type == "" {
+		out.Type = ItemTypeString
+	}
+
+	if err := e.EncodeElement(out, start); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (i *Item) UnmarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type ItemUnmarshaler Item
+	out := ItemUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return err
+	}
+
+	*i = Item(out)
+	if i.Type == "" {
+		i.Type = ItemTypeString
+	}
+	return nil
 }
 
 type TaskHeader struct {
@@ -496,9 +553,16 @@ func (t *DIExtension) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *DIExtension) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {
-	PreUnmarshal(t, de, start)
-	return de.DecodeElement(t, start)
+func (t *DIExtension) UnmarshalXML(de *xml.Decoder, start xml.StartElement) error {
+	type DIExtensionUnmarshaler DIExtension
+	out := DIExtensionUnmarshaler{}
+	if err := de.DecodeElement(&out, &start); err != nil {
+		return err
+	}
+
+	*t = DIExtension(out)
+	PostUnmarshal(t, de, &start)
+	return nil
 }
 
 func Parse(data []byte) (*Definitions, error) {

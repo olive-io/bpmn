@@ -375,10 +375,23 @@
         </xsl:text>
 
         <xsl:text xml:space="preserve">func (t *</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
-        <xsl:text xml:space="preserve">) UnMarshalXML(de *xml.Decoder, start *xml.StartElement) error {</xsl:text>
+        <xsl:text xml:space="preserve">) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {</xsl:text>
+        <xsl:text xml:space="preserve">type </xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
+        <xsl:text xml:space="preserve">Unmarshaler </xsl:text>
+        <xsl:value-of select="local:struct-case($type/@name)"/>
         <xsl:text xml:space="preserve">
-            PreUnmarshal(t, de, start)
-	        return de.DecodeElement(t, start)
+        </xsl:text>
+        <xsl:text xml:space="preserve">out := </xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
+        <xsl:text xml:space="preserve">Unmarshaler{}</xsl:text>
+        <xsl:text xml:space="preserve" />
+        <xsl:text xml:space="preserve">
+	        if err := de.DecodeElement(&amp;out, &amp;start); err != nil { return nil }
+        </xsl:text>
+        <xsl:text xml:space="preserve">*t = </xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
+        <xsl:text xml:space="preserve">(out) </xsl:text>
+        <xsl:text xml:space="preserve">
+            PostUnmarshal(t, de, &amp;start)
+            return nil
             }
 
         </xsl:text>

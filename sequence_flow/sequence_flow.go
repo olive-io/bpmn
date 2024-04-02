@@ -26,20 +26,20 @@ type SequenceFlow struct {
 	process schema.Element
 }
 
-func Make(sequenceFlow *schema.SequenceFlow, process schema.Element) SequenceFlow {
+func Make(sf *schema.SequenceFlow, process schema.Element) SequenceFlow {
 	return SequenceFlow{
-		SequenceFlow: sequenceFlow,
+		SequenceFlow: sf,
 		process:      process,
 	}
 }
 
-func New(sequenceFlow *schema.SequenceFlow, process schema.Element) *SequenceFlow {
-	seqFlow := Make(sequenceFlow, process)
+func New(sf *schema.SequenceFlow, process schema.Element) *SequenceFlow {
+	seqFlow := Make(sf, process)
 	return &seqFlow
 }
 
-func (sequenceFlow *SequenceFlow) resolveId(id *string) (result schema.FlowNodeInterface, err error) {
-	process := sequenceFlow.process
+func (sf *SequenceFlow) resolveId(id *string) (result schema.FlowNodeInterface, err error) {
+	process := sf.process
 
 	predicate := schema.ExactId(*id).And(schema.ElementInterface((*schema.FlowNodeInterface)(nil)))
 	if flowNode, found := process.FindBy(predicate); found {
@@ -50,22 +50,22 @@ func (sequenceFlow *SequenceFlow) resolveId(id *string) (result schema.FlowNodeI
 	return
 }
 
-func (sequenceFlow *SequenceFlow) Source() (schema.FlowNodeInterface, error) {
-	return sequenceFlow.resolveId(sequenceFlow.SequenceFlow.SourceRef())
+func (sf *SequenceFlow) Source() (schema.FlowNodeInterface, error) {
+	return sf.resolveId(sf.SequenceFlow.SourceRef())
 }
 
-func (sequenceFlow *SequenceFlow) Target() (schema.FlowNodeInterface, error) {
-	return sequenceFlow.resolveId(sequenceFlow.SequenceFlow.TargetRef())
+func (sf *SequenceFlow) Target() (schema.FlowNodeInterface, error) {
+	return sf.resolveId(sf.SequenceFlow.TargetRef())
 }
 
-func (sequenceFlow *SequenceFlow) TargetIndex() (index int, err error) {
+func (sf *SequenceFlow) TargetIndex() (index int, err error) {
 	var target schema.FlowNodeInterface
-	target, err = sequenceFlow.Target()
+	target, err = sf.Target()
 	if err != nil {
 		return
 	}
 	// ownId is present since Target() already checked for this
-	ownId, _ := sequenceFlow.SequenceFlow.Id()
+	ownId, _ := sf.SequenceFlow.Id()
 	incomings := target.Incomings()
 	for i := range *incomings {
 		if string((*incomings)[i]) == *ownId {

@@ -32,7 +32,7 @@
       <bpmn:extensionElements>
         <olive:taskDefinition type="service"/>
         <olive:taskHeaders>
-          <olive:header name="contentType" value="aplication/json" type="string"/>
+          <olive:header name="contentType" value="aplication/json"/>
         </olive:taskHeaders>
         <olive:properties>
           <olive:property name="a" value="1" type="integer"/>
