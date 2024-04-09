@@ -16,16 +16,13 @@ package script
 
 import (
 	"context"
-	"fmt"
-	"strings"
+
+	"github.com/olive-io/bpmn/schema"
 
 	"github.com/olive-io/bpmn/data"
-	"github.com/olive-io/bpmn/errors"
-	"github.com/olive-io/bpmn/expression"
 	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
-	"github.com/olive-io/bpmn/schema"
 )
 
 type imessage interface {
@@ -98,106 +95,28 @@ func (node *Node) runner(ctx context.Context) {
 						taskDef = &schema.TaskDefinition{Type: "expression"}
 					}
 
-					switch taskDef.Type {
-					case "expression":
-						lang := *node.Definitions.ExpressionLanguage()
-						engine := expression.GetEngine(ctx, lang)
+					at := activity.NewTraceBuilder().
+						Context(node.ctx).
+						Activity(node).
+						Headers(m.Headers).
+						Properties(m.Properties).
+						Response(response).
+						Build()
 
-						properties := make(map[string]any)
-						for key, value := range m.Properties {
-							properties[key] = value
+					node.Tracer.Trace(at)
+					select {
+					case <-ctx.Done():
+						node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
+						return
+					case out := <-response:
+						if out.Err != nil {
+							aResponse.Err = out.Err
 						}
-						for key, value := range m.DataObjects {
-							properties[key] = value
+						for key, value := range out.Properties {
+							aResponse.Variables[key] = value
 						}
-
-						if extension.ScriptField != nil {
-							if !strings.HasPrefix(extension.ScriptField.Expression, "=") {
-								aResponse.Err = errors.InvalidArgumentError{
-									Expected: "script expression must start with '=', (like '=a+b')",
-									Actual:   "(" + extension.ScriptField.Expression + ")",
-								}
-								m.response <- action
-								return
-							}
-							expr := strings.TrimPrefix(extension.ScriptField.Expression, "=")
-							compiled, err := engine.CompileExpression(expr)
-							if err != nil {
-								aResponse.Err = errors.InvalidArgumentError{
-									Expected: "must be a legal expression",
-									Actual:   err.Error(),
-								}
-								m.response <- action
-								return
-							}
-
-							result, err := engine.EvaluateExpression(compiled, properties)
-							if err != nil {
-								aResponse.Err = errors.TaskExecError{Id: node.FlowNodeId, Reason: err.Error()}
-								m.response <- action
-								return
-							}
-
-							key := extension.ScriptField.Result
-							noMatchedErr := errors.InvalidArgumentError{
-								Expected: fmt.Sprintf("boolean result in conditionExpression (%s)", expr),
-								Actual:   result,
-							}
-
-							switch extension.ScriptField.ResultType {
-							case schema.ItemTypeBoolean:
-								if v, ok := result.(bool); !ok {
-									aResponse.Err = noMatchedErr
-								} else {
-									aResponse.Variables[key] = v
-								}
-							case schema.ItemTypeString:
-								if v, ok := result.(string); !ok {
-									aResponse.Err = noMatchedErr
-								} else {
-									aResponse.Variables[key] = v
-								}
-							case schema.ItemTypeInteger:
-								if v, ok := result.(int); !ok {
-									aResponse.Err = noMatchedErr
-								} else {
-									aResponse.Variables[key] = v
-								}
-							case schema.ItemTypeFloat:
-								if v, ok := result.(float64); !ok {
-									aResponse.Err = noMatchedErr
-								} else {
-									aResponse.Variables[key] = v
-								}
-							}
-						}
-
+						aResponse.Handler = out.HandlerCh
 						m.response <- action
-
-					default:
-						at := activity.NewTraceBuilder().
-							Context(node.ctx).
-							Activity(node).
-							Headers(m.Headers).
-							Properties(m.Properties).
-							Response(response).
-							Build()
-
-						node.Tracer.Trace(at)
-						select {
-						case <-ctx.Done():
-							node.Tracer.Trace(flow_node.CancellationTrace{Node: node.element})
-							return
-						case out := <-response:
-							if out.Err != nil {
-								aResponse.Err = out.Err
-							}
-							for key, value := range out.Properties {
-								aResponse.Variables[key] = value
-							}
-							aResponse.Handler = out.HandlerCh
-							m.response <- action
-						}
 					}
 
 				}()

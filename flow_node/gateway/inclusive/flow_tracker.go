@@ -18,9 +18,10 @@ import (
 	"context"
 	"sync"
 
+	"github.com/olive-io/bpmn/schema"
+
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/pkg/id"
-	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 )
 

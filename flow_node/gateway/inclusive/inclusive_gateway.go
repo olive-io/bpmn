@@ -18,12 +18,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/olive-io/bpmn/schema"
+
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/gateway"
 	"github.com/olive-io/bpmn/pkg/id"
-	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/sequence_flow"
 	"github.com/olive-io/bpmn/tracing"
 )

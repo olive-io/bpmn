@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/olive-io/bpmn/schema"
+
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/event"
@@ -43,7 +45,6 @@ import (
 	"github.com/olive-io/bpmn/flow_node/gateway/inclusive"
 	"github.com/olive-io/bpmn/flow_node/gateway/parallel"
 	"github.com/olive-io/bpmn/pkg/id"
-	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 )
 

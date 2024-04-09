@@ -13,7 +13,7 @@ require (
 	github.com/olive-io/bpmn/schema v1.3.0
 	github.com/qri-io/iso8601 v0.1.0
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/sys v0.18.0
+	golang.org/x/sys v0.19.0
 )
 
 require (
