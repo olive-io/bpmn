@@ -98,6 +98,80 @@ func (node *Node) runner(ctx context.Context) {
 						taskDef = &schema.TaskDefinition{Type: "expression"}
 					}
 
+					/*
+						lang := *node.Definitions.ExpressionLanguage()
+						engine := expression.GetEngine(ctx, lang)
+
+						properties := make(map[string]any)
+						for key, value := range m.Properties {
+							properties[key] = value
+						}
+						for key, value := range m.DataObjects {
+							properties[key] = value
+						}
+
+						if extension.ScriptField != nil {
+							if !strings.HasPrefix(extension.ScriptField.Expression, "=") {
+								aResponse.Err = errors.InvalidArgumentError{
+									Expected: "script expression must start with '=', (like '=a+b')",
+									Actual:   "(" + extension.ScriptField.Expression + ")",
+								}
+								m.response <- action
+								return
+							}
+							expr := strings.TrimPrefix(extension.ScriptField.Expression, "=")
+							compiled, err := engine.CompileExpression(expr)
+							if err != nil {
+								aResponse.Err = errors.InvalidArgumentError{
+									Expected: "must be a legal expression",
+									Actual:   err.Error(),
+								}
+								m.response <- action
+								return
+							}
+
+							result, err := engine.EvaluateExpression(compiled, properties)
+							if err != nil {
+								aResponse.Err = errors.TaskExecError{Id: node.FlowNodeId, Reason: err.Error()}
+								m.response <- action
+								return
+							}
+
+							key := extension.ScriptField.Result
+							noMatchedErr := errors.InvalidArgumentError{
+								Expected: fmt.Sprintf("boolean result in conditionExpression (%s)", expr),
+								Actual:   result,
+							}
+
+							switch extension.ScriptField.ResultType {
+							case schema.ItemTypeBoolean:
+								if v, ok := result.(bool); !ok {
+									aResponse.Err = noMatchedErr
+								} else {
+									aResponse.Variables[key] = v
+								}
+							case schema.ItemTypeString:
+								if v, ok := result.(string); !ok {
+									aResponse.Err = noMatchedErr
+								} else {
+									aResponse.Variables[key] = v
+								}
+							case schema.ItemTypeInteger:
+								if v, ok := result.(int); !ok {
+									aResponse.Err = noMatchedErr
+								} else {
+									aResponse.Variables[key] = v
+								}
+							case schema.ItemTypeFloat:
+								if v, ok := result.(float64); !ok {
+									aResponse.Err = noMatchedErr
+								} else {
+									aResponse.Variables[key] = v
+								}
+							}
+						}
+					*/
+
 					at := activity.NewTraceBuilder().
 						Context(node.ctx).
 						Activity(node).
