@@ -46,7 +46,9 @@ func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElemen
 			for _, field := range fields {
 				value := field.ValueFor()
 				if len(strings.TrimSpace(field.Value)) == 0 {
-					value = variables[field.Name]
+					if vv, ok := variables[field.Name]; ok {
+						value = vv
+					}
 				}
 				properties[field.Name] = value
 			}
