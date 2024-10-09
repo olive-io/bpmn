@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"testing"
 
-	json "github.com/json-iterator/go"
+	json "github.com/bytedance/sonic"
 	"github.com/stretchr/testify/assert"
 )
 

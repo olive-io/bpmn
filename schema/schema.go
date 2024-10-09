@@ -24,7 +24,7 @@ import (
 	"strconv"
 	"strings"
 
-	json "github.com/json-iterator/go"
+	json "github.com/bytedance/sonic"
 )
 
 const (

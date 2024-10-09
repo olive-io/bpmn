@@ -20,7 +20,7 @@ package id
 import (
 	"context"
 
-	json "github.com/json-iterator/go"
+	json "github.com/bytedance/sonic"
 	"github.com/muyo/sno"
 
 	"github.com/olive-io/bpmn/tracing"

@@ -21,11 +21,11 @@ import (
 	"fmt"
 	"sync"
 
-	json "github.com/json-iterator/go"
-	"github.com/olive-io/bpmn/schema"
+	json "github.com/bytedance/sonic"
 
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/pkg/id"
+	"github.com/olive-io/bpmn/schema"
 )
 
 const (
