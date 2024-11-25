@@ -33,7 +33,7 @@ import (
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 
-	_ "github.com/olive-io/bpmn/expression/expr"
+	_ "github.com/olive-io/bpmn/pkg/expression/expr"
 )
 
 //go:embed testdata

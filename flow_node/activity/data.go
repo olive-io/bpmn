@@ -20,9 +20,8 @@ package activity
 import (
 	"strings"
 
+	"github.com/olive-io/bpmn/pkg/data"
 	"github.com/olive-io/bpmn/schema"
-
-	"github.com/olive-io/bpmn/data"
 )
 
 func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElementInterface) (headers, properties, dataObjects map[string]any) {

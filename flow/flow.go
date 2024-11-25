@@ -22,17 +22,17 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/olive-io/bpmn/data"
-	"github.com/olive-io/bpmn/errors"
-	"github.com/olive-io/bpmn/expression"
 	"github.com/olive-io/bpmn/flow_node"
+	"github.com/olive-io/bpmn/pkg/data"
+	"github.com/olive-io/bpmn/pkg/errors"
+	"github.com/olive-io/bpmn/pkg/expression"
 	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/sequence_flow"
 	"github.com/olive-io/bpmn/tracing"
 
-	_ "github.com/olive-io/bpmn/expression/expr"
-	_ "github.com/olive-io/bpmn/expression/xpath"
+	_ "github.com/olive-io/bpmn/pkg/expression/expr"
+	_ "github.com/olive-io/bpmn/pkg/expression/xpath"
 )
 
 // Flow Represents a flow
@@ -214,7 +214,7 @@ func (flow *Flow) handleSequenceFlow(ctx context.Context, sequenceFlow *sequence
 // the order of traces which is expected to be linear.
 func (flow *Flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow *sequence_flow.SequenceFlow,
 	unconditional bool, actionTransformer flow_node.ActionTransformer,
-	terminate flow_node.Terminate) (flowId id.Id, f func(), flowed bool) {
+	terminate flow_node.Terminate) (flowId id.Id, handle func(), flowed bool) {
 	ok, err := flow.executeSequenceFlow(ctx, sequenceFlow, unconditional)
 	if err != nil {
 		flow.tracer.Trace(tracing.ErrorTrace{Error: err})
@@ -230,7 +230,7 @@ func (flow *Flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow
 	}
 	if flowNode, found := flow.flowNodeMapping.ResolveElementToFlowNode(target); found {
 		flowId = flow.idGenerator.New()
-		f = func() {
+		handle = func() {
 			flowable := New(flow.definitions, flowNode, flow.tracer, flow.flowNodeMapping,
 				flow.flowWaitGroup, flow.idGenerator, actionTransformer, flow.locator)
 			flowable.id = flowId // important: override id with pre-generated one

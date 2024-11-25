@@ -108,7 +108,7 @@ func (t *tracer) runner(ctx context.Context) {
 }
 
 func (t *tracer) Subscribe() chan ITrace {
-	return t.SubscribeChannel(make(chan ITrace))
+	return t.SubscribeChannel(make(chan ITrace, 10))
 }
 
 func (t *tracer) SubscribeChannel(channel chan ITrace) chan ITrace {

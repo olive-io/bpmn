@@ -20,7 +20,7 @@ package sequence_flow
 import (
 	"fmt"
 
-	"github.com/olive-io/bpmn/errors"
+	"github.com/olive-io/bpmn/pkg/errors"
 	"github.com/olive-io/bpmn/schema"
 )
 

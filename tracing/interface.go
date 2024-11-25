@@ -18,6 +18,9 @@
 package tracing
 
 // ITrace is an interface for actual data traces
+// This is used for observability of systems, such as letting
+// flow nodes, tests and other components to know what happened
+// in other parts of the system.
 type ITrace interface {
 	TraceInterface()
 }
@@ -58,7 +61,7 @@ type ITracer interface {
 	Done() chan struct{}
 }
 
-// IWrappedTrace is a trace that wraps another trace.
+// ITraceW is a trace that wraps another trace.
 //
 // The purpose of it is to allow components to produce traces that will
 // be wrapped into additional context, without being aware of it.
@@ -68,7 +71,7 @@ type ITracer interface {
 //
 // Consumers looking for individual traces should use Unwrap to retrieve
 // the original trace (as opposed to the wrapped one)
-type IWrappedTrace interface {
+type ITraceW interface {
 	ITrace
 	// Unwrap returns a wrapped trace
 	Unwrap() ITrace
@@ -78,7 +81,7 @@ type IWrappedTrace interface {
 // or return the trace as is if it isn't wrapped.
 func Unwrap(trace ITrace) ITrace {
 	for {
-		if unwrapped, ok := trace.(IWrappedTrace); ok {
+		if unwrapped, ok := trace.(ITraceW); ok {
 			trace = unwrapped.Unwrap()
 		} else {
 			return trace

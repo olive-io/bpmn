@@ -24,13 +24,13 @@ import (
 	"log"
 	"testing"
 
+	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
 
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/event/catch"
 	"github.com/olive-io/bpmn/process"
-	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/tracing"
 
 	"github.com/stretchr/testify/assert"

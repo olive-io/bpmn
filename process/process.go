@@ -20,11 +20,10 @@ package process
 import (
 	"context"
 
-	"github.com/olive-io/bpmn/schema"
-
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/process/instance"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 )
 

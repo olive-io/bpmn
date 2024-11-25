@@ -23,11 +23,11 @@ import (
 	"log"
 	"testing"
 
-	"github.com/olive-io/bpmn/schema"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/olive-io/bpmn/model"
 	"github.com/olive-io/bpmn/process"
+	"github.com/olive-io/bpmn/schema"
 )
 
 //go:embed testdata

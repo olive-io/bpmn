@@ -25,16 +25,16 @@ import (
 	"log"
 	"testing"
 
-	"github.com/olive-io/bpmn/schema"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/flow_node/gateway/exclusive"
 	"github.com/olive-io/bpmn/process"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 
-	_ "github.com/olive-io/bpmn/expression/expr"
+	_ "github.com/olive-io/bpmn/pkg/expression/expr"
 )
 
 //go:embed testdata

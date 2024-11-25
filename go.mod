@@ -1,11 +1,11 @@
 module github.com/olive-io/bpmn
 
-go 1.18
+go 1.22
 
 require (
 	github.com/ChrisTrenkamp/xsel v0.9.16
 	github.com/Chronokeeper/anyxml v0.0.0-20160530174208-54457d8e98c6
-	github.com/bits-and-blooms/bitset v1.14.3
+	github.com/bits-and-blooms/bitset v1.16.0
 	github.com/bytedance/sonic v1.12.3
 	github.com/expr-lang/expr v1.16.9
 	github.com/hashicorp/go-multierror v1.1.1
@@ -13,7 +13,7 @@ require (
 	github.com/olive-io/bpmn/schema v1.3.4
 	github.com/qri-io/iso8601 v0.1.0
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/sys v0.26.0
+	golang.org/x/sys v0.27.0
 )
 
 require (

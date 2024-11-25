@@ -1,10 +1,10 @@
 module github.com/olive-io/bpmn/schema
 
-go 1.18
+go 1.22
 
 require (
-	github.com/bytedance/sonic v1.12.3
-	github.com/stretchr/testify v1.8.4
+	github.com/bytedance/sonic v1.12.5
+	github.com/stretchr/testify v1.10.0
 )
 
 require (

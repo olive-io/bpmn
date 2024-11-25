@@ -23,11 +23,10 @@ import (
 	"encoding/xml"
 	"log"
 
-	"github.com/olive-io/bpmn/schema"
-
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node/activity"
 	"github.com/olive-io/bpmn/process"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 )
 

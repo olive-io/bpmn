@@ -17,7 +17,9 @@
 
 package expression
 
-import "github.com/olive-io/bpmn/data"
+import (
+	"github.com/olive-io/bpmn/pkg/data"
+)
 
 type ICompiler interface {
 	CompileExpression(source string) (ICompiledExpression, error)

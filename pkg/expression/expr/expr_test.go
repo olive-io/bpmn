@@ -23,8 +23,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/olive-io/bpmn/data"
-	"github.com/olive-io/bpmn/expression"
+	"github.com/olive-io/bpmn/pkg/data"
+	"github.com/olive-io/bpmn/pkg/expression"
 	"github.com/olive-io/bpmn/schema"
 )
 

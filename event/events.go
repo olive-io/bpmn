@@ -18,9 +18,8 @@
 package event
 
 import (
+	"github.com/olive-io/bpmn/pkg/data"
 	"github.com/olive-io/bpmn/schema"
-
-	"github.com/olive-io/bpmn/data"
 )
 
 type IEvent interface {

@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/olive-io/bpmn/data"
-	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/event"
+	"github.com/olive-io/bpmn/pkg/data"
+	"github.com/olive-io/bpmn/pkg/errors"
 	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/sequence_flow"

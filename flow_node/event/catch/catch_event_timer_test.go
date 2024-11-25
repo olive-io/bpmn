@@ -22,8 +22,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/olive-io/bpmn/schema"
 	"github.com/stretchr/testify/require"
+
+	"github.com/olive-io/bpmn/process/instance"
+	"github.com/olive-io/bpmn/schema"
 
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
@@ -31,7 +33,6 @@ import (
 	clock2 "github.com/olive-io/bpmn/pkg/clock"
 	"github.com/olive-io/bpmn/pkg/timer"
 	"github.com/olive-io/bpmn/process"
-	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/tracing"
 )
 

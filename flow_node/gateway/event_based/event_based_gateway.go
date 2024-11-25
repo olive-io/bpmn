@@ -23,10 +23,9 @@ import (
 	"sync/atomic"
 
 	"github.com/olive-io/bpmn/flow/flow_interface"
-	"github.com/olive-io/bpmn/schema"
-
-	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/flow_node"
+	"github.com/olive-io/bpmn/pkg/errors"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 )
 

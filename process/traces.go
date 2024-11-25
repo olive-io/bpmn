@@ -19,7 +19,6 @@ package process
 
 import (
 	"github.com/olive-io/bpmn/schema"
-
 	"github.com/olive-io/bpmn/tracing"
 )
 

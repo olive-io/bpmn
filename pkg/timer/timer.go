@@ -21,11 +21,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/olive-io/bpmn/schema"
 	"github.com/qri-io/iso8601"
 
-	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/pkg/clock"
+	"github.com/olive-io/bpmn/pkg/errors"
+	"github.com/olive-io/bpmn/schema"
 )
 
 func New(ctx context.Context, clock clock.IClock, definition schema.TimerEventDefinition) (ch chan schema.TimerEventDefinition, err error) {

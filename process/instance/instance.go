@@ -22,8 +22,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/olive-io/bpmn/data"
-	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/flow_node"
@@ -45,6 +43,8 @@ import (
 	"github.com/olive-io/bpmn/flow_node/gateway/exclusive"
 	"github.com/olive-io/bpmn/flow_node/gateway/inclusive"
 	"github.com/olive-io/bpmn/flow_node/gateway/parallel"
+	"github.com/olive-io/bpmn/pkg/data"
+	"github.com/olive-io/bpmn/pkg/errors"
 	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
@@ -91,7 +91,7 @@ func (instance *Instance) RegisterEventConsumer(ev event.IConsumer) (err error) 
 }
 
 // Option allows to modify configuration of
-// an instance in a flexible fashion (as its just a modification
+// an instance in a flexible fashion (as it's just a modification
 // function)
 //
 // It also allows to augment or replace the context.
@@ -229,7 +229,6 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 	}
 
 	// Flow nodes
-
 	subTracer := tracing.NewTracer(ctx)
 
 	tracing.NewRelay(ctx, subTracer, instance.Tracer, func(trace tracing.ITrace) []tracing.ITrace {

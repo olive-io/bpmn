@@ -21,12 +21,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/olive-io/bpmn/schema"
 	"github.com/stretchr/testify/require"
 
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/model"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 )
 

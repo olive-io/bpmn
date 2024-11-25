@@ -20,19 +20,19 @@ package flow_node
 import (
 	"sync"
 
-	"github.com/olive-io/bpmn/errors"
+	"github.com/olive-io/bpmn/pkg/errors"
 	"github.com/olive-io/bpmn/schema"
 )
 
 type FlowNodeMapping struct {
-	mapping map[string]IFlowNode
 	lock    sync.RWMutex
+	mapping map[string]IFlowNode
 }
 
 func NewLockedFlowNodeMapping() *FlowNodeMapping {
 	mapping := &FlowNodeMapping{
-		mapping: make(map[string]IFlowNode),
 		lock:    sync.RWMutex{},
+		mapping: make(map[string]IFlowNode),
 	}
 	mapping.lock.Lock()
 	return mapping
