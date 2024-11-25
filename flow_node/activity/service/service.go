@@ -20,10 +20,10 @@ package service
 import (
 	"context"
 
+	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/schema"
 
 	"github.com/olive-io/bpmn/data"
-	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/flow_node/activity"
 )

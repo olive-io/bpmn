@@ -24,7 +24,6 @@ import (
 	"log"
 	"testing"
 
-	"github.com/olive-io/bpmn/schema"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/olive-io/bpmn/event"
@@ -32,6 +31,7 @@ import (
 	"github.com/olive-io/bpmn/flow_node/activity"
 	ev "github.com/olive-io/bpmn/flow_node/event/catch"
 	"github.com/olive-io/bpmn/process"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 )
 

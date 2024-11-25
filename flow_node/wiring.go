@@ -21,12 +21,11 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/olive-io/bpmn/schema"
-
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/pkg/id"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/sequence_flow"
 	"github.com/olive-io/bpmn/tracing"
 )
@@ -130,14 +129,16 @@ func (wiring *Wiring) CloneFor(flowNode *schema.FlowNode) (result *Wiring, err e
 		return
 	}
 	var ownId string
-	if ownIdPtr, present := flowNode.Id(); !present {
+
+	ownIdPtr, present := flowNode.Id()
+	if !present {
 		err = errors.NotFoundError{
 			Expected: fmt.Sprintf("flow node %#v to have an ID", flowNode),
 		}
 		return
-	} else {
-		ownId = *ownIdPtr
 	}
+
+	ownId = *ownIdPtr
 	result = &Wiring{
 		ProcessInstanceId:              wiring.ProcessInstanceId,
 		FlowNodeId:                     ownId,

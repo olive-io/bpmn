@@ -1,4 +1,3 @@
-// Package logic provides commonly shared "logic units" (or algorithms)
 /*
    Copyright 2023 The bpmn Authors
 
@@ -16,4 +15,5 @@
    License along with this library;
 */
 
+// Package logic provides commonly shared "logic units" (or algorithms)
 package logic

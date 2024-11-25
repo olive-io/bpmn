@@ -79,9 +79,7 @@ func (engine *Expr) CompileExpression(source string) (result expression.ICompile
 	return
 }
 
-func (engine *Expr) EvaluateExpression(e expression.ICompiledExpression,
-	data interface{},
-) (result expression.IResult, err error) {
+func (engine *Expr) EvaluateExpression(e expression.ICompiledExpression, data interface{}) (result expression.IResult, err error) {
 	actualData := data
 	if data == nil {
 		actualData = engine.env

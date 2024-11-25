@@ -22,13 +22,12 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/olive-io/bpmn/schema"
-
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/errors"
 	"github.com/olive-io/bpmn/expression"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/pkg/id"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/sequence_flow"
 	"github.com/olive-io/bpmn/tracing"
 

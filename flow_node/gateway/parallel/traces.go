@@ -18,9 +18,8 @@
 package parallel
 
 import (
-	"github.com/olive-io/bpmn/schema"
-
 	"github.com/olive-io/bpmn/flow/flow_interface"
+	"github.com/olive-io/bpmn/schema"
 )
 
 // IncomingFlowProcessedTrace signals that a particular flow

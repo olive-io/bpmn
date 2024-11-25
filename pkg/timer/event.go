@@ -20,10 +20,9 @@ package timer
 import (
 	"context"
 
-	"github.com/olive-io/bpmn/schema"
-
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/pkg/clock"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 )
 

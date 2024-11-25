@@ -18,9 +18,8 @@
 package flow
 
 import (
-	"github.com/olive-io/bpmn/schema"
-
 	"github.com/olive-io/bpmn/pkg/id"
+	"github.com/olive-io/bpmn/schema"
 )
 
 type NewFlowTrace struct {

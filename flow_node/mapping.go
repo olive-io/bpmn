@@ -20,9 +20,8 @@ package flow_node
 import (
 	"sync"
 
-	"github.com/olive-io/bpmn/schema"
-
 	"github.com/olive-io/bpmn/errors"
+	"github.com/olive-io/bpmn/schema"
 )
 
 type FlowNodeMapping struct {

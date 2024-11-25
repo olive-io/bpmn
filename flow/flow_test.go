@@ -24,12 +24,12 @@ import (
 	"log"
 	"testing"
 
-	"github.com/olive-io/bpmn/schema"
 	"github.com/stretchr/testify/require"
 
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/flow"
 	"github.com/olive-io/bpmn/process"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 
 	_ "github.com/olive-io/bpmn/expression/expr"

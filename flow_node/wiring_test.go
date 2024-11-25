@@ -25,12 +25,12 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/olive-io/bpmn/schema"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/olive-io/bpmn/data"
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow_node"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 )
 

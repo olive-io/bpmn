@@ -64,7 +64,8 @@ func (t VoidConsumer) ConsumeEvent(ev IEvent) (result ConsumptionResult, err err
 func ForwardEvent(ev IEvent, eventConsumers *[]IConsumer) (result ConsumptionResult, err error) {
 	var errors *multierror.Error
 	for _, consumer := range *eventConsumers {
-		result, consumerError := consumer.ConsumeEvent(ev)
+		var consumerError error
+		result, consumerError = consumer.ConsumeEvent(ev)
 		if result == ConsumptionError && consumerError != nil {
 			errors = multierror.Append(errors, consumerError)
 		}

@@ -18,9 +18,8 @@
 package flow_node
 
 import (
-	"github.com/olive-io/bpmn/schema"
-
 	"github.com/olive-io/bpmn/flow/flow_interface"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/sequence_flow"
 )
 

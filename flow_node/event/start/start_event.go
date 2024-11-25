@@ -20,11 +20,11 @@ package start
 import (
 	"context"
 
+	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/schema"
 
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/flow/flow_interface"
 	"github.com/olive-io/bpmn/flow_node"
 	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/pkg/logic"

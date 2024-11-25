@@ -20,10 +20,10 @@ package logic
 import (
 	"testing"
 
-	"github.com/olive-io/bpmn/schema"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/olive-io/bpmn/event"
+	"github.com/olive-io/bpmn/schema"
 )
 
 func TestCatchEventSatisfier_MatchSingle(t *testing.T) {

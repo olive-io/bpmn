@@ -21,12 +21,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/olive-io/bpmn/schema"
-
 	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/pkg/timer"
 	"github.com/olive-io/bpmn/process"
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/tracing"
 )
 
