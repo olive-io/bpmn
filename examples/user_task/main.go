@@ -23,12 +23,9 @@ import (
 	"encoding/xml"
 	"log"
 
-	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/flow_node/activity"
-	"github.com/olive-io/bpmn/process"
-	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tracing"
+	"github.com/olive-io/bpmn/v2"
+	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
 //go:embed user_task.bpmn
@@ -51,15 +48,15 @@ func main() {
 	users := map[string]string{}
 
 	processElement := (*definitions.Processes())[0]
-	proc := process.New(&processElement, &definitions)
-	options := []instance.Option{
-		instance.WithVariables(map[string]any{}),
-		instance.WithDataObjects(map[string]any{}),
+	proc := bpmn.NewProcess(&processElement, &definitions)
+	options := []bpmn.Option{
+		bpmn.WithVariables(map[string]any{}),
+		bpmn.WithDataObjects(map[string]any{}),
 	}
 	ctx := context.Background()
 	if ins, err := proc.Instantiate(options...); err == nil {
-		traces := ins.Tracer.Subscribe()
-		err = ins.StartAll(ctx)
+		traces := ins.Tracer().Subscribe()
+		err = ins.StartAll()
 		if err != nil {
 			log.Fatalf("failed to run the instance: %s", err)
 		}
@@ -74,8 +71,8 @@ func main() {
 
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
-				case flow.Trace:
-				case *activity.Trace:
+				case bpmn.FlowTrace:
+				case *bpmn.TaskTrace:
 					id, _ := trace.GetActivity().Element().Id()
 					if _, ok := cache[*id]; ok {
 						// already executed, skip it
@@ -92,10 +89,10 @@ func main() {
 					// executes user task
 					trace.Do()
 					log.Printf("%#v", trace)
-				case tracing.ErrorTrace:
+				case bpmn.ErrorTrace:
 					log.Fatalf("%#v", trace)
 					return
-				case flow.CeaseFlowTrace:
+				case bpmn.CeaseFlowTrace:
 					return
 				default:
 					log.Printf("%#v", trace)
@@ -108,9 +105,9 @@ func main() {
 		case <-ctx.Done():
 		}
 
-		pros := ins.Locator.CloneVariables()
+		pros := ins.Locator().CloneVariables()
 		log.Printf("%#v", pros)
-		ins.Tracer.Unsubscribe(traces)
+		ins.Tracer().Unsubscribe(traces)
 	} else {
 		log.Fatalf("failed to instantiate the process: %s", err)
 	}

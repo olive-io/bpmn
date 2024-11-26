@@ -20,7 +20,7 @@ package id
 import (
 	"context"
 
-	"github.com/olive-io/bpmn/tracing"
+	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
 type IGeneratorBuilder interface {

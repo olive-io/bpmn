@@ -23,11 +23,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/olive-io/bpmn/event"
-	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/model"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tracing"
+	"github.com/olive-io/bpmn/v2"
+	"github.com/olive-io/bpmn/v2/model"
+	"github.com/olive-io/bpmn/v2/pkg/event"
+	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
 var testStartEventInstantiation schema.Definitions
@@ -48,7 +48,7 @@ loop:
 		select {
 		case trace := <-traces:
 			trace = tracing.Unwrap(trace)
-			_, ok := trace.(flow.Trace)
+			_, ok := trace.(bpmn.FlowTrace)
 			// Should not flow
 			require.False(t, ok)
 		default:
@@ -62,7 +62,7 @@ loop1:
 	for {
 		trace := tracing.Unwrap(<-traces)
 		switch trace := trace.(type) {
-		case flow.VisitTrace:
+		case bpmn.VisitTrace:
 			if idPtr, present := trace.Node.Id(); present {
 				if *idPtr == "sig1a" {
 					// we've reached the desired outcome
@@ -70,7 +70,7 @@ loop1:
 				}
 			}
 		default:
-			t.Logf("%#v", trace)
+			//t.Logf("%#v", trace)
 		}
 	}
 }
@@ -87,7 +87,7 @@ loop:
 		select {
 		case trace := <-traces:
 			trace = tracing.Unwrap(trace)
-			_, ok := trace.(flow.Trace)
+			_, ok := trace.(bpmn.FlowTrace)
 			// Should not flow
 			require.False(t, ok)
 		default:
@@ -101,7 +101,7 @@ loop1:
 	for {
 		trace := tracing.Unwrap(<-traces)
 		switch trace := trace.(type) {
-		case flow.VisitTrace:
+		case bpmn.VisitTrace:
 			if idPtr, present := trace.Node.Id(); present {
 				if *idPtr == "sig2_sig3a" {
 					// we've reached the desired outcome
@@ -109,7 +109,7 @@ loop1:
 				}
 			}
 		default:
-			t.Logf("%#v", trace)
+			//t.Logf("%#v", trace)
 		}
 	}
 }
@@ -126,7 +126,7 @@ loop:
 		select {
 		case trace := <-traces:
 			trace = tracing.Unwrap(trace)
-			_, ok := trace.(flow.Trace)
+			_, ok := trace.(bpmn.FlowTrace)
 			// Should not flow
 			require.False(t, ok)
 		default:
@@ -150,7 +150,7 @@ loop1:
 					sig3sent = true
 				}
 			}
-		case flow.VisitTrace:
+		case bpmn.VisitTrace:
 			if idPtr, present := trace.Node.Id(); present {
 				if *idPtr == "sig2_and_sig3a" {
 					require.True(t, sig3sent)
@@ -159,7 +159,7 @@ loop1:
 				}
 			}
 		default:
-			t.Logf("%#v", trace)
+			//t.Logf("%#v", trace)
 
 		}
 

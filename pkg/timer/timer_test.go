@@ -28,7 +28,7 @@ import (
 	"github.com/qri-io/iso8601"
 	"github.com/stretchr/testify/require"
 
-	"github.com/olive-io/bpmn/pkg/clock"
+	"github.com/olive-io/bpmn/v2/pkg/clock"
 )
 
 func TestTimeDate(t *testing.T) {

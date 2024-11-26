@@ -21,17 +21,17 @@ import (
 	"context"
 	"sync"
 
-	"github.com/olive-io/bpmn/event"
-	"github.com/olive-io/bpmn/pkg/id"
-	"github.com/olive-io/bpmn/pkg/timer"
-	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tracing"
+	"github.com/olive-io/bpmn/v2"
+	"github.com/olive-io/bpmn/v2/pkg/event"
+	"github.com/olive-io/bpmn/v2/pkg/id"
+	"github.com/olive-io/bpmn/v2/pkg/timer"
+	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
 type Model struct {
 	Element                        *schema.Definitions
-	processes                      []process.Process
+	processes                      []bpmn.Process
 	eventConsumersLock             sync.RWMutex
 	eventConsumers                 []event.IConsumer
 	idGeneratorBuilder             id.IGeneratorBuilder
@@ -98,15 +98,15 @@ func New(element *schema.Definitions, options ...Option) *Model {
 		)
 	}
 
-	model.processes = make([]process.Process, len(*procs))
+	model.processes = make([]bpmn.Process, len(*procs))
 
 	for i := range *procs {
-		model.processes[i] = process.Make(&(*procs)[i], element,
-			process.WithIdGenerator(model.idGeneratorBuilder),
-			process.WithEventIngress(model), process.WithEventEgress(model),
-			process.WithEventDefinitionInstanceBuilder(model),
-			process.WithContext(ctx),
-			process.WithTracer(model.tracer),
+		model.processes[i] = bpmn.MakeProcess(&(*procs)[i], element,
+			bpmn.WithIdGenerator(model.idGeneratorBuilder),
+			bpmn.WithEventIngress(model), bpmn.WithEventEgress(model),
+			bpmn.WithEventDefinitionInstanceBuilder(model),
+			bpmn.WithContext(ctx),
+			bpmn.WithTracer(model.tracer),
 		)
 	}
 	return model
@@ -136,7 +136,7 @@ func (model *Model) Run(ctx context.Context) (err error) {
 	return
 }
 
-func (model *Model) FindProcessBy(f func(*process.Process) bool) (result *process.Process, found bool) {
+func (model *Model) FindProcessBy(f func(*bpmn.Process) bool) (result *bpmn.Process, found bool) {
 	for i := range model.processes {
 		if f(&model.processes[i]) {
 			result = &model.processes[i]

@@ -24,9 +24,9 @@ import (
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/vm"
 
-	"github.com/olive-io/bpmn/pkg/data"
-	"github.com/olive-io/bpmn/pkg/errors"
-	"github.com/olive-io/bpmn/pkg/expression"
+	"github.com/olive-io/bpmn/v2/pkg/data"
+	"github.com/olive-io/bpmn/v2/pkg/errors"
+	"github.com/olive-io/bpmn/v2/pkg/expression"
 )
 
 // Expr language engine

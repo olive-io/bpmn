@@ -20,8 +20,8 @@ package logic
 import (
 	"github.com/bits-and-blooms/bitset"
 
-	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/v2/pkg/event"
 )
 
 // CatchEventSatisfier is an algorithm that allows to apply events to a schema.CatchEventInterface element

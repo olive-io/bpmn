@@ -23,9 +23,9 @@ import (
 
 	json "github.com/bytedance/sonic"
 
-	"github.com/olive-io/bpmn/pkg/errors"
-	"github.com/olive-io/bpmn/pkg/id"
 	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/v2/pkg/errors"
+	"github.com/olive-io/bpmn/v2/pkg/id"
 )
 
 const (

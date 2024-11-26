@@ -28,9 +28,9 @@ import (
 	"github.com/ChrisTrenkamp/xsel/store"
 	"github.com/Chronokeeper/anyxml"
 
-	"github.com/olive-io/bpmn/pkg/data"
-	"github.com/olive-io/bpmn/pkg/errors"
-	"github.com/olive-io/bpmn/pkg/expression"
+	"github.com/olive-io/bpmn/v2/pkg/data"
+	"github.com/olive-io/bpmn/v2/pkg/errors"
+	"github.com/olive-io/bpmn/v2/pkg/expression"
 )
 
 // XPath language engine

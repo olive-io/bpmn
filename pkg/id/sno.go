@@ -23,7 +23,7 @@ import (
 	json "github.com/bytedance/sonic"
 	"github.com/muyo/sno"
 
-	"github.com/olive-io/bpmn/tracing"
+	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
 type Sno struct{}
@@ -56,7 +56,7 @@ func (g *Sno) RestoreIdGenerator(ctx context.Context, bytes []byte, tracer traci
 		for {
 			select {
 			case notification := <-sequenceOverflowNotificationChannel:
-				tracer.Trace(tracing.WarningTrace{Warning: notification})
+				tracer.Trace(WarningTrace{Warning: notification})
 			case <-ctx.Done():
 				return
 			}

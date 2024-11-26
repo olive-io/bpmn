@@ -20,10 +20,11 @@ package timer
 import (
 	"context"
 
-	"github.com/olive-io/bpmn/event"
-	"github.com/olive-io/bpmn/pkg/clock"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tracing"
+	"github.com/olive-io/bpmn/v2"
+	"github.com/olive-io/bpmn/v2/pkg/clock"
+	"github.com/olive-io/bpmn/v2/pkg/event"
+	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
 type eventDefinitionInstanceBuilder struct {
@@ -68,7 +69,7 @@ func (e *eventDefinitionInstanceBuilder) NewEventDefinitionInstance(def schema.E
 					}
 					_, err := e.eventIngress.ConsumeEvent(event.MakeTimerEvent(definitionInstance))
 					if err != nil {
-						e.tracer.Trace(tracing.ErrorTrace{Error: err})
+						e.tracer.Trace(bpmn.ErrorTrace{Error: err})
 					}
 				}
 			}

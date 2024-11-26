@@ -21,16 +21,15 @@ import (
 	"context"
 	"sync"
 
-	"github.com/olive-io/bpmn/event"
-	"github.com/olive-io/bpmn/pkg/logic"
-	"github.com/olive-io/bpmn/process"
-	"github.com/olive-io/bpmn/process/instance"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tracing"
+	"github.com/olive-io/bpmn/v2"
+	"github.com/olive-io/bpmn/v2/pkg/event"
+	"github.com/olive-io/bpmn/v2/pkg/logic"
+	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
 type startEventConsumer struct {
-	process              *process.Process
+	process              *bpmn.Process
 	parallel             bool
 	ctx                  context.Context
 	consumptionLock      sync.Mutex
@@ -57,7 +56,7 @@ func (s *startEventConsumer) NewEventDefinitionInstance(
 func newStartEventConsumer(
 	ctx context.Context,
 	tracer tracing.ITracer,
-	process *process.Process,
+	process *bpmn.Process,
 	startEvent *schema.StartEvent,
 	eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder) *startEventConsumer {
 	consumer := &startEventConsumer{
@@ -83,11 +82,11 @@ func (s *startEventConsumer) ConsumeEvent(ev event.IEvent) (result event.Consump
 		if chain > len(s.events)-1 {
 			s.events = append(s.events, []event.IEvent{ev})
 		}
-		var inst *instance.Instance
+		var inst *bpmn.Instance
 		inst, err = s.process.Instantiate(
-			instance.WithContext(s.ctx),
-			instance.WithTracer(s.tracer),
-			instance.WithEventDefinitionInstanceBuilder(event.DefinitionInstanceBuildingChain(
+			bpmn.WithContext(s.ctx),
+			bpmn.WithTracer(s.tracer),
+			bpmn.WithEventDefinitionInstanceBuilder(event.DefinitionInstanceBuildingChain(
 				s, // this will pass-through already existing event definition instance from this execution
 				s.eventInstanceBuilder,
 			)),

@@ -25,9 +25,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/olive-io/bpmn/model"
-	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/v2"
+	"github.com/olive-io/bpmn/v2/model"
 )
 
 //go:embed testdata
@@ -45,8 +45,8 @@ func LoadTestFile(filename string, definitions any) {
 	}
 }
 
-func exactId(s string) func(p *process.Process) bool {
-	return func(p *process.Process) bool {
+func exactId(s string) func(p *bpmn.Process) bool {
+	return func(p *bpmn.Process) bool {
 		if id, present := p.Element.Id(); present {
 			return *id == s
 		} else {

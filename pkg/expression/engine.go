@@ -18,7 +18,7 @@
 package expression
 
 import (
-	"github.com/olive-io/bpmn/pkg/data"
+	"github.com/olive-io/bpmn/v2/pkg/data"
 )
 
 type ICompiler interface {

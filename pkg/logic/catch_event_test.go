@@ -22,8 +22,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/olive-io/bpmn/event"
 	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/v2/pkg/event"
 )
 
 func TestCatchEventSatisfier_MatchSingle(t *testing.T) {

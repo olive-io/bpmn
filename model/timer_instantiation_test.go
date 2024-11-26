@@ -24,11 +24,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/model"
-	"github.com/olive-io/bpmn/pkg/clock"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tracing"
+	"github.com/olive-io/bpmn/v2"
+	"github.com/olive-io/bpmn/v2/model"
+	"github.com/olive-io/bpmn/v2/pkg/clock"
+	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
 var testTimerStartEventInstantiation schema.Definitions
@@ -49,7 +49,7 @@ loop:
 	for {
 		select {
 		case trace := <-traces:
-			_, ok := trace.(flow.Trace)
+			_, ok := trace.(bpmn.FlowTrace)
 			// Should not flow
 			require.False(t, ok)
 		default:
@@ -62,7 +62,7 @@ loop1:
 	for {
 		trace := tracing.Unwrap(<-traces)
 		switch trace := trace.(type) {
-		case flow.VisitTrace:
+		case bpmn.VisitTrace:
 			if idPtr, present := trace.Node.Id(); present {
 				if *idPtr == "end" {
 					// we've reached the desired outcome
@@ -70,7 +70,7 @@ loop1:
 				}
 			}
 		default:
-			t.Logf("%#v", trace)
+			//t.Logf("%#v", trace)
 		}
 	}
 }
@@ -94,7 +94,7 @@ loop:
 		select {
 		case trace := <-traces:
 			trace = tracing.Unwrap(trace)
-			_, ok := trace.(flow.Trace)
+			_, ok := trace.(bpmn.FlowTrace)
 			// Should not flow
 			require.False(t, ok)
 		default:
@@ -109,7 +109,7 @@ loop:
 		for {
 			trace := tracing.Unwrap(<-traces)
 			switch trace := trace.(type) {
-			case flow.VisitTrace:
+			case bpmn.VisitTrace:
 				if idPtr, present := trace.Node.Id(); present {
 					if *idPtr == "end" {
 						// we've reached the desired outcome
@@ -117,7 +117,7 @@ loop:
 					}
 				}
 			default:
-				t.Logf("%#v", trace)
+				//t.Logf("%#v", trace)
 			}
 		}
 	}

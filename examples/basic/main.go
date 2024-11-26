@@ -21,63 +21,144 @@ import (
 	"context"
 	"embed"
 	"encoding/xml"
+	"io"
 	"log"
 
-	"github.com/olive-io/bpmn/flow"
-	"github.com/olive-io/bpmn/flow_node/activity"
-	"github.com/olive-io/bpmn/process"
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/tracing"
+	"github.com/olive-io/bpmn/v2"
+	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
 //go:embed task.bpmn
 var fs embed.FS
 
-func main() {
-	var definitions schema.Definitions
+type Workflow struct {
+	ctx    context.Context
+	cancel context.CancelFunc
 
+	definitions *schema.Definitions
+	tracer      tracing.ITracer
+	//traces      chan tracing.ITrace
+	processes []*bpmn.Process
+	instances []*bpmn.Instance
+}
+
+func NewWorkflow(reader io.Reader) (*Workflow, error) {
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	var definitions schema.Definitions
+	if err = xml.Unmarshal(data, &definitions); err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	tracer := tracing.NewTracer(ctx)
+
+	processes := make([]*bpmn.Process, 0)
+	instances := make([]*bpmn.Instance, 0)
+
+	for _, element := range *definitions.Processes() {
+		able, ok := element.IsExecutable()
+		if !ok {
+			continue
+		}
+
+		if !able {
+			continue
+		}
+
+		pr := bpmn.NewProcess(&element, &definitions, bpmn.WithContext(ctx), bpmn.WithTracer(tracer))
+		processes = append(processes, pr)
+
+		instance, err := pr.Instantiate()
+		if err != nil {
+			cancel()
+			return nil, err
+		}
+		instances = append(instances, instance)
+	}
+
+	workflow := &Workflow{
+		ctx:         ctx,
+		cancel:      cancel,
+		definitions: &definitions,
+		tracer:      tracer,
+		processes:   processes,
+		instances:   instances,
+	}
+
+	return workflow, nil
+}
+
+//func (w *Workflow) Trace() chan tracing.ITrace {
+//	if w.traces != nil {
+//		w.traces = w.tracer.Subscribe()
+//	}
+//
+//	return w.traces
+//}
+
+type Handle func(trace tracing.ITrace)
+
+func (w *Workflow) Run(handle Handle) error {
+	ctx := w.ctx
+	_ = ctx
+	traces := w.tracer.Subscribe()
+
+	defer w.tracer.Unsubscribe(traces)
+	defer w.cancel()
+
+	for _, instance := range w.instances {
+		if err := instance.StartAll(); err != nil {
+			return err
+		}
+
+	LOOP:
+		for {
+			trace := tracing.Unwrap(<-traces)
+
+			handle(trace)
+			if _, ok := trace.(bpmn.CeaseFlowTrace); ok {
+				break LOOP
+			}
+		}
+
+		for !instance.WaitUntilComplete(ctx) {
+		}
+
+		//time.Sleep(time.Second * 3)
+	}
+
+	return nil
+}
+
+func main() {
 	var err error
-	src, err := fs.ReadFile("task.bpmn")
+	src, err := fs.Open("task.bpmn")
 	if err != nil {
 		log.Fatalf("Can't read bpmn: %v", err)
 	}
-	err = xml.Unmarshal(src, &definitions)
+
+	wf, err := NewWorkflow(src)
 	if err != nil {
-		log.Fatalf("XML unmarshalling error: %v", err)
+		log.Fatalf("Can't create workflow: %v", err)
 	}
 
-	for _, processElement := range *definitions.Processes() {
-		proc := process.New(&processElement, &definitions)
-		if instance, err := proc.Instantiate(); err == nil {
-			traces := instance.Tracer.Subscribe()
-			ctx, cancel := context.WithCancel(context.Background())
-			err = instance.StartAll(ctx)
-			if err != nil {
-				cancel()
-				log.Fatalf("failed to run the instance: %s", err)
-			}
-			go func() {
-			LOOP:
-				for {
-					trace := tracing.Unwrap(<-traces)
-					switch trace := trace.(type) {
-					case *activity.Trace:
-						log.Printf("%#v\n", trace)
-						trace.Do()
-					case tracing.ErrorTrace:
-						log.Fatalf("%#v", trace)
-					case flow.CeaseFlowTrace:
-						break LOOP
-					default:
-						log.Printf("%#v\n", trace)
-					}
-				}
-			}()
-			instance.WaitUntilComplete(ctx)
-			instance.Tracer.Unsubscribe(traces)
-			cancel()
-		} else {
-			log.Fatalf("failed to instantiate the process: %s", err)
+	err = wf.Run(func(trace tracing.ITrace) {
+		switch tr := trace.(type) {
+		case *bpmn.TaskTrace:
+			log.Printf("%#v\n", trace)
+			tr.Do()
+		case bpmn.ErrorTrace:
+			log.Fatalf("%#v", trace)
+		default:
+			log.Printf("%#v\n", trace)
 		}
+	})
+	if err != nil {
+		log.Fatalf("Can't run workflow: %v", err)
 	}
 }
