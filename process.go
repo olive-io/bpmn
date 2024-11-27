@@ -188,24 +188,24 @@ func NewProcess(element *schema.Process, definitions *schema.Definitions, opts .
 	return &process
 }
 
-func (process *Process) Process() *schema.Process { return process.Element }
+func (p *Process) Process() *schema.Process { return p.Element }
 
-func (process *Process) Tracer() tracing.ITracer { return process.tracer }
+func (p *Process) Tracer() tracing.ITracer { return p.tracer }
 
-func (process *Process) Instantiate(opts ...Option) (inst *Instance, err error) {
-	subTracer := process.subTracerMaker()
+func (p *Process) Instantiate(opts ...Option) (inst *Instance, err error) {
+	subTracer := p.subTracerMaker()
 
 	opts = append([]Option{
-		WithIdGenerator(process.idGeneratorBuilder),
-		WithEventDefinitionInstanceBuilder(process.eventDefinitionInstanceBuilder),
-		WithEventEgress(process.eventEgress),
-		WithEventIngress(process.eventIngress),
+		WithIdGenerator(p.idGeneratorBuilder),
+		WithEventDefinitionInstanceBuilder(p.eventDefinitionInstanceBuilder),
+		WithEventEgress(p.eventEgress),
+		WithEventIngress(p.eventIngress),
 		WithTracer(subTracer),
 	}, opts...)
 
 	options := NewOptions(opts...)
 
-	inst, err = NewInstance(process.Element, process.Definitions, options)
+	inst, err = NewInstance(p.Element, p.Definitions, options)
 	if err != nil {
 		return
 	}

@@ -42,35 +42,35 @@ type Instance struct {
 	eventConsumers     []event.IConsumer
 }
 
-func (instance *Instance) Id() id.Id {
-	return instance.id
+func (ins *Instance) Id() id.Id {
+	return ins.id
 }
 
-func (instance *Instance) Process() *schema.Process { return instance.process }
+func (ins *Instance) Process() *schema.Process { return ins.process }
 
-func (instance *Instance) Tracer() tracing.ITracer { return instance.tracer }
+func (ins *Instance) Tracer() tracing.ITracer { return ins.tracer }
 
-func (instance *Instance) Locator() data.IFlowDataLocator { return instance.locator }
+func (ins *Instance) Locator() data.IFlowDataLocator { return ins.locator }
 
-func (instance *Instance) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
-	instance.eventConsumersLock.RLock()
+func (ins *Instance) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
+	ins.eventConsumersLock.RLock()
 	// We're copying the list of consumers here to ensure that
 	// new consumers can subscribe during event forwarding
-	eventConsumers := instance.eventConsumers
-	instance.eventConsumersLock.RUnlock()
+	eventConsumers := ins.eventConsumers
+	ins.eventConsumersLock.RUnlock()
 	result, err = event.ForwardEvent(ev, &eventConsumers)
 	return
 }
 
-func (instance *Instance) RegisterEventConsumer(ev event.IConsumer) (err error) {
-	instance.eventConsumersLock.Lock()
-	defer instance.eventConsumersLock.Unlock()
-	instance.eventConsumers = append(instance.eventConsumers, ev)
+func (ins *Instance) RegisterEventConsumer(ev event.IConsumer) (err error) {
+	ins.eventConsumersLock.Lock()
+	defer ins.eventConsumersLock.Unlock()
+	ins.eventConsumers = append(ins.eventConsumers, ev)
 	return
 }
 
-func (instance *Instance) FlowNodeMapping() *FlowNodeMapping {
-	return instance.flowNodeMapping
+func (ins *Instance) FlowNodeMapping() *FlowNodeMapping {
+	return ins.flowNodeMapping
 }
 
 func NewInstance(element *schema.Process, definitions *schema.Definitions, options *Options) (instance *Instance, err error) {
@@ -459,14 +459,14 @@ func NewInstance(element *schema.Process, definitions *schema.Definitions, optio
 }
 
 // StartWith explicitly starts the instance by triggering a given start event
-func (instance *Instance) StartWith(ctx context.Context, startEvent schema.StartEventInterface) (err error) {
-	flowNode, found := instance.flowNodeMapping.ResolveElementToFlowNode(startEvent)
+func (ins *Instance) StartWith(ctx context.Context, startEvent schema.StartEventInterface) (err error) {
+	flowNode, found := ins.flowNodeMapping.ResolveElementToFlowNode(startEvent)
 	elementId := "<unnamed>"
 	if idPtr, present := startEvent.Id(); present {
 		elementId = *idPtr
 	}
 	processId := "<unnamed>"
-	if idPtr, present := instance.process.Id(); present {
+	if idPtr, present := ins.process.Id(); present {
 		processId = *idPtr
 	}
 	if !found {
@@ -486,10 +486,10 @@ func (instance *Instance) StartWith(ctx context.Context, startEvent schema.Start
 }
 
 // StartAll explicitly starts the instance by triggering all start events, if any
-func (instance *Instance) StartAll() (err error) {
-	ctx := instance.ctx
-	for i := range *instance.process.StartEvents() {
-		err = instance.StartWith(ctx, &(*instance.process.StartEvents())[i])
+func (ins *Instance) StartAll() (err error) {
+	ctx := ins.ctx
+	for i := range *ins.process.StartEvents() {
+		err = ins.StartWith(ctx, &(*ins.process.StartEvents())[i])
 		if err != nil {
 			return
 		}
@@ -497,15 +497,15 @@ func (instance *Instance) StartAll() (err error) {
 	return
 }
 
-func (instance *Instance) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.Context, sender tracing.ISenderHandle) {
+func (ins *Instance) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.Context, sender tracing.ISenderHandle) {
 	// Subscribing to traces early as otherwise events produced
 	// after the goroutine below is started are not going to be
 	// sent to it.
 	traces := tracer.Subscribe()
-	instance.complete.Lock()
+	ins.complete.Lock()
 	return func(ctx context.Context, sender tracing.ISenderHandle) {
 		defer sender.Done()
-		defer instance.complete.Unlock()
+		defer ins.complete.Unlock()
 
 		/* 13.4.6 End Events:
 
@@ -528,7 +528,7 @@ func (instance *Instance) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx cont
 		// [(1.2) will be addded when we actually support them]
 
 		for {
-			if len(startEventsActivated) == len(*instance.process.StartEvents()) {
+			if len(startEventsActivated) == len(*ins.process.StartEvents()) {
 				break
 			}
 
@@ -561,13 +561,13 @@ func (instance *Instance) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx cont
 		// Then, we're waiting for (2) to occur
 		waitIsOver := make(chan struct{})
 		go func() {
-			instance.flowWaitGroup.Wait()
+			ins.flowWaitGroup.Wait()
 			close(waitIsOver)
 		}()
 		select {
 		case <-waitIsOver:
 			// Send out a cease flow trace
-			tracer.Trace(CeaseFlowTrace{Process: instance.process})
+			tracer.Trace(CeaseFlowTrace{Process: ins.process})
 		case <-ctx.Done():
 		}
 	}
@@ -575,11 +575,11 @@ func (instance *Instance) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx cont
 
 // WaitUntilComplete waits until the instance is complete.
 // Returns true if the instance was complete, false if the context signalled `Done`
-func (instance *Instance) WaitUntilComplete(ctx context.Context) (complete bool) {
+func (ins *Instance) WaitUntilComplete(ctx context.Context) (complete bool) {
 	signal := make(chan bool)
 	go func() {
-		instance.complete.Lock()
-		defer instance.complete.Unlock()
+		ins.complete.Lock()
+		defer ins.complete.Unlock()
 		signal <- true
 	}()
 	select {

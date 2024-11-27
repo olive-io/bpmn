@@ -57,10 +57,10 @@ func NewWorkflow(reader io.Reader, opts ...bpmn.Option) (*Workflow, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	tracer := tracing.NewTracer(ctx)
 
-	processes := make([]*bpmn.Process, 0)
 	instances := make([]*bpmn.Instance, 0)
 
 	opts = append(opts, bpmn.WithContext(ctx), bpmn.WithTracer(tracer))
+	options := bpmn.NewOptions(opts...)
 
 	for _, element := range *definitions.Processes() {
 		able, ok := element.IsExecutable()
@@ -72,10 +72,7 @@ func NewWorkflow(reader io.Reader, opts ...bpmn.Option) (*Workflow, error) {
 			continue
 		}
 
-		pr := bpmn.NewProcess(&element, &definitions, opts...)
-		processes = append(processes, pr)
-
-		instance, err := pr.Instantiate()
+		instance, err := bpmn.NewInstance(&element, &definitions, options)
 		if err != nil {
 			cancel()
 			return nil, err
@@ -88,7 +85,6 @@ func NewWorkflow(reader io.Reader, opts ...bpmn.Option) (*Workflow, error) {
 		cancel:      cancel,
 		definitions: &definitions,
 		tracer:      tracer,
-		processes:   processes,
 		instances:   instances,
 	}
 
