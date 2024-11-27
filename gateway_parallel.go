@@ -106,4 +106,4 @@ type IncomingFlowProcessedTrace struct {
 	Flow T
 }
 
-func (t IncomingFlowProcessedTrace) TraceInterface() {}
+func (t IncomingFlowProcessedTrace) Element() any { return t.Node }

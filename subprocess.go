@@ -35,12 +35,13 @@ type ProcessLandMarkTrace struct {
 	Node schema.FlowNodeInterface
 }
 
-func (i ProcessLandMarkTrace) TraceInterface() {}
+func (t ProcessLandMarkTrace) Element() any { return t.Node }
 
 type SubProcess struct {
 	*Wiring
-	ctx                    context.Context
-	cancel                 context.CancelFunc
+	ctx    context.Context
+	cancel context.CancelFunc
+
 	element                *schema.SubProcess
 	tracer                 tracing.ITracer
 	flowNodeMapping        *FlowNodeMapping
@@ -66,6 +67,7 @@ func NewSubProcess(ctx context.Context,
 
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
+
 		process := &SubProcess{
 			Wiring:                 parentWiring,
 			ctx:                    ctx,
@@ -511,7 +513,7 @@ func (p *SubProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.C
 		select {
 		case <-waitIsOver:
 			// Send out a cease flow trace
-			tracer.Trace(CeaseFlowTrace{})
+			tracer.Trace(CeaseFlowTrace{Process: p.element})
 		case <-ctx.Done():
 
 		}

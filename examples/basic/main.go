@@ -43,7 +43,7 @@ type Workflow struct {
 	instances []*bpmn.Instance
 }
 
-func NewWorkflow(reader io.Reader) (*Workflow, error) {
+func NewWorkflow(reader io.Reader, opts ...bpmn.Option) (*Workflow, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -60,6 +60,8 @@ func NewWorkflow(reader io.Reader) (*Workflow, error) {
 	processes := make([]*bpmn.Process, 0)
 	instances := make([]*bpmn.Instance, 0)
 
+	opts = append(opts, bpmn.WithContext(ctx), bpmn.WithTracer(tracer))
+
 	for _, element := range *definitions.Processes() {
 		able, ok := element.IsExecutable()
 		if !ok {
@@ -70,7 +72,7 @@ func NewWorkflow(reader io.Reader) (*Workflow, error) {
 			continue
 		}
 
-		pr := bpmn.NewProcess(&element, &definitions, bpmn.WithContext(ctx), bpmn.WithTracer(tracer))
+		pr := bpmn.NewProcess(&element, &definitions, opts...)
 		processes = append(processes, pr)
 
 		instance, err := pr.Instantiate()
@@ -105,7 +107,6 @@ type Handle func(trace tracing.ITrace)
 
 func (w *Workflow) Run(handle Handle) error {
 	ctx := w.ctx
-	_ = ctx
 	traces := w.tracer.Subscribe()
 
 	defer w.tracer.Unsubscribe(traces)

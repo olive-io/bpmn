@@ -23,8 +23,8 @@ import (
 )
 
 type EventInstantiationAttemptedTrace struct {
-	Event   event.IEvent
-	Element schema.FlowNodeInterface
+	Event event.IEvent
+	Node  schema.FlowNodeInterface
 }
 
-func (e EventInstantiationAttemptedTrace) TraceInterface() {}
+func (e EventInstantiationAttemptedTrace) Element() any { return e.Node }

@@ -75,7 +75,7 @@ func (gw *EventBasedGateway) runner(ctx context.Context, sender tracing.ISenderH
 					ActionTransformer: func(sequenceFlowId *schema.IdRef, action IAction) IAction {
 						// only first one is to flow
 						if atomic.CompareAndSwapInt32(&first, 0, 1) {
-							gw.Tracer.Trace(DeterminationMadeTrace{Element: gw.element})
+							gw.Tracer.Trace(DeterminationMadeTrace{Node: gw.element})
 							for terminationCandidateId, ch := range terminationChannels {
 								if sequenceFlowId != nil && terminationCandidateId != *sequenceFlowId {
 									ch <- true
@@ -111,7 +111,7 @@ func (gw *EventBasedGateway) Element() schema.FlowNodeInterface {
 }
 
 type DeterminationMadeTrace struct {
-	schema.Element
+	Node schema.FlowNodeInterface
 }
 
-func (trace DeterminationMadeTrace) TraceInterface() {}
+func (t DeterminationMadeTrace) Element() any { return t.Node }

@@ -22,7 +22,7 @@ package tracing
 // flow nodes, tests and other components to know what happened
 // in other parts of the system.
 type ITrace interface {
-	TraceInterface()
+	Element() any
 }
 
 // ISenderHandle is an interface for registered senders

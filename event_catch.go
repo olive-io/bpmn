@@ -113,7 +113,7 @@ type ActiveListeningTrace struct {
 	Node *schema.CatchEvent
 }
 
-func (t ActiveListeningTrace) TraceInterface() {}
+func (t ActiveListeningTrace) Element() any { return t.Node }
 
 // EventObservedTrace signals the fact that a particular event
 // has been in fact observed by the node
@@ -122,4 +122,4 @@ type EventObservedTrace struct {
 	Event event.IEvent
 }
 
-func (t EventObservedTrace) TraceInterface() {}
+func (t EventObservedTrace) Element() any { return t.Node }

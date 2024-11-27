@@ -129,13 +129,9 @@ func (task *ReceiveTask) NextAction(t T) chan IAction {
 	return response
 }
 
-func (task *ReceiveTask) Element() schema.FlowNodeInterface {
-	return task.element
-}
+func (task *ReceiveTask) Element() schema.FlowNodeInterface { return task.element }
 
-func (task *ReceiveTask) Type() Type {
-	return ReceiveType
-}
+func (task *ReceiveTask) Type() Type { return ReceiveType }
 
 func (task *ReceiveTask) Cancel() <-chan bool {
 	response := make(chan bool)

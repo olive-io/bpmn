@@ -144,7 +144,7 @@ loop1:
 		switch trace := trace.(type) {
 		case model.EventInstantiationAttemptedTrace:
 			if !sig3sent && signalEvent == trace.Event {
-				if idPtr, present := trace.Element.Id(); present && *idPtr == "ParallelMultipleStartEvent" {
+				if idPtr, present := trace.Node.Id(); present && *idPtr == "ParallelMultipleStartEvent" {
 					_, err = m.ConsumeEvent(event.NewSignalEvent("sig3"))
 					require.Nil(t, err)
 					sig3sent = true

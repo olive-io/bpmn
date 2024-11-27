@@ -27,73 +27,69 @@ type ErrorTrace struct {
 	Error error
 }
 
-func (t ErrorTrace) TraceInterface() {}
-
-type WarningTrace struct {
-	Warning any
-}
-
-func (t WarningTrace) TraceInterface() {}
+func (t ErrorTrace) Element() any { return t.Error }
 
 type NewFlowTrace struct {
 	FlowId id.Id
 }
 
-func (t NewFlowTrace) TraceInterface() {}
+func (t NewFlowTrace) Element() any { return t.FlowId }
 
 type FlowTrace struct {
 	Source schema.FlowNodeInterface
 	Flows  []Snapshot
 }
 
-func (t FlowTrace) TraceInterface() {}
+func (t FlowTrace) Element() any { return t.Source }
 
 type TerminationTrace struct {
 	FlowId id.Id
 	Source schema.FlowNodeInterface
 }
 
-func (t TerminationTrace) TraceInterface() {}
+func (t TerminationTrace) Element() any { return t.Source }
 
-type CancellationTrace struct {
+type CancellationFlowTrace struct {
 	FlowId id.Id
 }
 
-func (t CancellationTrace) TraceInterface() {}
+func (t CancellationFlowTrace) Element() any { return t.FlowId }
 
 type CompletionTrace struct {
 	Node schema.FlowNodeInterface
 }
 
-func (t CompletionTrace) TraceInterface() {}
+func (t CompletionTrace) Element() any { return t.Node }
 
-type CeaseFlowTrace struct{}
+type CeaseFlowTrace struct {
+	Process schema.Element
+}
 
-func (t CeaseFlowTrace) TraceInterface() {}
+func (t CeaseFlowTrace) Element() any { return t.Process }
 
 type VisitTrace struct {
 	Node schema.FlowNodeInterface
 }
 
-func (t VisitTrace) TraceInterface() {}
+func (t VisitTrace) Element() any { return t.Node }
 
 type LeaveTrace struct {
 	Node schema.FlowNodeInterface
 }
 
-func (t LeaveTrace) TraceInterface() {}
+func (t LeaveTrace) Element() any { return t.Node }
 
 type CancellationFlowNodeTrace struct {
 	Node schema.FlowNodeInterface
 }
 
-func (t CancellationFlowNodeTrace) TraceInterface() {}
+func (t CancellationFlowNodeTrace) Element() any { return t.Node }
 
 type NewFlowNodeTrace struct {
 	Node schema.FlowNodeInterface
 }
 
-func (t NewFlowNodeTrace) TraceInterface() {}
+func (t NewFlowNodeTrace) Element() any { return t.Node }
 
 // ProcessTrace wraps any trace within a given process
 type ProcessTrace struct {
@@ -105,14 +101,14 @@ func (t ProcessTrace) Unwrap() tracing.ITrace {
 	return t.Trace
 }
 
-func (t ProcessTrace) TraceInterface() {}
+func (t ProcessTrace) Element() any { return t.Process }
 
 // InstantiationTrace denotes instantiation of a given process
 type InstantiationTrace struct {
 	InstanceId id.Id
 }
 
-func (i InstantiationTrace) TraceInterface() {}
+func (i InstantiationTrace) Element() any { return i.InstanceId }
 
 // InstanceTrace wraps any trace with process instance id
 type InstanceTrace struct {
@@ -124,4 +120,4 @@ func (t InstanceTrace) Unwrap() tracing.ITrace {
 	return t.Trace
 }
 
-func (t InstanceTrace) TraceInterface() {}
+func (t InstanceTrace) Element() any { return t.InstanceId }

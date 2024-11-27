@@ -91,18 +91,11 @@ func (node *Harness) RegisterEventConsumer(consumer event.IConsumer) (err error)
 	return
 }
 
-func (node *Harness) Activity() Activity {
-	return node.activity
-}
+func (node *Harness) Activity() Activity { return node.activity }
 
 type Constructor = func(*Wiring) (node Activity, err error)
 
-func NewHarness(ctx context.Context,
-	wiring *Wiring,
-	element *schema.FlowNode,
-	idGenerator id.IGenerator,
-	constructor Constructor,
-) (node *Harness, err error) {
+func NewHarness(ctx context.Context, wiring *Wiring, element *schema.FlowNode, idGenerator id.IGenerator, constructor Constructor) (node *Harness, err error) {
 	var activity Activity
 	activity, err = constructor(wiring)
 	if err != nil {
@@ -217,7 +210,7 @@ type ActiveBoundaryTrace struct {
 	Node  schema.FlowNodeInterface
 }
 
-func (b ActiveBoundaryTrace) TraceInterface() {}
+func (b ActiveBoundaryTrace) Element() any { return b.Node }
 
 type DoOption func(*DoResponse)
 
@@ -327,7 +320,7 @@ type TaskTrace struct {
 	done        chan struct{}
 }
 
-func (t *TaskTrace) TraceInterface() {}
+func (t *TaskTrace) Element() any { return t.activity }
 
 func (t *TaskTrace) Context() context.Context {
 	return t.ctx

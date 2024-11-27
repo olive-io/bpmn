@@ -567,7 +567,7 @@ func (instance *Instance) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx cont
 		select {
 		case <-waitIsOver:
 			// Send out a cease flow trace
-			tracer.Trace(CeaseFlowTrace{})
+			tracer.Trace(CeaseFlowTrace{Process: instance.process})
 		case <-ctx.Done():
 		}
 	}

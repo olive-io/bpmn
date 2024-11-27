@@ -21,4 +21,4 @@ type WarningTrace struct {
 	Warning any
 }
 
-func (t WarningTrace) TraceInterface() {}
+func (t WarningTrace) Element() any { return t.Warning }

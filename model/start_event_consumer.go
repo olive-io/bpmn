@@ -75,7 +75,7 @@ func newStartEventConsumer(
 func (s *startEventConsumer) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	s.consumptionLock.Lock()
 	defer s.consumptionLock.Unlock()
-	defer s.tracer.Trace(EventInstantiationAttemptedTrace{Event: ev, Element: s.element})
+	defer s.tracer.Trace(EventInstantiationAttemptedTrace{Event: ev, Node: s.element})
 
 	if satisfied, chain := s.satisfier.Satisfy(ev); satisfied {
 		// If it's a new chain, add new event buffer

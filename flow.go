@@ -280,7 +280,7 @@ func (flow *Flow) Start(ctx context.Context) {
 		await:
 			select {
 			case <-ctx.Done():
-				flow.tracer.Trace(CancellationTrace{
+				flow.tracer.Trace(CancellationFlowTrace{
 					FlowId: flow.Id(),
 				})
 				return
