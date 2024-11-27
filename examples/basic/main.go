@@ -129,8 +129,6 @@ func (w *Workflow) Run(handle Handle) error {
 
 		for !instance.WaitUntilComplete(ctx) {
 		}
-
-		//time.Sleep(time.Second * 3)
 	}
 
 	return nil

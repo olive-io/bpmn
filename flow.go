@@ -328,7 +328,7 @@ func (flow *Flow) Start(ctx context.Context) {
 							select {
 							case handler := <-res.Handler:
 								switch handler.Mode {
-								case HandleRetry:
+								case RetryMode:
 									if flow.retry == nil {
 										retry := &Retry{}
 										if extension, present := source.ExtensionElements(); present {
@@ -345,8 +345,8 @@ func (flow *Flow) Start(ctx context.Context) {
 										goto await
 									}
 									return
-								case HandleSkip:
-								case HandleExit:
+								case SkipMode:
+								case ExitMode:
 									return
 								}
 							case <-ctx.Done():

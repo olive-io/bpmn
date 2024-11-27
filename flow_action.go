@@ -49,9 +49,9 @@ type FlowActionResponse struct {
 type ErrHandleMode int
 
 const (
-	HandleRetry ErrHandleMode = iota + 1
-	HandleSkip
-	HandleExit
+	RetryMode ErrHandleMode = iota + 1
+	SkipMode
+	ExitMode
 )
 
 type ErrHandler struct {
