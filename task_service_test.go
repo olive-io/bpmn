@@ -176,7 +176,7 @@ func TestServiceTaskWithRetry(t *testing.T) {
 					go func() {
 						time.Sleep(time.Second * 1)
 						retry := int32(1)
-						handler <- bpmn.ErrHandler{Mode: bpmn.HandleRetry, Retries: retry}
+						handler <- bpmn.ErrHandler{Mode: bpmn.RetryMode, Retries: retry}
 					}()
 					trace.Do(bpmn.WithErrHandle(fmt.Errorf("text error"), handler))
 					//t.Logf("%#v", trace)
