@@ -14,7 +14,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.22'
 
       - name: Check out code
         uses: actions/checkout@v3
@@ -29,10 +29,10 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.20
+      - name: Set up Go 1.22
         uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.22'
         id: go
       - name: Code
         uses: actions/checkout@v3
