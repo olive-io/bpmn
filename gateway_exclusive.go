@@ -39,24 +39,6 @@ func (e ExclusiveNoEffectiveSequenceFlows) Error() string {
 	return fmt.Sprintf("No effective sequence flows found in exclusive gateway `%v`", ownId)
 }
 
-//type imessage interface {
-//	message()
-//}
-//
-//type nextActionMessage struct {
-//	response chan IAction
-//	flow     T
-//}
-//
-//func (m nextActionMessage) message() {}
-
-//type probingReport struct {
-//	result []int
-//	flowId id.Id
-//}
-//
-//func (m probingReport) message() {}
-
 type ExclusiveGateway struct {
 	*Wiring
 	element                 *schema.ExclusiveGateway

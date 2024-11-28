@@ -10,6 +10,7 @@
         <olive:taskDefinition type="grpc" retries="2" />
         <olive:taskHeaders>
           <olive:header name="ov:content_type" value="application/grpc+json" />
+          <olive:header name="timeout" value="1s" />
           <olive:header name="ov:handler" value="rpc" />
           <olive:header name="ov:method" value="/gatewaypb.TestService/Hello" />
           <olive:header name="ov:url" value="/gatewaypb.TestService/Hello" />

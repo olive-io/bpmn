@@ -25,8 +25,8 @@ import (
 )
 
 type nextUserActionMessage struct {
-	Headers    map[string]any
-	Properties map[string]any
+	headers    map[string]any
+	properties map[string]any
 	response   chan IAction
 }
 
@@ -75,13 +75,16 @@ func (task *UserTask) runner(ctx context.Context) {
 						SequenceFlows: AllSequenceFlows(&task.Outgoing),
 					}
 
-					response := make(chan DoResponse, 1)
+					headers := m.headers
+					properties := m.properties
+					timeout := fetchTaskTimeout(headers)
+
 					at := NewTaskTraceBuilder().
 						Context(task.ctx).
+						Timeout(timeout).
 						Activity(task).
-						Headers(m.Headers).
-						Properties(m.Properties).
-						Response(response).
+						Headers(headers).
+						Properties(properties).
 						Build()
 
 					task.Tracer.Trace(at)
@@ -89,7 +92,7 @@ func (task *UserTask) runner(ctx context.Context) {
 					case <-ctx.Done():
 						task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
 						return
-					case out := <-response:
+					case out := <-at.out():
 						if out.Err != nil {
 							aResponse.Err = out.Err
 						}
@@ -112,13 +115,12 @@ func (task *UserTask) runner(ctx context.Context) {
 func (task *UserTask) NextAction(t T) chan IAction {
 	response := make(chan IAction, 1)
 
-	msg := nextUserActionMessage{
-		response: response,
-	}
-
 	headers, properties, _ := FetchTaskDataInput(task.Locator, task.element)
-	msg.Headers = headers
-	msg.Properties = properties
+	msg := nextUserActionMessage{
+		headers:    headers,
+		properties: properties,
+		response:   response,
+	}
 
 	task.runnerChannel <- msg
 	return response
@@ -128,9 +130,7 @@ func (task *UserTask) Element() schema.FlowNodeInterface {
 	return task.element
 }
 
-func (task *UserTask) Type() Type {
-	return UserType
-}
+func (task *UserTask) Type() Type { return UserType }
 
 func (task *UserTask) Cancel() <-chan bool {
 	response := make(chan bool)

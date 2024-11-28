@@ -25,8 +25,8 @@ import (
 )
 
 type nextReceiveActionMessage struct {
-	Headers    map[string]any
-	Properties map[string]any
+	headers    map[string]any
+	properties map[string]any
 	response   chan IAction
 }
 
@@ -82,12 +82,16 @@ func (task *ReceiveTask) runner(ctx context.Context) {
 						rctx = context.WithValue(rctx, TypeKey{}, rt)
 					}
 
-					response := make(chan DoResponse, 1)
+					headers := m.headers
+					properties := m.properties
+					timeout := fetchTaskTimeout(headers)
+
 					at := NewTaskTraceBuilder().
 						Context(rctx).
+						Timeout(timeout).
 						Activity(task).
-						Headers(m.Headers).
-						Response(response).
+						Headers(headers).
+						Properties(properties).
 						Build()
 
 					task.Tracer.Trace(at)
@@ -95,7 +99,7 @@ func (task *ReceiveTask) runner(ctx context.Context) {
 					case <-ctx.Done():
 						task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
 						return
-					case out := <-response:
+					case out := <-at.out():
 						if out.Err != nil {
 							aResponse.Err = out.Err
 						}
@@ -118,12 +122,12 @@ func (task *ReceiveTask) runner(ctx context.Context) {
 func (task *ReceiveTask) NextAction(t T) chan IAction {
 	response := make(chan IAction, 1)
 
+	headers, properties, _ := FetchTaskDataInput(task.Locator, task.element)
 	msg := nextReceiveActionMessage{
-		response: response,
+		headers:    headers,
+		properties: properties,
+		response:   response,
 	}
-
-	headers, _, _ := FetchTaskDataInput(task.Locator, task.element)
-	msg.Headers = headers
 
 	task.runnerChannel <- msg
 	return response

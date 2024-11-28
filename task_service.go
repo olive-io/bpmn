@@ -25,9 +25,9 @@ import (
 )
 
 type nextServiceActionMessage struct {
-	Headers     map[string]any
-	Properties  map[string]any
-	DataObjects map[string]any
+	headers     map[string]any
+	properties  map[string]any
+	dataObjects map[string]any
 	response    chan IAction
 }
 
@@ -77,14 +77,19 @@ func (task *ServiceTask) runner(ctx context.Context) {
 						SequenceFlows: AllSequenceFlows(&task.Outgoing),
 					}
 
-					response := make(chan DoResponse, 1)
+					headers := m.headers
+					properties := m.properties
+					dataObjects := m.dataObjects
+
+					timeout := fetchTaskTimeout(headers)
+
 					at := NewTaskTraceBuilder().
 						Context(task.ctx).
 						Activity(task).
-						Headers(m.Headers).
-						Properties(m.Properties).
-						DataObjects(m.DataObjects).
-						Response(response).
+						Timeout(timeout).
+						Headers(headers).
+						Properties(properties).
+						DataObjects(dataObjects).
 						Build()
 
 					task.Tracer.Trace(at)
@@ -92,7 +97,7 @@ func (task *ServiceTask) runner(ctx context.Context) {
 					case <-ctx.Done():
 						task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
 						return
-					case out := <-response:
+					case out := <-at.out():
 						if out.Err != nil {
 							aResponse.Err = out.Err
 						}
@@ -117,14 +122,13 @@ func (task *ServiceTask) runner(ctx context.Context) {
 func (task *ServiceTask) NextAction(T) chan IAction {
 	response := make(chan IAction, 1)
 
-	msg := nextServiceActionMessage{
-		response: response,
-	}
-
 	headers, properties, dataObjects := FetchTaskDataInput(task.Locator, task.element)
-	msg.Headers = headers
-	msg.Properties = properties
-	msg.DataObjects = dataObjects
+	msg := nextServiceActionMessage{
+		headers:     headers,
+		properties:  properties,
+		dataObjects: dataObjects,
+		response:    response,
+	}
 
 	task.runnerChannel <- msg
 	return response

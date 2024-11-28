@@ -24,6 +24,13 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/data"
 )
 
+type nextTaskActionMessage struct {
+	headers  map[string]any
+	response chan IAction
+}
+
+func (m nextTaskActionMessage) message() {}
+
 type Task struct {
 	*Wiring
 	ctx           context.Context
@@ -57,7 +64,7 @@ func (task *Task) runner(ctx context.Context) {
 			case cancelMessage:
 				task.cancel()
 				m.response <- true
-			case nextActionMessage:
+			case nextTaskActionMessage:
 				go func() {
 					aResponse := &FlowActionResponse{
 						Variables: map[string]data.IItem{},
@@ -67,11 +74,14 @@ func (task *Task) runner(ctx context.Context) {
 						SequenceFlows: AllSequenceFlows(&task.Outgoing),
 					}
 
-					response := make(chan DoResponse, 1)
+					headers := m.headers
+					timeout := fetchTaskTimeout(headers)
+
 					at := NewTaskTraceBuilder().
 						Context(task.ctx).
+						Timeout(timeout).
 						Activity(task).
-						Response(response).
+						Headers(headers).
 						Build()
 
 					task.Tracer.Trace(at)
@@ -79,7 +89,7 @@ func (task *Task) runner(ctx context.Context) {
 					case <-ctx.Done():
 						task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
 						return
-					case <-response:
+					case <-at.out():
 
 					}
 
@@ -96,7 +106,14 @@ func (task *Task) runner(ctx context.Context) {
 
 func (task *Task) NextAction(T) chan IAction {
 	response := make(chan IAction, 1)
-	task.runnerChannel <- nextActionMessage{response: response}
+
+	headers, _, _ := FetchTaskDataInput(task.Locator, task.element)
+	msg := nextTaskActionMessage{
+		headers:  headers,
+		response: response,
+	}
+
+	task.runnerChannel <- msg
 	return response
 }
 

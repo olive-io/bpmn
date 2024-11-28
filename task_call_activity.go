@@ -26,6 +26,13 @@ import (
 
 type CallActivityKey struct{}
 
+type nextCallActionMessage struct {
+	headers  map[string]any
+	response chan IAction
+}
+
+func (m nextCallActionMessage) message() {}
+
 type CallActivity struct {
 	*Wiring
 	ctx           context.Context
@@ -59,7 +66,7 @@ func (task *CallActivity) runner(ctx context.Context) {
 			case cancelMessage:
 				task.cancel()
 				m.response <- true
-			case nextActionMessage:
+			case nextCallActionMessage:
 				go func() {
 					aResponse := &FlowActionResponse{
 						Variables: map[string]data.IItem{},
@@ -69,19 +76,21 @@ func (task *CallActivity) runner(ctx context.Context) {
 						SequenceFlows: AllSequenceFlows(&task.Outgoing),
 					}
 
-					response := make(chan DoResponse, 1)
-
 					extensionElement := task.element.ExtensionElementsField
 					if extensionElement == nil || extensionElement.CalledElement == nil {
 						m.response <- action
 						return
 					}
 
+					headers := m.headers
+					timeout := fetchTaskTimeout(headers)
+
 					at := NewTaskTraceBuilder().
 						Context(task.ctx).
 						Value(CallActivityKey{}, extensionElement.CalledElement).
+						Timeout(timeout).
 						Activity(task).
-						Response(response).
+						Headers(headers).
 						Build()
 
 					task.Tracer.Trace(at)
@@ -89,7 +98,7 @@ func (task *CallActivity) runner(ctx context.Context) {
 					case <-ctx.Done():
 						task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
 						return
-					case out := <-response:
+					case out := <-at.out():
 						if out.Err != nil {
 							aResponse.Err = out.Err
 						}
@@ -112,7 +121,14 @@ func (task *CallActivity) runner(ctx context.Context) {
 
 func (task *CallActivity) NextAction(T) chan IAction {
 	response := make(chan IAction, 1)
-	task.runnerChannel <- nextActionMessage{response: response}
+
+	headers, _, _ := FetchTaskDataInput(task.Locator, task.element)
+	msg := nextCallActionMessage{
+		headers:  headers,
+		response: response,
+	}
+
+	task.runnerChannel <- msg
 	return response
 }
 

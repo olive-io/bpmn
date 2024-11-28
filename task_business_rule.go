@@ -26,6 +26,13 @@ import (
 
 type BusinessRuleTaskKey struct{}
 
+type nextBusinessActionMessage struct {
+	headers  map[string]any
+	response chan IAction
+}
+
+func (m nextBusinessActionMessage) message() {}
+
 type BusinessRuleTask struct {
 	*Wiring
 	ctx           context.Context
@@ -59,7 +66,7 @@ func (task *BusinessRuleTask) runner(ctx context.Context) {
 			case cancelMessage:
 				task.cancel()
 				m.response <- true
-			case nextActionMessage:
+			case nextBusinessActionMessage:
 				go func() {
 					aResponse := &FlowActionResponse{
 						Variables: map[string]data.IItem{},
@@ -75,12 +82,15 @@ func (task *BusinessRuleTask) runner(ctx context.Context) {
 						return
 					}
 
-					response := make(chan DoResponse, 1)
+					headers := m.headers
+					timeout := fetchTaskTimeout(headers)
+
 					at := NewTaskTraceBuilder().
 						Context(task.ctx).
 						Value(BusinessRuleTaskKey{}, extensionElement.CalledDecision).
+						Timeout(timeout).
 						Activity(task).
-						Response(response).
+						Headers(headers).
 						Build()
 
 					task.Tracer.Trace(at)
@@ -88,7 +98,7 @@ func (task *BusinessRuleTask) runner(ctx context.Context) {
 					case <-ctx.Done():
 						task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
 						return
-					case out := <-response:
+					case out := <-at.out():
 						if out.Err != nil {
 							aResponse.Err = out.Err
 						}
@@ -110,7 +120,14 @@ func (task *BusinessRuleTask) runner(ctx context.Context) {
 
 func (task *BusinessRuleTask) NextAction(T) chan IAction {
 	response := make(chan IAction, 1)
-	task.runnerChannel <- nextActionMessage{response: response}
+
+	headers, _, _ := FetchTaskDataInput(task.Locator, task.element)
+	msg := nextBusinessActionMessage{
+		headers:  headers,
+		response: response,
+	}
+
+	task.runnerChannel <- msg
 	return response
 }
 

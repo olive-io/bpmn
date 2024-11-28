@@ -61,9 +61,10 @@ func (gw *EventBasedGateway) runner(ctx context.Context, sender tracing.ISenderH
 					if idPtr, present := sequenceFlow.Id(); present {
 						terminationChannels[*idPtr] = make(chan bool)
 					} else {
-						gw.Tracer.Trace(ErrorTrace{Error: errors.NotFoundError{
+						err := errors.NotFoundError{
 							Expected: fmt.Sprintf("id for %#v", sequenceFlow),
-						}})
+						}
+						gw.Tracer.Trace(ErrorTrace{Error: err})
 					}
 				}
 

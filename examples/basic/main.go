@@ -146,7 +146,8 @@ func main() {
 		switch tr := trace.(type) {
 		case *bpmn.TaskTrace:
 			log.Printf("%#v\n", trace)
-			tr.Do()
+			_ = tr
+			//tr.Do()
 		case bpmn.ErrorTrace:
 			log.Fatalf("%#v", trace)
 		default:

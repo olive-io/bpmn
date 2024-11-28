@@ -38,8 +38,7 @@ func NewLockedFlowNodeMapping() *FlowNodeMapping {
 	return mapping
 }
 
-func (mapping *FlowNodeMapping) RegisterElementToFlowNode(element schema.FlowNodeInterface,
-	flowNode IFlowNode) (err error) {
+func (mapping *FlowNodeMapping) RegisterElementToFlowNode(element schema.FlowNodeInterface, flowNode IFlowNode) (err error) {
 	if id, present := element.Id(); present {
 		mapping.mapping[*id] = flowNode
 	} else {
@@ -55,9 +54,7 @@ func (mapping *FlowNodeMapping) Finalize() {
 	mapping.lock.Unlock()
 }
 
-func (mapping *FlowNodeMapping) ResolveElementToFlowNode(
-	element schema.FlowNodeInterface,
-) (flowNode IFlowNode, found bool) {
+func (mapping *FlowNodeMapping) ResolveElementToFlowNode(element schema.FlowNodeInterface) (flowNode IFlowNode, found bool) {
 	mapping.lock.RLock()
 	if id, present := element.Id(); present {
 		flowNode, found = mapping.mapping[*id]

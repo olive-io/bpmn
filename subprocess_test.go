@@ -86,7 +86,7 @@ func TestEmbedSubprocess(t *testing.T) {
 				//t.Logf("%#v", trace)
 			case bpmn.CeaseFlowTrace:
 				break loop
-			//case flow.TerminationTrace:
+			case bpmn.TerminationTrace:
 			//	t.Logf("%#v", trace)
 			case bpmn.ErrorTrace:
 				t.Fatalf("%#v", trace)

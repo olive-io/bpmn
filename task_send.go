@@ -25,8 +25,8 @@ import (
 )
 
 type nextSendActionMessage struct {
-	Headers    map[string]any
-	Properties map[string]any
+	headers    map[string]any
+	properties map[string]any
 	response   chan IAction
 }
 
@@ -82,13 +82,16 @@ func (task *SendTask) runner(ctx context.Context) {
 						tctx = context.WithValue(tctx, TypeKey{}, st)
 					}
 
-					response := make(chan DoResponse, 1)
+					headers := m.headers
+					properties := m.properties
+					timeout := fetchTaskTimeout(headers)
+
 					at := NewTaskTraceBuilder().
 						Context(tctx).
+						Timeout(timeout).
 						Activity(task).
-						Headers(m.Headers).
-						Properties(m.Properties).
-						Response(response).
+						Headers(headers).
+						Properties(properties).
 						Build()
 
 					task.Tracer.Trace(at)
@@ -96,7 +99,7 @@ func (task *SendTask) runner(ctx context.Context) {
 					case <-ctx.Done():
 						task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
 						return
-					case out := <-response:
+					case out := <-at.out():
 						if out.Err != nil {
 							aResponse.Err = out.Err
 						}
@@ -116,13 +119,12 @@ func (task *SendTask) runner(ctx context.Context) {
 func (task *SendTask) NextAction(t T) chan IAction {
 	response := make(chan IAction, 1)
 
-	msg := nextSendActionMessage{
-		response: response,
-	}
-
 	headers, properties, _ := FetchTaskDataInput(task.Locator, task.element)
-	msg.Headers = headers
-	msg.Properties = properties
+	msg := nextSendActionMessage{
+		headers:    headers,
+		properties: properties,
+		response:   response,
+	}
 
 	task.runnerChannel <- msg
 	return response

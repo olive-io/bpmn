@@ -25,10 +25,9 @@ import (
 )
 
 type nextScriptActionMessage struct {
-	DataObjects map[string]any
-	Headers     map[string]any
-	Properties  map[string]any
-	response    chan IAction
+	headers    map[string]any
+	properties map[string]any
+	response   chan IAction
 }
 
 func (m nextScriptActionMessage) message() {}
@@ -75,8 +74,6 @@ func (task *ScriptTask) runner(ctx context.Context) {
 						Response:      aResponse,
 						SequenceFlows: AllSequenceFlows(&task.Outgoing),
 					}
-
-					response := make(chan DoResponse, 1)
 
 					extension := task.element.ExtensionElementsField
 					taskDef := extension.TaskDefinitionField
@@ -158,12 +155,16 @@ func (task *ScriptTask) runner(ctx context.Context) {
 						}
 					*/
 
+					headers := m.headers
+					properties := m.properties
+					timeout := fetchTaskTimeout(headers)
+
 					at := NewTaskTraceBuilder().
 						Context(task.ctx).
+						Timeout(timeout).
 						Activity(task).
-						Headers(m.Headers).
-						Properties(m.Properties).
-						Response(response).
+						Headers(headers).
+						Properties(properties).
 						Build()
 
 					task.Tracer.Trace(at)
@@ -171,7 +172,7 @@ func (task *ScriptTask) runner(ctx context.Context) {
 					case <-ctx.Done():
 						task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
 						return
-					case out := <-response:
+					case out := <-at.out():
 						if out.Err != nil {
 							aResponse.Err = out.Err
 						}
@@ -195,14 +196,12 @@ func (task *ScriptTask) runner(ctx context.Context) {
 func (task *ScriptTask) NextAction(t T) chan IAction {
 	response := make(chan IAction, 1)
 
+	headers, properties, _ := FetchTaskDataInput(task.Locator, task.element)
 	msg := nextScriptActionMessage{
-		response: response,
+		headers:    headers,
+		properties: properties,
+		response:   response,
 	}
-
-	headers, properties, dataObjects := FetchTaskDataInput(task.Locator, task.element)
-	msg.Headers = headers
-	msg.Properties = properties
-	msg.DataObjects = dataObjects
 
 	task.runnerChannel <- msg
 	return response

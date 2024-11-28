@@ -65,9 +65,7 @@ func (evt *EndEvent) runner(ctx context.Context, sender tracing.ISenderHandle) {
 					continue
 				}
 
-				if _, err := evt.EventIngress.ConsumeEvent(
-					event.MakeEndEvent(evt.element),
-				); err == nil {
+				if _, err := evt.EventIngress.ConsumeEvent(event.MakeEndEvent(evt.element)); err == nil {
 					evt.completed = true
 					m.response <- CompleteAction{}
 				} else {

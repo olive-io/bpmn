@@ -22,12 +22,19 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/data"
+	"github.com/olive-io/bpmn/v2/pkg/errors"
 	"github.com/olive-io/bpmn/v2/pkg/event"
 	"github.com/olive-io/bpmn/v2/pkg/id"
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
+)
+
+var (
+	DefaultTaskTimeoutKey  = "timeout"
+	DefaultTaskExecTimeout = time.Second * 30
 )
 
 type Type string
@@ -254,20 +261,22 @@ type DoResponse struct {
 	HandlerCh   <-chan ErrHandler
 }
 
+func newDoOption(opts ...DoOption) *DoResponse {
+	var rsp DoResponse
+	for _, opt := range opts {
+		opt(&rsp)
+	}
+
+	return &rsp
+}
+
 type TaskTraceBuilder struct {
 	t TaskTrace
 }
 
 func NewTaskTraceBuilder() *TaskTraceBuilder {
-	trace := TaskTrace{
-		ctx:         context.TODO(),
-		dataObjects: make(map[string]any),
-		headers:     make(map[string]any),
-		properties:  make(map[string]any),
-		response:    make(chan DoResponse, 1),
-		done:        make(chan struct{}, 1),
-	}
-	return &TaskTraceBuilder{t: trace}
+	trace := newTaskTrace()
+	return &TaskTraceBuilder{t: *trace}
 }
 
 func (b *TaskTraceBuilder) Context(ctx context.Context) *TaskTraceBuilder {
@@ -277,6 +286,11 @@ func (b *TaskTraceBuilder) Context(ctx context.Context) *TaskTraceBuilder {
 
 func (b *TaskTraceBuilder) Value(key, value any) *TaskTraceBuilder {
 	b.t.ctx = context.WithValue(b.t.ctx, key, value)
+	return b
+}
+
+func (b *TaskTraceBuilder) Timeout(timeout time.Duration) *TaskTraceBuilder {
+	b.t.timeout = timeout
 	return b
 }
 
@@ -300,24 +314,52 @@ func (b *TaskTraceBuilder) Properties(properties map[string]any) *TaskTraceBuild
 	return b
 }
 
-func (b *TaskTraceBuilder) Response(ch chan DoResponse) *TaskTraceBuilder {
-	b.t.response = ch
-	return b
+func (b *TaskTraceBuilder) Build() *TaskTrace {
+	go b.t.process()
+	return &b.t
 }
 
-func (b *TaskTraceBuilder) Build() *TaskTrace {
-	return &b.t
+func fetchTaskTimeout(headers map[string]any) time.Duration {
+	timeout := DefaultTaskExecTimeout
+	value, ok := headers[DefaultTaskTimeoutKey]
+	if ok {
+		switch val := value.(type) {
+		case string:
+			var e1 error
+			timeout, e1 = time.ParseDuration(val)
+			if e1 != nil {
+				timeout = DefaultTaskExecTimeout
+			}
+		case int64:
+			timeout = time.Duration(val) * time.Second
+		}
+	}
+	return timeout
 }
 
 // TaskTrace describes common channel handler for all tasks
 type TaskTrace struct {
 	ctx         context.Context
+	timeout     time.Duration
 	activity    Activity
 	dataObjects map[string]any
 	headers     map[string]any
 	properties  map[string]any
 	response    chan DoResponse
 	done        chan struct{}
+}
+
+func newTaskTrace() *TaskTrace {
+	trace := TaskTrace{
+		ctx:         context.TODO(),
+		timeout:     DefaultTaskExecTimeout,
+		dataObjects: make(map[string]any),
+		headers:     make(map[string]any),
+		properties:  make(map[string]any),
+		response:    make(chan DoResponse, 1),
+		done:        make(chan struct{}, 1),
+	}
+	return &trace
 }
 
 func (t *TaskTrace) Element() any { return t.activity }
@@ -342,6 +384,10 @@ func (t *TaskTrace) GetProperties() map[string]any {
 	return t.properties
 }
 
+func (t *TaskTrace) out() <-chan DoResponse {
+	return t.response
+}
+
 func (t *TaskTrace) Do(options ...DoOption) {
 	select {
 	case <-t.done:
@@ -349,13 +395,35 @@ func (t *TaskTrace) Do(options ...DoOption) {
 	default:
 	}
 
-	var response DoResponse
-	for _, opt := range options {
-		opt(&response)
+	response := newDoOption(options...)
+
+	t.response <- *response
+	close(t.done)
+}
+
+func (t *TaskTrace) process() {
+	duration := t.timeout
+	if duration < time.Second {
+		duration = time.Second
 	}
 
-	t.response <- response
-	close(t.done)
+	for {
+		select {
+		case <-t.done:
+			return
+		case <-t.ctx.Done():
+			rsp := newDoOption(WithErr(t.ctx.Err()))
+			t.response <- *rsp
+		case <-time.After(duration):
+			var tid string
+			if v, ok := t.activity.Element().Id(); ok {
+				tid = *v
+			}
+
+			rsp := newDoOption(WithErr(errors.TaskExecError{Id: tid, Reason: "timed out"}))
+			t.response <- *rsp
+		}
+	}
 }
 
 func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElementInterface) (headers, properties, dataObjects map[string]any) {
