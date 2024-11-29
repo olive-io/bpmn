@@ -21,6 +21,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/expr-lang/expr/ast"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/olive-io/bpmn/schema"
@@ -50,6 +51,16 @@ func TestExprSum(t *testing.T) {
 	assert.Nil(t, err)
 	_, ok := result.(int)
 	assert.True(t, ok)
+}
+
+type Visitor struct {
+	Identifiers []string
+}
+
+func (v *Visitor) Visit(node *ast.Node) {
+	if n, ok := (*node).(*ast.IdentifierNode); ok {
+		v.Identifiers = append(v.Identifiers, n.Value)
+	}
 }
 
 type dataObjects map[string]data.IItemAware
@@ -85,11 +96,28 @@ func TestExpr_getDataObject(t *testing.T) {
 		"dataObject1": container1,
 	}
 	engine.SetItemAwareLocator(data.LocatorObject, objs)
-	compiled, err := engine.CompileExpression("$('dataObject1').msg == 'hello'")
-	assert.Nil(t, err)
-	compiled, err = engine.CompileExpression("$('dataObject') == 1")
+
+	h1 := data.NewContainer(nil)
+	h1.Put(2)
+	var headers dataObjects = map[string]data.IItemAware{
+		"a": h1,
+	}
+	engine.SetItemAwareLocator(data.LocatorHeader, headers)
+
+	compiled, err := engine.CompileExpression("d$('dataObject1').msg == 'hello'")
 	assert.Nil(t, err)
 	result, err := engine.EvaluateExpression(compiled, map[string]interface{}{})
 	assert.Nil(t, err)
 	assert.True(t, result.(bool))
+	compiled, err = engine.CompileExpression("d$('dataObject') == 1")
+	assert.Nil(t, err)
+	result, err = engine.EvaluateExpression(compiled, map[string]interface{}{})
+	assert.Nil(t, err)
+	assert.True(t, result.(bool))
+
+	compiled, err = engine.CompileExpression("h$('a') + 1")
+	assert.Nil(t, err)
+	result, err = engine.EvaluateExpression(compiled, map[string]interface{}{})
+	assert.Nil(t, err)
+	assert.Equal(t, result.(int), int(3))
 }

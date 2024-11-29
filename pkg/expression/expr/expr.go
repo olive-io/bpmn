@@ -68,14 +68,18 @@ func New(ctx context.Context) *Expr {
 		itemAwareLocators: map[string]data.IItemAwareLocator{},
 	}
 	engine.env = map[string]interface{}{
-		data.LocatorObject: engine.fetchItem(data.LocatorObject),
 		data.LocatorHeader: engine.fetchItem(data.LocatorHeader),
+		data.LocatorObject: engine.fetchItem(data.LocatorObject),
 	}
 	return engine
 }
 
 func (engine *Expr) CompileExpression(source string) (result expression.ICompiledExpression, err error) {
-	result, err = expr.Compile(source, expr.Env(engine.env), expr.AllowUndefinedVariables())
+	opts := []expr.Option{
+		expr.Env(engine.env),
+		expr.AllowUndefinedVariables(),
+	}
+	result, err = expr.Compile(source, opts...)
 	return
 }
 

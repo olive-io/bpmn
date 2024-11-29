@@ -29,9 +29,9 @@ import (
 )
 
 const (
-	LocatorObject   = "$"
-	LocatorHeader   = "#"
-	LocatorProperty = "@"
+	LocatorObject   = "d$" // data object
+	LocatorHeader   = "h$" // headers
+	LocatorProperty = "p$" // properties
 )
 
 type ObjectContainer struct {
