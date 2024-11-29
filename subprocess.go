@@ -555,7 +555,7 @@ func (p *SubProcess) runner(ctx context.Context, out tracing.ITracer) {
 						}
 
 						trace = tracing.Unwrap(trace)
-						switch trace := trace.(type) {
+						switch tr := trace.(type) {
 						case CeaseFlowTrace:
 							out.Trace(ProcessLandMarkTrace{Node: p.element})
 							break loop
@@ -564,7 +564,7 @@ func (p *SubProcess) runner(ctx context.Context, out tracing.ITracer) {
 						case TerminationTrace:
 							// ignore end event of sub process
 						default:
-							out.Trace(trace)
+							out.Trace(tr)
 						}
 					}
 					p.tracer.Unsubscribe(traces)

@@ -90,15 +90,15 @@ func NewWiring(
 	if err != nil {
 		return
 	}
-	var ownId string
-	if ownIdPtr, present := flowNode.Id(); !present {
+	ownIdPtr, present := flowNode.Id()
+	if !present {
 		err = errors.NotFoundError{
 			Expected: fmt.Sprintf("flow node %#v to have an ID", flowNode),
 		}
 		return
-	} else {
-		ownId = *ownIdPtr
 	}
+
+	ownId := *ownIdPtr
 	node = &Wiring{
 		ProcessInstanceId:              processInstanceId,
 		FlowNodeId:                     ownId,
@@ -127,7 +127,6 @@ func (wiring *Wiring) CloneFor(flowNode *schema.FlowNode) (result *Wiring, err e
 	if err != nil {
 		return
 	}
-	var ownId string
 
 	ownIdPtr, present := flowNode.Id()
 	if !present {
@@ -137,7 +136,7 @@ func (wiring *Wiring) CloneFor(flowNode *schema.FlowNode) (result *Wiring, err e
 		return
 	}
 
-	ownId = *ownIdPtr
+	ownId := *ownIdPtr
 	result = &Wiring{
 		ProcessInstanceId:              wiring.ProcessInstanceId,
 		FlowNodeId:                     ownId,

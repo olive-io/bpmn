@@ -90,7 +90,6 @@ func (task *Task) runner(ctx context.Context) {
 						task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
 						return
 					case <-at.out():
-
 					}
 
 					m.response <- action

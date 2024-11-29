@@ -345,6 +345,7 @@ type TaskTrace struct {
 	dataObjects map[string]any
 	headers     map[string]any
 	properties  map[string]any
+	forward     chan DoResponse
 	response    chan DoResponse
 	done        chan struct{}
 }
@@ -356,6 +357,7 @@ func newTaskTrace() *TaskTrace {
 		dataObjects: make(map[string]any),
 		headers:     make(map[string]any),
 		properties:  make(map[string]any),
+		forward:     make(chan DoResponse, 1),
 		response:    make(chan DoResponse, 1),
 		done:        make(chan struct{}, 1),
 	}
@@ -396,9 +398,7 @@ func (t *TaskTrace) Do(options ...DoOption) {
 	}
 
 	response := newDoOption(options...)
-
-	t.response <- *response
-	close(t.done)
+	t.forward <- *response
 }
 
 func (t *TaskTrace) process() {
@@ -407,22 +407,27 @@ func (t *TaskTrace) process() {
 		duration = time.Second
 	}
 
-	for {
-		select {
-		case <-t.done:
-			return
-		case <-t.ctx.Done():
-			rsp := newDoOption(WithErr(t.ctx.Err()))
-			t.response <- *rsp
-		case <-time.After(duration):
-			var tid string
-			if v, ok := t.activity.Element().Id(); ok {
-				tid = *v
-			}
-
-			rsp := newDoOption(WithErr(errors.TaskExecError{Id: tid, Reason: "timed out"}))
-			t.response <- *rsp
+	select {
+	case <-t.done:
+	case <-t.ctx.Done():
+		rsp := newDoOption(WithErr(t.ctx.Err()))
+		t.response <- *rsp
+	case <-time.After(duration):
+		var tid string
+		if v, ok := t.activity.Element().Id(); ok {
+			tid = *v
 		}
+
+		rsp := newDoOption(WithErr(errors.TaskExecError{Id: tid, Reason: "timed out"}))
+		t.response <- *rsp
+	case rsp := <-t.forward:
+		t.response <- rsp
+	}
+
+	select {
+	case <-t.done:
+	default:
+		close(t.done)
 	}
 }
 

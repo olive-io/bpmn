@@ -23,6 +23,7 @@ import (
 	"encoding/xml"
 	"io"
 	"log"
+	"time"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2"
@@ -146,8 +147,8 @@ func main() {
 		switch tr := trace.(type) {
 		case *bpmn.TaskTrace:
 			log.Printf("%#v\n", trace)
-			_ = tr
-			//tr.Do()
+			time.Sleep(time.Second * 1)
+			tr.Do()
 		case bpmn.ErrorTrace:
 			log.Fatalf("%#v", trace)
 		default:

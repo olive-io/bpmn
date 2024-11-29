@@ -38,13 +38,9 @@ type Snapshot struct {
 	sequenceFlow *SequenceFlow
 }
 
-func (s *Snapshot) Id() id.Id {
-	return s.flowId
-}
+func (s *Snapshot) Id() id.Id { return s.flowId }
 
-func (s *Snapshot) SequenceFlow() *SequenceFlow {
-	return s.sequenceFlow
-}
+func (s *Snapshot) SequenceFlow() *SequenceFlow { return s.sequenceFlow }
 
 // Flow Represents a flow
 type Flow struct {
