@@ -52,7 +52,7 @@ func TestReceiveTask(t *testing.T) {
 					}
 				}
 			case *bpmn.TaskTrace:
-				trace.Do(bpmn.WithProperties(map[string]any{"a": "b"}))
+				trace.Do(bpmn.DoWithResults(map[string]any{"a": "b"}))
 				//t.Logf("%#v", trace)
 			case bpmn.ErrorTrace:
 				t.Fatalf("%#v", trace)

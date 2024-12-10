@@ -45,7 +45,7 @@ func TestBusinessRuleTask(t *testing.T) {
 			case *bpmn.TaskTrace:
 				calledDecision := trace.Context().Value(bpmn.BusinessRuleTaskKey{}).(*schema.ExtensionCalledDecision)
 				//t.Logf("call decisionId [%s]", calledDecision.DecisionId)
-				trace.Do(bpmn.WithProperties(map[string]any{calledDecision.Result: "3"}))
+				trace.Do(bpmn.DoWithResults(map[string]any{calledDecision.Result: "3"}))
 			case bpmn.ErrorTrace:
 				t.Fatalf("%#v", trace)
 			case bpmn.CeaseFlowTrace:

@@ -66,7 +66,7 @@ func TestServiceTask(t *testing.T) {
 				switch trace := trace.(type) {
 				case bpmn.FlowTrace:
 				case *bpmn.TaskTrace:
-					trace.Do()
+					trace.Do(bpmn.DoWithResults(map[string]interface{}{"foo": 1, "bar": "2"}))
 					//t.Logf("%#v", trace)
 					//properties := trace.GetProperties()
 					//t.Logf("properties: %#v", properties)
@@ -85,6 +85,10 @@ func TestServiceTask(t *testing.T) {
 		case <-done:
 		}
 
+		foo, _ := ins.Locator().GetVariable("foo")
+		assert.Equal(t, foo, 1)
+		_, ok := ins.Locator().GetVariable("bar")
+		assert.True(t, !ok)
 		ins.Tracer().Unsubscribe(traces)
 	} else {
 		t.Fatalf("failed to instantiate the process: %s", err)
@@ -117,7 +121,7 @@ func TestServiceTaskWithError(t *testing.T) {
 				switch trace := trace.(type) {
 				case bpmn.FlowTrace:
 				case *bpmn.TaskTrace:
-					trace.Do(bpmn.WithErr(fmt.Errorf("text error")))
+					trace.Do(bpmn.DoWithErr(fmt.Errorf("text error")))
 					//t.Logf("%#v", trace)
 				case bpmn.ErrorTrace:
 					te = trace.Error
@@ -178,7 +182,7 @@ func TestServiceTaskWithRetry(t *testing.T) {
 						retry := int32(1)
 						handler <- bpmn.ErrHandler{Mode: bpmn.RetryMode, Retries: retry}
 					}()
-					trace.Do(bpmn.WithErrHandle(fmt.Errorf("text error"), handler))
+					trace.Do(bpmn.DoWithErrHandle(fmt.Errorf("text error"), handler))
 					//t.Logf("%#v", trace)
 				case bpmn.ErrorTrace:
 					te = trace.Error
@@ -234,7 +238,7 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 				case bpmn.FlowTrace:
 				case *bpmn.TaskTrace:
 					assert.Equal(t, trace.GetDataObjects()["in"], map[string]any{"a": "ac"})
-					trace.Do(bpmn.WithObjects(map[string]any{"out": map[string]any{"a": "cc"}}))
+					trace.Do(bpmn.DoWithResults(map[string]any{"out": map[string]any{"a": "cc"}}))
 					//t.Logf("%#v", trace)
 				case bpmn.ErrorTrace:
 					t.Logf("%#v", trace)

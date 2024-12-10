@@ -156,6 +156,9 @@
             <xsl:text>PropertiesField *Properties `xml:"http://olive.io/spec/BPMN/MODEL properties"`</xsl:text>
             <xsl:text xml:space="preserve">
             </xsl:text>
+            <xsl:text>ResultsField *Result `xml:"http://olive.io/spec/BPMN/MODEL results"`</xsl:text>
+            <xsl:text xml:space="preserve">
+            </xsl:text>
             <xsl:text>ScriptField *ExtensionScript `xml:"http://olive.io/spec/BPMN/MODEL script"`</xsl:text>
             <xsl:text xml:space="preserve">
             </xsl:text>

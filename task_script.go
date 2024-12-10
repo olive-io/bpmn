@@ -176,7 +176,7 @@ func (task *ScriptTask) runner(ctx context.Context) {
 						if out.Err != nil {
 							aResponse.Err = out.Err
 						}
-						for key, value := range out.Properties {
+						for key, value := range out.Results {
 							aResponse.Variables[key] = value
 						}
 						aResponse.Handler = out.HandlerCh

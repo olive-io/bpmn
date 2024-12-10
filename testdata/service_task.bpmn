@@ -22,6 +22,9 @@
           <olive:property name="c" value="" type="object"/>
           <olive:property name="d" value="" type="array"/>
         </olive:properties>
+        <olive:results>
+          <olive:item name="foo" type="integer"/>
+        </olive:results>
       </bpmn:extensionElements>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_1hox6h5" sourceRef="start" targetRef="task" />

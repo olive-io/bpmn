@@ -5871,6 +5871,7 @@ type ExtensionElements struct {
 	TaskDefinitionField *TaskDefinition          `xml:"http://olive.io/spec/BPMN/MODEL taskDefinition"`
 	TaskHeaderField     *TaskHeader              `xml:"http://olive.io/spec/BPMN/MODEL taskHeaders"`
 	PropertiesField     *Properties              `xml:"http://olive.io/spec/BPMN/MODEL properties"`
+	ResultsField        *Result                  `xml:"http://olive.io/spec/BPMN/MODEL results"`
 	ScriptField         *ExtensionScript         `xml:"http://olive.io/spec/BPMN/MODEL script"`
 	CalledElement       *ExtensionCalledElement  `xml:"http://olive.io/spec/BPMN/MODEL calledElement"`
 	CalledDecision      *ExtensionCalledDecision `xml:"http://olive.io/spec/BPMN/MODEL calledDecision"`

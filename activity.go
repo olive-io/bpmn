@@ -219,32 +219,32 @@ func (b ActiveBoundaryTrace) Element() any { return b.Node }
 
 type DoOption func(*DoResponse)
 
-func WithObjects(dataObjects map[string]any) DoOption {
+func DoWithObjects(dataObjects map[string]any) DoOption {
 	return func(rsp *DoResponse) {
 		rsp.DataObjects = dataObjects
 	}
 }
 
-func WithProperties(properties map[string]any) DoOption {
+func DoWithResults(results map[string]any) DoOption {
 	return func(rsp *DoResponse) {
-		rsp.Properties = properties
+		rsp.Results = results
 	}
 }
 
-func WithErrHandle(err error, ch <-chan ErrHandler) DoOption {
+func DoWithErrHandle(err error, ch <-chan ErrHandler) DoOption {
 	return func(rsp *DoResponse) {
 		rsp.Err = err
 		rsp.HandlerCh = ch
 	}
 }
 
-func WithValue(key, value any) DoOption {
+func DoWithValue(key, value any) DoOption {
 	return func(rsp *DoResponse) {
 		rsp.Context = context.WithValue(rsp.Context, key, value)
 	}
 }
 
-func WithErr(err error) DoOption {
+func DoWithErr(err error) DoOption {
 	return func(rsp *DoResponse) {
 		rsp.Err = err
 		rsp.HandlerCh = nil
@@ -254,7 +254,7 @@ func WithErr(err error) DoOption {
 type DoResponse struct {
 	Context     context.Context
 	DataObjects map[string]any
-	Properties  map[string]any
+	Results     map[string]any
 	Err         error
 	HandlerCh   <-chan ErrHandler
 }
@@ -408,7 +408,7 @@ func (t *TaskTrace) process() {
 	select {
 	case <-t.done:
 	case <-t.ctx.Done():
-		rsp := newDoOption(WithErr(t.ctx.Err()))
+		rsp := newDoOption(DoWithErr(t.ctx.Err()))
 		t.response <- *rsp
 	case <-time.After(duration):
 		var tid string
@@ -416,7 +416,7 @@ func (t *TaskTrace) process() {
 			tid = *v
 		}
 
-		rsp := newDoOption(WithErr(errors.TaskExecError{Id: tid, Reason: "timed out"}))
+		rsp := newDoOption(DoWithErr(errors.TaskExecError{Id: tid, Reason: "timed out"}))
 		t.response <- *rsp
 	case rsp := <-t.forward:
 		t.response <- rsp
@@ -481,6 +481,26 @@ func ApplyTaskDataOutput(element schema.BaseElementInterface, dataOutputs map[st
 				outputs[dataOutput.Name] = value
 			}
 		}
+	}
+	return outputs
+}
+
+func ApplyTaskResult(element schema.BaseElementInterface, results map[string]any) map[string]data.IItem {
+	outputs := map[string]data.IItem{}
+	if extension, found := element.ExtensionElements(); found {
+		if field := extension.ResultsField; field != nil {
+			for _, item := range extension.ResultsField.Item {
+				value, ok := results[item.Name]
+				if ok {
+					outputs[item.Name] = value
+				}
+			}
+			return outputs
+		}
+	}
+
+	for key, value := range results {
+		outputs[key] = value
 	}
 	return outputs
 }

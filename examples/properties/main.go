@@ -76,7 +76,7 @@ func main() {
 			switch trace := trace.(type) {
 			case bpmn.FlowTrace:
 			case *bpmn.TaskTrace:
-				trace.Do(bpmn.WithProperties(
+				trace.Do(bpmn.DoWithResults(
 					map[string]any{
 						"c": map[string]string{"name": "cc1"},
 						"a": 2,

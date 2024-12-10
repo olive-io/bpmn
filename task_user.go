@@ -93,12 +93,9 @@ func (task *UserTask) runner(ctx context.Context) {
 						task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
 						return
 					case out := <-at.out():
-						if out.Err != nil {
-							aResponse.Err = out.Err
-						}
-						for key, value := range out.Properties {
-							aResponse.Variables[key] = value
-						}
+						aResponse.Err = out.Err
+						aResponse.Variables = ApplyTaskResult(task.element, out.Results)
+						aResponse.Handler = out.HandlerCh
 					}
 
 					m.response <- action

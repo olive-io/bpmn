@@ -2,18 +2,20 @@ module github.com/olive-io/bpmn/v2
 
 go 1.22
 
+replace github.com/olive-io/bpmn/schema => ./schema
+
 require (
 	github.com/ChrisTrenkamp/xsel v0.9.16
 	github.com/Chronokeeper/anyxml v0.0.0-20160530174208-54457d8e98c6
-	github.com/bits-and-blooms/bitset v1.17.0
-	github.com/bytedance/sonic v1.12.3
+	github.com/bits-and-blooms/bitset v1.19.1
+	github.com/bytedance/sonic v1.12.5
 	github.com/expr-lang/expr v1.16.9
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/muyo/sno v1.2.1
 	github.com/olive-io/bpmn/schema v1.3.4
 	github.com/qri-io/iso8601 v0.1.0
-	github.com/stretchr/testify v1.9.0
-	golang.org/x/sys v0.27.0
+	github.com/stretchr/testify v1.10.0
+	golang.org/x/sys v0.28.0
 )
 
 require (
@@ -23,10 +25,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/goccmack/goutil v1.2.3 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
-	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect

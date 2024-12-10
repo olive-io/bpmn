@@ -466,6 +466,19 @@ func (p *Properties) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
+type Result struct {
+	Item []*Item `xml:"http://olive.io/spec/BPMN/MODEL item"`
+}
+
+func (r *Result) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	out := Result(*r)
+	start.Name = xml.Name{
+		Local: OliveNS + start.Name.Local,
+	}
+
+	return e.EncodeElement(out, start)
+}
+
 type ExtensionScript struct {
 	Expression string   `xml:"expression,attr"`
 	Result     string   `xml:"result,attr"`
