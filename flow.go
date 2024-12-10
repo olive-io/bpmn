@@ -192,7 +192,8 @@ func (flow *Flow) handleSequenceFlow(ctx context.Context, sequenceFlow *Sequence
 		}
 		flow.current = flowNode
 		flow.terminate = terminate
-		flow.tracer.Trace(VisitTrace{Node: flow.current.Element()})
+		node := flow.current.Element()
+		flow.tracer.Trace(VisitTrace{Node: node})
 		flow.actionTransformer = actionTransformer
 		flowed = true
 		return

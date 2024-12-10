@@ -44,7 +44,7 @@ type Workflow struct {
 	instances []*bpmn.Instance
 }
 
-func NewWorkflow(reader io.Reader, opts ...bpmn.Option) (*Workflow, error) {
+func NewWorkflow(ctx context.Context, reader io.Reader, opts ...bpmn.Option) (*Workflow, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func NewWorkflow(reader io.Reader, opts ...bpmn.Option) (*Workflow, error) {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	tracer := tracing.NewTracer(ctx)
 
 	instances := make([]*bpmn.Instance, 0)
@@ -116,7 +116,12 @@ func (w *Workflow) Run(handle Handle) error {
 
 	LOOP:
 		for {
-			trace := tracing.Unwrap(<-traces)
+			wrapped, ok := <-traces
+			if !ok {
+				break LOOP
+			}
+
+			trace := tracing.Unwrap(wrapped)
 
 			handle(trace)
 			if _, ok := trace.(bpmn.CeaseFlowTrace); ok {
@@ -124,8 +129,7 @@ func (w *Workflow) Run(handle Handle) error {
 			}
 		}
 
-		for !instance.WaitUntilComplete(ctx) {
-		}
+		instance.WaitUntilComplete(ctx)
 	}
 
 	return nil
@@ -138,7 +142,9 @@ func main() {
 		log.Fatalf("Can't read bpmn: %v", err)
 	}
 
-	wf, err := NewWorkflow(src)
+	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
+	defer cancel()
+	wf, err := NewWorkflow(ctx, src)
 	if err != nil {
 		log.Fatalf("Can't create workflow: %v", err)
 	}
@@ -147,11 +153,13 @@ func main() {
 		switch tr := trace.(type) {
 		case *bpmn.TaskTrace:
 			log.Printf("%#v\n", trace)
-			time.Sleep(time.Second * 1)
 			tr.Do()
 		case bpmn.ErrorTrace:
 			log.Fatalf("%#v", trace)
 		default:
+			if tr == nil {
+				log.Fatalf("empty trace: %T", tr)
+			}
 			log.Printf("%#v\n", trace)
 		}
 	})

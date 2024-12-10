@@ -186,7 +186,7 @@ func TestServiceTaskWithRetry(t *testing.T) {
 				case bpmn.CeaseFlowTrace:
 					return
 				default:
-					//t.Logf("%#v", trace)
+					// t.Logf("%#v", trace)
 				}
 			}
 		}()

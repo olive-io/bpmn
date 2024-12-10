@@ -73,7 +73,6 @@ func (m nextHarnessActionMessage) message() {}
 
 type Harness struct {
 	*Wiring
-	element            schema.FlowNodeInterface
 	runnerChannel      chan imessage
 	activity           Activity
 	active             int32
@@ -102,7 +101,7 @@ func (node *Harness) Activity() Activity { return node.activity }
 
 type Constructor = func(*Wiring) (node Activity, err error)
 
-func NewHarness(ctx context.Context, wiring *Wiring, element *schema.FlowNode, idGenerator id.IGenerator, constructor Constructor) (node *Harness, err error) {
+func NewHarness(ctx context.Context, wiring *Wiring, idGenerator id.IGenerator, constructor Constructor) (node *Harness, err error) {
 	var activity Activity
 	activity, err = constructor(wiring)
 	if err != nil {
@@ -130,7 +129,6 @@ func NewHarness(ctx context.Context, wiring *Wiring, element *schema.FlowNode, i
 
 	node = &Harness{
 		Wiring:        wiring,
-		element:       element,
 		runnerChannel: make(chan imessage, len(wiring.Incoming)*2+1),
 		activity:      activity,
 	}
@@ -198,7 +196,7 @@ func (node *Harness) runner(ctx context.Context, sender tracing.ISenderHandle) {
 			default:
 			}
 		case <-ctx.Done():
-			node.Tracer.Trace(CancellationFlowNodeTrace{Node: node.element})
+			node.Tracer.Trace(CancellationFlowNodeTrace{Node: node.activity.Element()})
 			return
 		}
 	}
@@ -210,7 +208,7 @@ func (node *Harness) NextAction(flow T) chan IAction {
 	return <-response
 }
 
-func (node *Harness) Element() schema.FlowNodeInterface { return node.element }
+func (node *Harness) Element() schema.FlowNodeInterface { return node.activity.Element() }
 
 type ActiveBoundaryTrace struct {
 	Start bool
