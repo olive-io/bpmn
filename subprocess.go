@@ -51,7 +51,7 @@ type SubProcess struct {
 	eventDefinitionBuilder event.IDefinitionInstanceBuilder
 	eventConsumersLock     sync.RWMutex
 	eventConsumers         []event.IConsumer
-	runnerChannel          chan imessage
+	mch                    chan imessage
 }
 
 func NewSubProcess(ctx context.Context,
@@ -77,7 +77,7 @@ func NewSubProcess(ctx context.Context,
 			flowNodeMapping:        flowNodeMapping,
 			eventDefinitionBuilder: eventDefinitionBuilder,
 			idGenerator:            idGenerator,
-			runnerChannel:          make(chan imessage, len(parentWiring.Incoming)*2+1),
+			mch:                    make(chan imessage, len(parentWiring.Incoming)*2+1),
 		}
 
 		locator := parentWiring.Locator
@@ -400,7 +400,7 @@ func NewSubProcess(ctx context.Context,
 		// StartAll cease flow monitor
 		sender := process.Tracer.RegisterSender()
 		go process.ceaseFlowMonitor(subTracer)(ctx, sender)
-		go process.runner(ctx, tracer)
+		go process.run(ctx, tracer)
 		node = process
 		return
 	}
@@ -521,10 +521,10 @@ func (p *SubProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.C
 	}
 }
 
-func (p *SubProcess) runner(ctx context.Context, out tracing.ITracer) {
+func (p *SubProcess) run(ctx context.Context, out tracing.ITracer) {
 	for {
 		select {
-		case msg := <-p.runnerChannel:
+		case msg := <-p.mch:
 			switch m := msg.(type) {
 			case cancelMessage:
 				p.cancel()
@@ -559,8 +559,8 @@ func (p *SubProcess) runner(ctx context.Context, out tracing.ITracer) {
 						case CeaseFlowTrace:
 							out.Trace(ProcessLandMarkTrace{Node: p.element})
 							break loop
-						// case flow.CompletionTrace:
-						// ignore end event of sub process
+						case CompletionTrace:
+							// ignore end event of sub process
 						case TerminationTrace:
 							// ignore end event of sub process
 						default:
@@ -583,7 +583,7 @@ func (p *SubProcess) runner(ctx context.Context, out tracing.ITracer) {
 
 func (p *SubProcess) NextAction(T) chan IAction {
 	response := make(chan IAction, 1)
-	p.runnerChannel <- nextActionMessage{response: response}
+	p.mch <- nextActionMessage{response: response}
 	return response
 }
 
@@ -597,6 +597,6 @@ func (p *SubProcess) Type() Type {
 
 func (p *SubProcess) Cancel() <-chan bool {
 	response := make(chan bool)
-	p.runnerChannel <- cancelMessage{response: response}
+	p.mch <- cancelMessage{response: response}
 	return response
 }

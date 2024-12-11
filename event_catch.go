@@ -35,7 +35,7 @@ func (m processEventMessage) message() {}
 type CatchEvent struct {
 	*Wiring
 	element         *schema.CatchEvent
-	runnerChannel   chan imessage
+	mch             chan imessage
 	activated       bool
 	awaitingActions []chan IAction
 	satisfier       *logic.CatchEventSatisfier
@@ -45,13 +45,13 @@ func NewCatchEvent(ctx context.Context, wiring *Wiring, catchEvent *schema.Catch
 	evt = &CatchEvent{
 		Wiring:          wiring,
 		element:         catchEvent,
-		runnerChannel:   make(chan imessage, len(wiring.Incoming)*2+1),
+		mch:             make(chan imessage, len(wiring.Incoming)*2+1),
 		activated:       false,
 		awaitingActions: make([]chan IAction, 0),
 		satisfier:       logic.NewCatchEventSatisfier(catchEvent, wiring.EventDefinitionInstanceBuilder),
 	}
 	sender := evt.Tracer.RegisterSender()
-	go evt.runner(ctx, sender)
+	go evt.run(ctx, sender)
 	err = evt.EventEgress.RegisterEventConsumer(evt)
 	if err != nil {
 		return
@@ -59,12 +59,12 @@ func NewCatchEvent(ctx context.Context, wiring *Wiring, catchEvent *schema.Catch
 	return
 }
 
-func (evt *CatchEvent) runner(ctx context.Context, sender tracing.ISenderHandle) {
+func (evt *CatchEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
 		select {
-		case msg := <-evt.runnerChannel:
+		case msg := <-evt.mch:
 			switch m := msg.(type) {
 			case processEventMessage:
 				if evt.activated {
@@ -94,14 +94,14 @@ func (evt *CatchEvent) runner(ctx context.Context, sender tracing.ISenderHandle)
 }
 
 func (evt *CatchEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
-	evt.runnerChannel <- processEventMessage{event: ev}
+	evt.mch <- processEventMessage{event: ev}
 	result = event.Consumed
 	return
 }
 
 func (evt *CatchEvent) NextAction(flow T) chan IAction {
 	response := make(chan IAction)
-	evt.runnerChannel <- nextActionMessage{response: response, flow: flow}
+	evt.mch <- nextActionMessage{response: response, flow: flow}
 	return response
 }
 

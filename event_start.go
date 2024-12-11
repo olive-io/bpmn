@@ -27,16 +27,6 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
-//type imessage interface {
-//	message()
-//}
-//
-//type nextActionMessage struct {
-//	response chan IAction
-//}
-
-//func (m nextActionMessage) message() {}
-
 type startMessage struct{}
 
 func (m startMessage) message() {}
@@ -49,11 +39,11 @@ func (m eventMessage) message() {}
 
 type StartEvent struct {
 	*Wiring
-	element       *schema.StartEvent
-	runnerChannel chan imessage
-	activated     bool
-	idGenerator   id.IGenerator
-	satisfier     *logic.CatchEventSatisfier
+	element     *schema.StartEvent
+	mch         chan imessage
+	activated   bool
+	idGenerator id.IGenerator
+	satisfier   *logic.CatchEventSatisfier
 }
 
 func NewStartEvent(ctx context.Context, wiring *Wiring,
@@ -72,15 +62,15 @@ func NewStartEvent(ctx context.Context, wiring *Wiring,
 	}
 
 	evt = &StartEvent{
-		Wiring:        wiring,
-		element:       startEvent,
-		runnerChannel: make(chan imessage, len(wiring.Incoming)*2+1),
-		activated:     false,
-		idGenerator:   idGenerator,
-		satisfier:     logic.NewCatchEventSatisfier(startEvent, wiring.EventDefinitionInstanceBuilder),
+		Wiring:      wiring,
+		element:     startEvent,
+		mch:         make(chan imessage, len(wiring.Incoming)*2+1),
+		activated:   false,
+		idGenerator: idGenerator,
+		satisfier:   logic.NewCatchEventSatisfier(startEvent, wiring.EventDefinitionInstanceBuilder),
 	}
 	sender := evt.Tracer.RegisterSender()
-	go evt.runner(ctx, sender)
+	go evt.run(ctx, sender)
 	err = evt.EventEgress.RegisterEventConsumer(evt)
 	if err != nil {
 		return
@@ -88,12 +78,12 @@ func NewStartEvent(ctx context.Context, wiring *Wiring,
 	return
 }
 
-func (evt *StartEvent) runner(ctx context.Context, sender tracing.ISenderHandle) {
+func (evt *StartEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
 		select {
-		case msg := <-evt.runnerChannel:
+		case msg := <-evt.mch:
 			switch m := msg.(type) {
 			case nextActionMessage:
 				if !evt.activated {
@@ -126,18 +116,18 @@ func (evt *StartEvent) flow(ctx context.Context) {
 }
 
 func (evt *StartEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
-	evt.runnerChannel <- eventMessage{event: ev}
+	evt.mch <- eventMessage{event: ev}
 	result = event.Consumed
 	return
 }
 
 func (evt *StartEvent) Trigger() {
-	evt.runnerChannel <- startMessage{}
+	evt.mch <- startMessage{}
 }
 
 func (evt *StartEvent) NextAction(flow T) chan IAction {
 	response := make(chan IAction)
-	evt.runnerChannel <- nextActionMessage{response: response, flow: flow}
+	evt.mch <- nextActionMessage{response: response, flow: flow}
 	return response
 }
 

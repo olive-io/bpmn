@@ -73,7 +73,7 @@ func (m nextHarnessActionMessage) message() {}
 
 type Harness struct {
 	*Wiring
-	runnerChannel      chan imessage
+	mch                chan imessage
 	activity           Activity
 	active             int32
 	cancellation       sync.Once
@@ -128,9 +128,9 @@ func NewHarness(ctx context.Context, wiring *Wiring, idGenerator id.IGenerator, 
 	}
 
 	node = &Harness{
-		Wiring:        wiring,
-		runnerChannel: make(chan imessage, len(wiring.Incoming)*2+1),
-		activity:      activity,
+		Wiring:   wiring,
+		mch:      make(chan imessage, len(wiring.Incoming)*2+1),
+		activity: activity,
 	}
 
 	err = node.EventEgress.RegisterEventConsumer(node)
@@ -167,16 +167,16 @@ func NewHarness(ctx context.Context, wiring *Wiring, idGenerator id.IGenerator, 
 		flowable.Start(ctx)
 	}
 	sender := node.Tracer.RegisterSender()
-	go node.runner(ctx, sender)
+	go node.run(ctx, sender)
 	return
 }
 
-func (node *Harness) runner(ctx context.Context, sender tracing.ISenderHandle) {
+func (node *Harness) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
 		select {
-		case msg := <-node.runnerChannel:
+		case msg := <-node.mch:
 			switch m := msg.(type) {
 			case nextHarnessActionMessage:
 				atomic.StoreInt32(&node.active, 1)
@@ -204,7 +204,7 @@ func (node *Harness) runner(ctx context.Context, sender tracing.ISenderHandle) {
 
 func (node *Harness) NextAction(flow T) chan IAction {
 	response := make(chan chan IAction, 1)
-	node.runnerChannel <- nextHarnessActionMessage{flow: flow, response: response}
+	node.mch <- nextHarnessActionMessage{flow: flow, response: response}
 	return <-response
 }
 

@@ -34,10 +34,10 @@ func (m nextSendActionMessage) message() {}
 
 type SendTask struct {
 	*Wiring
-	ctx           context.Context
-	cancel        context.CancelFunc
-	element       *schema.SendTask
-	runnerChannel chan imessage
+	ctx     context.Context
+	cancel  context.CancelFunc
+	element *schema.SendTask
+	mch     chan imessage
 }
 
 func NewSendTask(ctx context.Context, task *schema.SendTask) Constructor {
@@ -45,22 +45,22 @@ func NewSendTask(ctx context.Context, task *schema.SendTask) Constructor {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
 		taskNode := &SendTask{
-			Wiring:        wiring,
-			ctx:           ctx,
-			cancel:        cancel,
-			element:       task,
-			runnerChannel: make(chan imessage, len(wiring.Incoming)*2+1),
+			Wiring:  wiring,
+			ctx:     ctx,
+			cancel:  cancel,
+			element: task,
+			mch:     make(chan imessage, len(wiring.Incoming)*2+1),
 		}
-		go taskNode.runner(ctx)
+		go taskNode.run(ctx)
 		node = taskNode
 		return
 	}
 }
 
-func (task *SendTask) runner(ctx context.Context) {
+func (task *SendTask) run(ctx context.Context) {
 	for {
 		select {
-		case msg := <-task.runnerChannel:
+		case msg := <-task.mch:
 			switch m := msg.(type) {
 			case cancelMessage:
 				task.cancel()
@@ -126,7 +126,7 @@ func (task *SendTask) NextAction(t T) chan IAction {
 		response:   response,
 	}
 
-	task.runnerChannel <- msg
+	task.mch <- msg
 	return response
 }
 
@@ -140,6 +140,6 @@ func (task *SendTask) Type() Type {
 
 func (task *SendTask) Cancel() <-chan bool {
 	response := make(chan bool)
-	task.runnerChannel <- cancelMessage{response: response}
+	task.mch <- cancelMessage{response: response}
 	return response
 }

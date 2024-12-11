@@ -55,7 +55,7 @@ type flowSync struct {
 type InclusiveGateway struct {
 	*Wiring
 	element                 *schema.InclusiveGateway
-	runnerChannel           chan imessage
+	mch                     chan imessage
 	defaultSequenceFlow     *SequenceFlow
 	nonDefaultSequenceFlows []*SequenceFlow
 	probing                 *chan IAction
@@ -98,17 +98,17 @@ func NewInclusiveGateway(ctx context.Context, wiring *Wiring, inclusiveGateway *
 	gw = &InclusiveGateway{
 		Wiring:                  wiring,
 		element:                 inclusiveGateway,
-		runnerChannel:           make(chan imessage, len(wiring.Incoming)*2+1),
+		mch:                     make(chan imessage, len(wiring.Incoming)*2+1),
 		nonDefaultSequenceFlows: nonDefaultSequenceFlows,
 		defaultSequenceFlow:     defaultSequenceFlow,
 		flowTracker:             newFlowTracker(ctx, wiring.Tracer, inclusiveGateway),
 	}
 	sender := gw.Tracer.RegisterSender()
-	go gw.runner(ctx, sender)
+	go gw.run(ctx, sender)
 	return
 }
 
-func (gw *InclusiveGateway) runner(ctx context.Context, sender tracing.ISenderHandle) {
+func (gw *InclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer gw.flowTracker.shutdown()
 	activity := gw.flowTracker.activity()
 
@@ -116,14 +116,14 @@ func (gw *InclusiveGateway) runner(ctx context.Context, sender tracing.ISenderHa
 
 	for {
 		select {
-		case msg := <-gw.runnerChannel:
+		case msg := <-gw.mch:
 			switch m := msg.(type) {
 			case probingReport:
 				response := gw.probing
 				if response == nil {
 					// Reschedule, there's no next action yet
 					go func() {
-						gw.runnerChannel <- m
+						gw.mch <- m
 					}()
 					continue
 				}
@@ -205,7 +205,7 @@ func (gw *InclusiveGateway) trySync() {
 			gw.activated.response <- ProbeAction{
 				SequenceFlows: gw.nonDefaultSequenceFlows,
 				ProbeReport: func(indices []int) {
-					gw.runnerChannel <- probingReport{
+					gw.mch <- probingReport{
 						result: indices,
 						flowId: anId,
 					}
@@ -219,7 +219,7 @@ func (gw *InclusiveGateway) trySync() {
 
 func (gw *InclusiveGateway) NextAction(flow T) chan IAction {
 	response := make(chan IAction)
-	gw.runnerChannel <- nextActionMessage{response: response, flow: flow}
+	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response
 }
 

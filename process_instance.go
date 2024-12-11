@@ -73,10 +73,10 @@ func (ins *Instance) FlowNodeMapping() *FlowNodeMapping {
 	return ins.flowNodeMapping
 }
 
-func NewInstance(element *schema.Process, definitions *schema.Definitions, options *Options) (instance *Instance, err error) {
+func NewInstance(process *schema.Process, definitions *schema.Definitions, options *Options) (instance *Instance, err error) {
 	instance = &Instance{
 		Options:         options,
-		process:         element,
+		process:         process,
 		flowNodeMapping: NewLockedFlowNodeMapping(),
 	}
 

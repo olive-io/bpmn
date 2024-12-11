@@ -24,21 +24,10 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
-//type imessage interface {
-//	message()
-//}
-//
-//type nextActionMessage struct {
-//	response chan IAction
-//	flow     T
-//}
-
-//func (m nextActionMessage) message() {}
-
 type ParallelGateway struct {
 	*Wiring
 	element               *schema.ParallelGateway
-	runnerChannel         chan imessage
+	mch                   chan imessage
 	reportedIncomingFlows int
 	awaitingActions       []chan IAction
 	noOfIncomingFlows     int
@@ -48,13 +37,13 @@ func NewParallelGateway(ctx context.Context, wiring *Wiring, parallelGateway *sc
 	gateway = &ParallelGateway{
 		Wiring:                wiring,
 		element:               parallelGateway,
-		runnerChannel:         make(chan imessage, len(wiring.Incoming)*2+1),
+		mch:                   make(chan imessage, len(wiring.Incoming)*2+1),
 		reportedIncomingFlows: 0,
 		awaitingActions:       make([]chan IAction, 0),
 		noOfIncomingFlows:     len(wiring.Incoming),
 	}
 	sender := gateway.Tracer.RegisterSender()
-	go gateway.runner(ctx, sender)
+	go gateway.run(ctx, sender)
 	return
 }
 
@@ -68,12 +57,12 @@ func (gw *ParallelGateway) flowWhenReady() {
 	}
 }
 
-func (gw *ParallelGateway) runner(ctx context.Context, sender tracing.ISenderHandle) {
+func (gw *ParallelGateway) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
 		select {
-		case msg := <-gw.runnerChannel:
+		case msg := <-gw.mch:
 			switch m := msg.(type) {
 			case nextActionMessage:
 				gw.reportedIncomingFlows++
@@ -91,7 +80,7 @@ func (gw *ParallelGateway) runner(ctx context.Context, sender tracing.ISenderHan
 
 func (gw *ParallelGateway) NextAction(flow T) chan IAction {
 	response := make(chan IAction)
-	gw.runnerChannel <- nextActionMessage{response: response, flow: flow}
+	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response
 }
 

@@ -35,10 +35,10 @@ func (m nextBusinessActionMessage) message() {}
 
 type BusinessRuleTask struct {
 	*Wiring
-	ctx           context.Context
-	cancel        context.CancelFunc
-	element       *schema.BusinessRuleTask
-	runnerChannel chan imessage
+	ctx     context.Context
+	cancel  context.CancelFunc
+	element *schema.BusinessRuleTask
+	mch     chan imessage
 }
 
 func NewBusinessRuleTask(ctx context.Context, task *schema.BusinessRuleTask) Constructor {
@@ -46,22 +46,22 @@ func NewBusinessRuleTask(ctx context.Context, task *schema.BusinessRuleTask) Con
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
 		taskNode := &BusinessRuleTask{
-			Wiring:        wiring,
-			ctx:           ctx,
-			cancel:        cancel,
-			element:       task,
-			runnerChannel: make(chan imessage, len(wiring.Incoming)*2+1),
+			Wiring:  wiring,
+			ctx:     ctx,
+			cancel:  cancel,
+			element: task,
+			mch:     make(chan imessage, len(wiring.Incoming)*2+1),
 		}
-		go taskNode.runner(ctx)
+		go taskNode.run(ctx)
 		node = taskNode
 		return
 	}
 }
 
-func (task *BusinessRuleTask) runner(ctx context.Context) {
+func (task *BusinessRuleTask) run(ctx context.Context) {
 	for {
 		select {
-		case msg := <-task.runnerChannel:
+		case msg := <-task.mch:
 			switch m := msg.(type) {
 			case cancelMessage:
 				task.cancel()
@@ -123,7 +123,7 @@ func (task *BusinessRuleTask) NextAction(T) chan IAction {
 		response: response,
 	}
 
-	task.runnerChannel <- msg
+	task.mch <- msg
 	return response
 }
 
@@ -137,6 +137,6 @@ func (task *BusinessRuleTask) Type() Type {
 
 func (task *BusinessRuleTask) Cancel() <-chan bool {
 	response := make(chan bool)
-	task.runnerChannel <- cancelMessage{response: response}
+	task.mch <- cancelMessage{response: response}
 	return response
 }

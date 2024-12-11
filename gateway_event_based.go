@@ -29,29 +29,29 @@ import (
 
 type EventBasedGateway struct {
 	*Wiring
-	element       *schema.EventBasedGateway
-	runnerChannel chan imessage
-	activated     bool
+	element   *schema.EventBasedGateway
+	mch       chan imessage
+	activated bool
 }
 
 func NewEventBasedGateway(ctx context.Context, wiring *Wiring, eventBasedGateway *schema.EventBasedGateway) (gw *EventBasedGateway, err error) {
 	gw = &EventBasedGateway{
-		Wiring:        wiring,
-		element:       eventBasedGateway,
-		runnerChannel: make(chan imessage, len(wiring.Incoming)*2+1),
-		activated:     false,
+		Wiring:    wiring,
+		element:   eventBasedGateway,
+		mch:       make(chan imessage, len(wiring.Incoming)*2+1),
+		activated: false,
 	}
 	sender := gw.Tracer.RegisterSender()
-	go gw.runner(ctx, sender)
+	go gw.run(ctx, sender)
 	return
 }
 
-func (gw *EventBasedGateway) runner(ctx context.Context, sender tracing.ISenderHandle) {
+func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
 		select {
-		case msg := <-gw.runnerChannel:
+		case msg := <-gw.mch:
 			switch m := msg.(type) {
 			case nextActionMessage:
 				var first int32 = 0
@@ -103,7 +103,7 @@ func (gw *EventBasedGateway) runner(ctx context.Context, sender tracing.ISenderH
 
 func (gw *EventBasedGateway) NextAction(flow T) chan IAction {
 	response := make(chan IAction)
-	gw.runnerChannel <- nextActionMessage{response: response, flow: flow}
+	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response
 }
 

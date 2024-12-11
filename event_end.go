@@ -30,7 +30,7 @@ type EndEvent struct {
 	element              *schema.EndEvent
 	activated            bool
 	completed            bool
-	runnerChannel        chan imessage
+	mch                  chan imessage
 	startEventsActivated []*schema.StartEvent
 }
 
@@ -40,20 +40,20 @@ func NewEndEvent(ctx context.Context, wiring *Wiring, endEvent *schema.EndEvent)
 		element:              endEvent,
 		activated:            false,
 		completed:            false,
-		runnerChannel:        make(chan imessage, len(wiring.Incoming)*2+1),
+		mch:                  make(chan imessage, len(wiring.Incoming)*2+1),
 		startEventsActivated: make([]*schema.StartEvent, 0),
 	}
 	sender := evt.Tracer.RegisterSender()
-	go evt.runner(ctx, sender)
+	go evt.run(ctx, sender)
 	return
 }
 
-func (evt *EndEvent) runner(ctx context.Context, sender tracing.ISenderHandle) {
+func (evt *EndEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
 		select {
-		case msg := <-evt.runnerChannel:
+		case msg := <-evt.mch:
 			switch m := msg.(type) {
 			case nextActionMessage:
 				if !evt.activated {
@@ -82,7 +82,7 @@ func (evt *EndEvent) runner(ctx context.Context, sender tracing.ISenderHandle) {
 
 func (evt *EndEvent) NextAction(T) chan IAction {
 	response := make(chan IAction, 1)
-	evt.runnerChannel <- nextActionMessage{response: response}
+	evt.mch <- nextActionMessage{response: response}
 	return response
 }
 

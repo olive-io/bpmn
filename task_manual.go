@@ -33,10 +33,10 @@ func (m nextManualActionMessage) message() {}
 
 type ManualTask struct {
 	*Wiring
-	ctx           context.Context
-	cancel        context.CancelFunc
-	element       *schema.ManualTask
-	runnerChannel chan imessage
+	ctx     context.Context
+	cancel  context.CancelFunc
+	element *schema.ManualTask
+	mch     chan imessage
 }
 
 func NewManualTask(ctx context.Context, task *schema.ManualTask) Constructor {
@@ -44,22 +44,22 @@ func NewManualTask(ctx context.Context, task *schema.ManualTask) Constructor {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
 		taskNode := &ManualTask{
-			Wiring:        wiring,
-			ctx:           ctx,
-			cancel:        cancel,
-			element:       task,
-			runnerChannel: make(chan imessage, len(wiring.Incoming)*2+1),
+			Wiring:  wiring,
+			ctx:     ctx,
+			cancel:  cancel,
+			element: task,
+			mch:     make(chan imessage, len(wiring.Incoming)*2+1),
 		}
-		go taskNode.runner(ctx)
+		go taskNode.run(ctx)
 		node = taskNode
 		return
 	}
 }
 
-func (task *ManualTask) runner(ctx context.Context) {
+func (task *ManualTask) run(ctx context.Context) {
 	for {
 		select {
-		case msg := <-task.runnerChannel:
+		case msg := <-task.mch:
 			switch m := msg.(type) {
 			case cancelMessage:
 				task.cancel()
@@ -115,7 +115,7 @@ func (task *ManualTask) NextAction(T) chan IAction {
 		response: response,
 	}
 
-	task.runnerChannel <- msg
+	task.mch <- msg
 	return response
 }
 
@@ -129,6 +129,6 @@ func (task *ManualTask) Type() Type {
 
 func (task *ManualTask) Cancel() <-chan bool {
 	response := make(chan bool)
-	task.runnerChannel <- cancelMessage{response: response}
+	task.mch <- cancelMessage{response: response}
 	return response
 }

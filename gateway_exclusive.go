@@ -42,7 +42,7 @@ func (e ExclusiveNoEffectiveSequenceFlows) Error() string {
 type ExclusiveGateway struct {
 	*Wiring
 	element                 *schema.ExclusiveGateway
-	runnerChannel           chan imessage
+	mch                     chan imessage
 	defaultSequenceFlow     *SequenceFlow
 	nonDefaultSequenceFlows []*SequenceFlow
 	probing                 map[id.Id]*chan IAction
@@ -79,29 +79,29 @@ func NewExclusiveGateway(ctx context.Context, wiring *Wiring, exclusiveGateway *
 	gw = &ExclusiveGateway{
 		Wiring:                  wiring,
 		element:                 exclusiveGateway,
-		runnerChannel:           make(chan imessage, len(wiring.Incoming)*2+1),
+		mch:                     make(chan imessage, len(wiring.Incoming)*2+1),
 		nonDefaultSequenceFlows: nonDefaultSequenceFlows,
 		defaultSequenceFlow:     defaultSequenceFlow,
 		probing:                 make(map[id.Id]*chan IAction),
 	}
 	sender := gw.Tracer.RegisterSender()
-	go gw.runner(ctx, sender)
+	go gw.run(ctx, sender)
 	return
 }
 
-func (gw *ExclusiveGateway) runner(ctx context.Context, sender tracing.ISenderHandle) {
+func (gw *ExclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
 		select {
-		case msg := <-gw.runnerChannel:
+		case msg := <-gw.mch:
 			switch m := msg.(type) {
 			case probingReport:
 				if response, ok := gw.probing[m.flowId]; ok {
 					if response == nil {
 						// Reschedule, there's no next action yet
 						go func() {
-							gw.runnerChannel <- m
+							gw.mch <- m
 						}()
 						continue
 					}
@@ -159,7 +159,7 @@ func (gw *ExclusiveGateway) runner(ctx context.Context, sender tracing.ISenderHa
 					m.response <- ProbeAction{
 						SequenceFlows: gw.nonDefaultSequenceFlows,
 						ProbeReport: func(indices []int) {
-							gw.runnerChannel <- probingReport{
+							gw.mch <- probingReport{
 								result: indices,
 								flowId: m.flow.Id(),
 							}
@@ -177,7 +177,7 @@ func (gw *ExclusiveGateway) runner(ctx context.Context, sender tracing.ISenderHa
 
 func (gw *ExclusiveGateway) NextAction(flow T) chan IAction {
 	response := make(chan IAction)
-	gw.runnerChannel <- nextActionMessage{response: response, flow: flow}
+	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response
 }
 

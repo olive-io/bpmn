@@ -51,11 +51,11 @@ func NewTracer(ctx context.Context) ITracer {
 		done:           make(chan struct{}),
 		subscribers:    make([]chan ITrace, 0),
 	}
-	go t.runner(ctx)
+	go t.run(ctx)
 	return &t
 }
 
-func (t *tracer) runner(ctx context.Context) {
+func (t *tracer) run(ctx context.Context) {
 	var termination sync.Once
 	defer close(t.done)
 
