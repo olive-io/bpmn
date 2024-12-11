@@ -3,7 +3,8 @@ a lightweight bpmn engine
 
 # Download
 ```bash
-go get -u github.com/olive-io/bpmn
+go get -u github.com/olive-io/bpmn/schema
+go get -u github.com/olive-io/bpmn/v2
 ```
 
 # Usage
