@@ -317,15 +317,6 @@ func (b *TaskTraceBuilder) Build() *TaskTrace {
 	return &b.t
 }
 
-func fetchTaskTimeout(headers map[string]string) time.Duration {
-	timeout := DefaultTaskExecTimeout
-	value, ok := headers[DefaultTaskTimeoutKey]
-	if ok {
-		timeout, _ = time.ParseDuration(value)
-	}
-	return timeout
-}
-
 // TaskTrace describes common channel handler for all tasks
 type TaskTrace struct {
 	ctx         context.Context
@@ -398,6 +389,7 @@ func (t *TaskTrace) process() {
 
 	select {
 	case <-t.done:
+		return
 	case <-t.ctx.Done():
 		rsp := newDoOption(DoWithErr(t.ctx.Err()))
 		t.response <- *rsp
@@ -457,6 +449,19 @@ func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElemen
 	}
 
 	return
+}
+
+func fetchTaskTimeout(element schema.BaseElementInterface) time.Duration {
+	var timeout time.Duration
+	if extension, found := element.ExtensionElements(); found {
+		if field := extension.TaskDefinitionField; field != nil {
+			timeout, _ = time.ParseDuration(field.Timeout)
+		}
+	}
+	if timeout == 0 {
+		timeout = DefaultTaskExecTimeout
+	}
+	return timeout
 }
 
 func ApplyTaskDataOutput(element schema.BaseElementInterface, dataOutputs map[string]any) map[string]data.IItem {

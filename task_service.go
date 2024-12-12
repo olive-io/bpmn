@@ -81,7 +81,7 @@ func (task *ServiceTask) run(ctx context.Context) {
 					properties := m.properties
 					dataObjects := m.dataObjects
 
-					timeout := fetchTaskTimeout(headers)
+					timeout := fetchTaskTimeout(task.element)
 
 					at := NewTaskTraceBuilder().
 						Context(task.ctx).

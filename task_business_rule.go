@@ -83,7 +83,7 @@ func (task *BusinessRuleTask) run(ctx context.Context) {
 					}
 
 					headers := m.headers
-					timeout := fetchTaskTimeout(headers)
+					timeout := fetchTaskTimeout(task.element)
 
 					at := NewTaskTraceBuilder().
 						Context(task.ctx).
