@@ -302,7 +302,7 @@ func (b *TaskTraceBuilder) DataObjects(dataObjects map[string]any) *TaskTraceBui
 	return b
 }
 
-func (b *TaskTraceBuilder) Headers(headers map[string]any) *TaskTraceBuilder {
+func (b *TaskTraceBuilder) Headers(headers map[string]string) *TaskTraceBuilder {
 	b.t.headers = headers
 	return b
 }
@@ -317,20 +317,11 @@ func (b *TaskTraceBuilder) Build() *TaskTrace {
 	return &b.t
 }
 
-func fetchTaskTimeout(headers map[string]any) time.Duration {
+func fetchTaskTimeout(headers map[string]string) time.Duration {
 	timeout := DefaultTaskExecTimeout
 	value, ok := headers[DefaultTaskTimeoutKey]
 	if ok {
-		switch val := value.(type) {
-		case string:
-			var e1 error
-			timeout, e1 = time.ParseDuration(val)
-			if e1 != nil {
-				timeout = DefaultTaskExecTimeout
-			}
-		case int64:
-			timeout = time.Duration(val) * time.Second
-		}
+		timeout, _ = time.ParseDuration(value)
 	}
 	return timeout
 }
@@ -340,9 +331,9 @@ type TaskTrace struct {
 	ctx         context.Context
 	timeout     time.Duration
 	activity    Activity
-	dataObjects map[string]any
-	headers     map[string]any
+	headers     map[string]string
 	properties  map[string]any
+	dataObjects map[string]any
 	forward     chan DoResponse
 	response    chan DoResponse
 	done        chan struct{}
@@ -352,9 +343,9 @@ func newTaskTrace() *TaskTrace {
 	trace := TaskTrace{
 		ctx:         context.TODO(),
 		timeout:     DefaultTaskExecTimeout,
-		dataObjects: make(map[string]any),
-		headers:     make(map[string]any),
+		headers:     make(map[string]string),
 		properties:  make(map[string]any),
+		dataObjects: make(map[string]any),
 		forward:     make(chan DoResponse, 1),
 		response:    make(chan DoResponse, 1),
 		done:        make(chan struct{}, 1),
@@ -376,7 +367,7 @@ func (t *TaskTrace) GetDataObjects() map[string]any {
 	return t.dataObjects
 }
 
-func (t *TaskTrace) GetHeaders() map[string]any {
+func (t *TaskTrace) GetHeaders() map[string]string {
 	return t.headers
 }
 
@@ -429,20 +420,16 @@ func (t *TaskTrace) process() {
 	}
 }
 
-func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElementInterface) (headers, properties, dataObjects map[string]any) {
+func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElementInterface) (headers map[string]string, properties, dataObjects map[string]any) {
 	variables := locator.CloneVariables()
-	headers = map[string]any{}
+	headers = map[string]string{}
 	properties = map[string]any{}
 	dataObjects = map[string]any{}
 	if extension, found := element.ExtensionElements(); found {
 		if header := extension.TaskHeaderField; header != nil {
 			fields := header.Header
 			for _, field := range fields {
-				if field.Type == "" {
-					field.Type = schema.ItemTypeString
-				}
-				value := field.ValueFor()
-				headers[field.Name] = value
+				headers[field.Name] = field.Value
 			}
 		}
 		if property := extension.PropertiesField; property != nil {

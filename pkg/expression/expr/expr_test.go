@@ -104,6 +104,13 @@ func TestExpr_getDataObject(t *testing.T) {
 	}
 	engine.SetItemAwareLocator(data.LocatorHeader, headers)
 
+	p1 := data.NewContainer(nil)
+	p1.Put("bar")
+	var properties dataObjects = map[string]data.IItemAware{
+		"foo": p1,
+	}
+	engine.SetItemAwareLocator(data.LocatorProperty, properties)
+
 	compiled, err := engine.CompileExpression("d$('dataObject1').msg == 'hello'")
 	assert.Nil(t, err)
 	result, err := engine.EvaluateExpression(compiled, map[string]interface{}{})
@@ -120,4 +127,10 @@ func TestExpr_getDataObject(t *testing.T) {
 	result, err = engine.EvaluateExpression(compiled, map[string]interface{}{})
 	assert.Nil(t, err)
 	assert.Equal(t, result.(int), int(3))
+
+	compiled, err = engine.CompileExpression("p$('foo') == 'bar'")
+	assert.Nil(t, err)
+	result, err = engine.EvaluateExpression(compiled, map[string]interface{}{})
+	assert.Nil(t, err)
+	assert.True(t, result.(bool))
 }

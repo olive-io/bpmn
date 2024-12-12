@@ -25,7 +25,7 @@ import (
 )
 
 type nextManualActionMessage struct {
-	headers  map[string]any
+	headers  map[string]string
 	response chan IAction
 }
 

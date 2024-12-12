@@ -68,8 +68,9 @@ func New(ctx context.Context) *Expr {
 		itemAwareLocators: map[string]data.IItemAwareLocator{},
 	}
 	engine.env = map[string]interface{}{
-		data.LocatorHeader: engine.fetchItem(data.LocatorHeader),
-		data.LocatorObject: engine.fetchItem(data.LocatorObject),
+		data.LocatorHeader:   engine.fetchItem(data.LocatorHeader),
+		data.LocatorProperty: engine.fetchItem(data.LocatorProperty),
+		data.LocatorObject:   engine.fetchItem(data.LocatorObject),
 	}
 	return engine
 }

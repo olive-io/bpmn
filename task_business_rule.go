@@ -27,7 +27,7 @@ import (
 type BusinessRuleTaskKey struct{}
 
 type nextBusinessActionMessage struct {
-	headers  map[string]any
+	headers  map[string]string
 	response chan IAction
 }
 
