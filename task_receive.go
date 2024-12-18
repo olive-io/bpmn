@@ -84,7 +84,7 @@ func (task *ReceiveTask) run(ctx context.Context) {
 
 					headers := m.headers
 					properties := m.properties
-					timeout := fetchTaskTimeout(task.element)
+					timeout := FetchTaskTimeout(task.element)
 
 					at := NewTaskTraceBuilder().
 						Context(rctx).

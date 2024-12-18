@@ -451,7 +451,8 @@ func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElemen
 	return
 }
 
-func fetchTaskTimeout(element schema.BaseElementInterface) time.Duration {
+// FetchTaskTimeout returns timeout by schema.BaseElementInterface
+func FetchTaskTimeout(element schema.BaseElementInterface) time.Duration {
 	var timeout time.Duration
 	if extension, found := element.ExtensionElements(); found {
 		if field := extension.TaskDefinitionField; field != nil {

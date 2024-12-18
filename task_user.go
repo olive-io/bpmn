@@ -77,7 +77,7 @@ func (task *UserTask) run(ctx context.Context) {
 
 					headers := m.headers
 					properties := m.properties
-					timeout := fetchTaskTimeout(task.element)
+					timeout := FetchTaskTimeout(task.element)
 
 					at := NewTaskTraceBuilder().
 						Context(task.ctx).
