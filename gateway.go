@@ -30,12 +30,17 @@ func DistributeFlows(awaitingActions []chan IAction, sequenceFlows []*SequenceFl
 		if rangeEnd == len(awaitingActions) {
 			// give it the remainder of sequence flows
 			rangeEnd = len(sequenceFlows)
+
 		}
 
 		if rangeEnd <= len(sequenceFlows) {
-			action <- FlowAction{
-				SequenceFlows:      sequenceFlows[i:rangeEnd],
-				UnconditionalFlows: indices[0 : rangeEnd-i],
+			if i >= rangeEnd {
+				action <- CompleteAction{}
+			} else {
+				action <- FlowAction{
+					SequenceFlows:      sequenceFlows[i:rangeEnd],
+					UnconditionalFlows: indices[0 : rangeEnd-i],
+				}
 			}
 		} else {
 			// signal completion to flows that aren't
