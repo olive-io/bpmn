@@ -22,7 +22,7 @@ import (
 )
 
 type IOutgoing interface {
-	NextAction(flow T) chan IAction
+	NextAction(flow Flow) chan IAction
 }
 
 type IFlowNode interface {
@@ -36,7 +36,7 @@ type imessage interface {
 
 type nextActionMessage struct {
 	response chan IAction
-	flow     T
+	flow     Flow
 }
 
 func (m nextActionMessage) message() {}

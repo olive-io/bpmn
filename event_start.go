@@ -110,7 +110,7 @@ func (evt *StartEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 }
 
 func (evt *StartEvent) flow(ctx context.Context) {
-	flowable := NewFlow(evt.Wiring.Definitions, evt, evt.Wiring.Tracer,
+	flowable := newFlow(evt.Wiring.Definitions, evt, evt.Wiring.Tracer,
 		evt.Wiring.FlowNodeMapping, evt.Wiring.FlowWaitGroup, evt.idGenerator, nil, evt.Locator)
 	flowable.Start(ctx)
 }
@@ -125,7 +125,7 @@ func (evt *StartEvent) Trigger() {
 	evt.mch <- startMessage{}
 }
 
-func (evt *StartEvent) NextAction(flow T) chan IAction {
+func (evt *StartEvent) NextAction(flow Flow) chan IAction {
 	response := make(chan IAction)
 	evt.mch <- nextActionMessage{response: response, flow: flow}
 	return response

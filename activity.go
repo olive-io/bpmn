@@ -33,7 +33,6 @@ import (
 )
 
 var (
-	DefaultTaskTimeoutKey  = "timeout"
 	DefaultTaskExecTimeout = time.Second * 30
 )
 
@@ -65,7 +64,7 @@ type Activity interface {
 }
 
 type nextHarnessActionMessage struct {
-	flow     T
+	flow     Flow
 	response chan chan IAction
 }
 
@@ -163,7 +162,7 @@ func NewHarness(ctx context.Context, wiring *Wiring, idGenerator id.IGenerator, 
 				return action
 			}
 		}
-		flowable := NewFlow(node.Definitions, catchEvent, node.Tracer, node.FlowNodeMapping, node.FlowWaitGroup, idGenerator, actionTransformer, node.Locator)
+		flowable := newFlow(node.Definitions, catchEvent, node.Tracer, node.FlowNodeMapping, node.FlowWaitGroup, idGenerator, actionTransformer, node.Locator)
 		flowable.Start(ctx)
 	}
 	sender := node.Tracer.RegisterSender()
@@ -202,7 +201,7 @@ func (node *Harness) run(ctx context.Context, sender tracing.ISenderHandle) {
 	}
 }
 
-func (node *Harness) NextAction(flow T) chan IAction {
+func (node *Harness) NextAction(flow Flow) chan IAction {
 	response := make(chan chan IAction, 1)
 	node.mch <- nextHarnessActionMessage{flow: flow, response: response}
 	return <-response

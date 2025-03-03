@@ -80,7 +80,7 @@ func (evt *EndEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 	}
 }
 
-func (evt *EndEvent) NextAction(T) chan IAction {
+func (evt *EndEvent) NextAction(Flow) chan IAction {
 	response := make(chan IAction, 1)
 	evt.mch <- nextActionMessage{response: response}
 	return response

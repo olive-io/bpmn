@@ -117,7 +117,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 		return
 	}
 
-	// Flow nodes
+	// flow nodes
 	subTracer := tracing.NewTracer(ctx)
 
 	tracing.NewRelay(ctx, subTracer, instance.tracer, func(trace tracing.ITrace) []tracing.ITrace {
@@ -135,7 +135,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			element,
 			// Event ingress/egress orchestration:
 			//
-			// Flow nodes will send their message to `instance.EventIngress`
+			// flow nodes will send their message to `instance.EventIngress`
 			// (which is typically the model), but consume their messages from
 			// `instance`, which is turn a subscriber of `instance.EventEgress`
 			// (again, typically, the model).
@@ -477,7 +477,7 @@ func (ins *Instance) StartWith(ctx context.Context, startEvent schema.StartEvent
 	if !ok {
 		err = errors.RequirementExpectationError{
 			Expected: fmt.Sprintf("start event %s flow node in process %s to be of type start.Node", elementId, processId),
-			Actual:   fmt.Sprintf("%T", flowNode),
+			Actual:   fmt.Sprintf("%Flow", flowNode),
 		}
 		return
 	}

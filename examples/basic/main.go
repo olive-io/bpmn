@@ -158,7 +158,7 @@ func main() {
 			log.Fatalf("%#v", trace)
 		default:
 			if tr == nil {
-				log.Fatalf("empty trace: %T", tr)
+				log.Fatalf("empty trace: %Flow", tr)
 			}
 			log.Printf("%#v\n", trace)
 		}

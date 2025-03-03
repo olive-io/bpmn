@@ -193,7 +193,7 @@ func (task *ScriptTask) run(ctx context.Context) {
 	}
 }
 
-func (task *ScriptTask) NextAction(t T) chan IAction {
+func (task *ScriptTask) NextAction(t Flow) chan IAction {
 	response := make(chan IAction, 1)
 
 	headers, properties, _ := FetchTaskDataInput(task.Locator, task.element)

@@ -3,7 +3,7 @@
                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
                   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-                  xmlns:olive="http://olive.io/spec/BPMN/MODEL" id="Definitions_04fu1l0" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.4.0">
+                  xmlns:olive="http://www.olive.io/spec/BPMN/MODEL" id="Definitions_04fu1l0" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.4.0">
   <bpmn:process id="Process_148nk6n" isExecutable="true">
     <bpmn:startEvent id="start">
       <bpmn:outgoing>Flow_1hox6h5</bpmn:outgoing>

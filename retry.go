@@ -17,7 +17,7 @@
 
 package bpmn
 
-// Retry describes the retry handler for Flow
+// Retry describes the retry handler for flow
 type Retry struct {
 	limit    int32
 	attempts int32

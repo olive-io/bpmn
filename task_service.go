@@ -115,7 +115,7 @@ func (task *ServiceTask) run(ctx context.Context) {
 	}
 }
 
-func (task *ServiceTask) NextAction(T) chan IAction {
+func (task *ServiceTask) NextAction(Flow) chan IAction {
 	response := make(chan IAction, 1)
 
 	headers, properties, dataObjects := FetchTaskDataInput(task.Locator, task.element)

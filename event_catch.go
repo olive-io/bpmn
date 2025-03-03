@@ -99,7 +99,7 @@ func (evt *CatchEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionRe
 	return
 }
 
-func (evt *CatchEvent) NextAction(flow T) chan IAction {
+func (evt *CatchEvent) NextAction(flow Flow) chan IAction {
 	response := make(chan IAction)
 	evt.mch <- nextActionMessage{response: response, flow: flow}
 	return response

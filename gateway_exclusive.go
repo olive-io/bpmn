@@ -175,7 +175,7 @@ func (gw *ExclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 	}
 }
 
-func (gw *ExclusiveGateway) NextAction(flow T) chan IAction {
+func (gw *ExclusiveGateway) NextAction(flow Flow) chan IAction {
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response

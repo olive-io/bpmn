@@ -442,7 +442,7 @@ func (p *SubProcess) startWith(ctx context.Context, startEvent schema.StartEvent
 	if !ok {
 		err = errors.RequirementExpectationError{
 			Expected: fmt.Sprintf("start event %s flow node in process %s to be of type start.Node", elementId, processId),
-			Actual:   fmt.Sprintf("%T", flowNode),
+			Actual:   fmt.Sprintf("%Flow", flowNode),
 		}
 		return
 	}
@@ -581,7 +581,7 @@ func (p *SubProcess) run(ctx context.Context, out tracing.ITracer) {
 	}
 }
 
-func (p *SubProcess) NextAction(T) chan IAction {
+func (p *SubProcess) NextAction(Flow) chan IAction {
 	response := make(chan IAction, 1)
 	p.mch <- nextActionMessage{response: response}
 	return response

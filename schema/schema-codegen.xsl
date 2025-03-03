@@ -732,7 +732,7 @@
     <xsl:template name="type-test">
         <xsl:param name="type" required="yes"/>
 
-        <xsl:text xml:space="preserve">func Test</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/><xsl:text xml:space="preserve">Interface(t *testing.T) {
+        <xsl:text xml:space="preserve">func Test</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/><xsl:text xml:space="preserve">Interface(t *testing.Flow) {
             // won't compile if the interaces are not implemented
             var _ </xsl:text>
         <xsl:value-of select="local:struct-case($type/@name)"/>

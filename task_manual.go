@@ -106,7 +106,7 @@ func (task *ManualTask) run(ctx context.Context) {
 	}
 }
 
-func (task *ManualTask) NextAction(T) chan IAction {
+func (task *ManualTask) NextAction(Flow) chan IAction {
 	response := make(chan IAction, 1)
 
 	headers, _, _ := FetchTaskDataInput(task.Locator, task.element)

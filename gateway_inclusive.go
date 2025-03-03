@@ -49,7 +49,7 @@ func (m probingReport) message() {}
 
 type flowSync struct {
 	response chan IAction
-	flow     T
+	flow     Flow
 }
 
 type InclusiveGateway struct {
@@ -217,7 +217,7 @@ func (gw *InclusiveGateway) trySync() {
 	}
 }
 
-func (gw *InclusiveGateway) NextAction(flow T) chan IAction {
+func (gw *InclusiveGateway) NextAction(flow Flow) chan IAction {
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response

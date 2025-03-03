@@ -78,7 +78,7 @@ func (gw *ParallelGateway) run(ctx context.Context, sender tracing.ISenderHandle
 	}
 }
 
-func (gw *ParallelGateway) NextAction(flow T) chan IAction {
+func (gw *ParallelGateway) NextAction(flow Flow) chan IAction {
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response
@@ -92,7 +92,7 @@ func (gw *ParallelGateway) Element() schema.FlowNodeInterface {
 // has been processed. If any action have been taken, it already happened
 type IncomingFlowProcessedTrace struct {
 	Node *schema.ParallelGateway
-	Flow T
+	Flow Flow
 }
 
 func (t IncomingFlowProcessedTrace) Element() any { return t.Node }

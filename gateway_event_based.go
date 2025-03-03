@@ -101,7 +101,7 @@ func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 	}
 }
 
-func (gw *EventBasedGateway) NextAction(flow T) chan IAction {
+func (gw *EventBasedGateway) NextAction(flow Flow) chan IAction {
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response

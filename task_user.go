@@ -109,7 +109,7 @@ func (task *UserTask) run(ctx context.Context) {
 	}
 }
 
-func (task *UserTask) NextAction(t T) chan IAction {
+func (task *UserTask) NextAction(t Flow) chan IAction {
 	response := make(chan IAction, 1)
 
 	headers, properties, _ := FetchTaskDataInput(task.Locator, task.element)
