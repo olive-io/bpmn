@@ -30,7 +30,6 @@ func DistributeFlows(awaitingActions []chan IAction, sequenceFlows []*SequenceFl
 		if rangeEnd == len(awaitingActions) {
 			// give it the remainder of sequence flows
 			rangeEnd = len(sequenceFlows)
-
 		}
 
 		if rangeEnd <= len(sequenceFlows) {

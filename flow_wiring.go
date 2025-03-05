@@ -48,8 +48,7 @@ type Wiring struct {
 	Locator                        data.IFlowDataLocator
 }
 
-func sequenceFlows(process schema.Element,
-	flows *[]schema.QName) (result []SequenceFlow, err error) {
+func sequenceFlows(process schema.Element, flows *[]schema.QName) (result []SequenceFlow, err error) {
 	result = make([]SequenceFlow, len(*flows))
 	for i := range result {
 		identifier := (*flows)[i]
@@ -118,38 +117,38 @@ func NewWiring(
 }
 
 // CloneFor copies receiver, overriding FlowNodeId, Incoming, Outgoing for a given flowNode
-func (wiring *Wiring) CloneFor(flowNode *schema.FlowNode) (result *Wiring, err error) {
-	incoming, err := sequenceFlows(wiring.Process, flowNode.Incomings())
+func (wr *Wiring) CloneFor(node *schema.FlowNode) (result *Wiring, err error) {
+	incoming, err := sequenceFlows(wr.Process, node.Incomings())
 	if err != nil {
 		return
 	}
-	outgoing, err := sequenceFlows(wiring.Process, flowNode.Outgoings())
+	outgoing, err := sequenceFlows(wr.Process, node.Outgoings())
 	if err != nil {
 		return
 	}
 
-	ownIdPtr, present := flowNode.Id()
+	ownIdPtr, present := node.Id()
 	if !present {
 		err = errors.NotFoundError{
-			Expected: fmt.Sprintf("flow node %#v to have an ID", flowNode),
+			Expected: fmt.Sprintf("flow node %#v to have an ID", node),
 		}
 		return
 	}
 
 	ownId := *ownIdPtr
 	result = &Wiring{
-		ProcessInstanceId:              wiring.ProcessInstanceId,
+		ProcessInstanceId:              wr.ProcessInstanceId,
 		FlowNodeId:                     ownId,
-		Definitions:                    wiring.Definitions,
+		Definitions:                    wr.Definitions,
 		Incoming:                       incoming,
 		Outgoing:                       outgoing,
-		EventIngress:                   wiring.EventIngress,
-		EventEgress:                    wiring.EventEgress,
-		Tracer:                         wiring.Tracer,
-		Process:                        wiring.Process,
-		FlowNodeMapping:                wiring.FlowNodeMapping,
-		FlowWaitGroup:                  wiring.FlowWaitGroup,
-		EventDefinitionInstanceBuilder: wiring.EventDefinitionInstanceBuilder,
+		EventIngress:                   wr.EventIngress,
+		EventEgress:                    wr.EventEgress,
+		Tracer:                         wr.Tracer,
+		Process:                        wr.Process,
+		FlowNodeMapping:                wr.FlowNodeMapping,
+		FlowWaitGroup:                  wr.FlowWaitGroup,
+		EventDefinitionInstanceBuilder: wr.EventDefinitionInstanceBuilder,
 	}
 	return
 }
