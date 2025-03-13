@@ -32,20 +32,21 @@ import (
 var fs embed.FS
 
 func main() {
-	var definitions schema.Definitions
 
 	var err error
 	src, err := fs.ReadFile("task.bpmn")
 	if err != nil {
 		log.Fatalf("Can't read bpmn: %v", err)
 	}
-	err = xml.Unmarshal(src, &definitions)
+	definitions, err := schema.Parse(src)
 	if err != nil {
 		log.Fatalf("XML unmarshalling error: %v", err)
 	}
 
+	xml.Marshal(definitions)
+
 	processElement := (*definitions.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &definitions)
+	proc := bpmn.NewProcess(&processElement, definitions)
 	options := []bpmn.Option{
 		bpmn.WithVariables(map[string]any{
 			"c": map[string]string{"name": "cc"},

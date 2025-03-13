@@ -47,10 +47,12 @@ func TestParseSample(t *testing.T) {
 	processes := sampleDoc.Processes()
 	assert.Equal(t, 1, len(*processes))
 
-	_, err := xml.MarshalIndent(&sampleDoc, "", " ")
+	data, err := xml.MarshalIndent(&sampleDoc, "", " ")
 	if !assert.NoError(t, err) {
 		return
 	}
+
+	t.Log(string(data))
 
 	element, found := sampleDoc.FindBy(ExactId("left"))
 	if !assert.True(t, found) {
@@ -71,6 +73,7 @@ func TestParseSample(t *testing.T) {
 		return
 	}
 
+	_ = extension
 	t.Log(extension.TaskHeaderField.Header[0])
 }
 

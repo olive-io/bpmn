@@ -254,7 +254,7 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 		case <-done:
 		}
 
-		//t.Logf("%v\n", locator.CloneItems(data.LocatorObject))
+		t.Logf("%v\n", locator.CloneItems(data.LocatorObject))
 		ins.Tracer().Unsubscribe(traces)
 	} else {
 		t.Fatalf("failed to instantiate the process: %s", err)

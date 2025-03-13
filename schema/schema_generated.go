@@ -1,18 +1,18 @@
 /*
-Copyright 2023 The bpmn Authors
+   Copyright 2023 The bpmn Authors
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library;
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library;
 */
 
 package schema
@@ -5867,17 +5867,8 @@ func (t *Extension) SetDocumentations(value []Documentation) {
 }
 
 type ExtensionElements struct {
-	DataObjectBody      *ExtensionDataObjectBody `xml:"http://olive.io/spec/BPMN/MODEL dataObjectBody"`
-	TaskDefinitionField *TaskDefinition          `xml:"http://olive.io/spec/BPMN/MODEL taskDefinition"`
-	TaskHeaderField     *TaskHeader              `xml:"http://olive.io/spec/BPMN/MODEL taskHeaders"`
-	PropertiesField     *Properties              `xml:"http://olive.io/spec/BPMN/MODEL properties"`
-	ResultsField        *Result                  `xml:"http://olive.io/spec/BPMN/MODEL results"`
-	ScriptField         *ExtensionScript         `xml:"http://olive.io/spec/BPMN/MODEL script"`
-	CalledElement       *ExtensionCalledElement  `xml:"http://olive.io/spec/BPMN/MODEL calledElement"`
-	CalledDecision      *ExtensionCalledDecision `xml:"http://olive.io/spec/BPMN/MODEL calledDecision"`
-	DataInput           []ExtensionAssociation   `xml:"http://olive.io/spec/BPMN/MODEL dataInput"`
-	DataOutput          []ExtensionAssociation   `xml:"http://olive.io/spec/BPMN/MODEL dataOutput"`
-	TextPayloadField    *Payload                 `xml:",chardata"`
+	ExtensionElementsType
+	TextPayloadField *Payload `xml:",chardata"`
 }
 
 func DefaultExtensionElements() ExtensionElements {
@@ -13738,32 +13729,10 @@ func (t *Definitions) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Definitions) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DefinitionsUnmarshaler Definitions
-	out := DefinitionsUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Definitions(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Import) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Import(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Import) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ImportUnmarshaler Import
-	out := ImportUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Import(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Activity) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -13772,32 +13741,10 @@ func (t *Activity) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Activity) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ActivityUnmarshaler Activity
-	out := ActivityUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Activity(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *AdHocSubProcess) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := AdHocSubProcess(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *AdHocSubProcess) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type AdHocSubProcessUnmarshaler AdHocSubProcess
-	out := AdHocSubProcessUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = AdHocSubProcess(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Artifact) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -13806,32 +13753,10 @@ func (t *Artifact) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Artifact) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ArtifactUnmarshaler Artifact
-	out := ArtifactUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Artifact(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Assignment) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Assignment(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Assignment) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type AssignmentUnmarshaler Assignment
-	out := AssignmentUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Assignment(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Association) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -13840,32 +13765,10 @@ func (t *Association) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Association) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type AssociationUnmarshaler Association
-	out := AssociationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Association(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Auditing) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Auditing(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Auditing) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type AuditingUnmarshaler Auditing
-	out := AuditingUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Auditing(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *BaseElement) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -13874,32 +13777,10 @@ func (t *BaseElement) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *BaseElement) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type BaseElementUnmarshaler BaseElement
-	out := BaseElementUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = BaseElement(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *BaseElementWithMixedContent) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := BaseElementWithMixedContent(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *BaseElementWithMixedContent) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type BaseElementWithMixedContentUnmarshaler BaseElementWithMixedContent
-	out := BaseElementWithMixedContentUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = BaseElementWithMixedContent(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *BoundaryEvent) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -13908,32 +13789,10 @@ func (t *BoundaryEvent) MarshalXML(e *xml.Encoder, start xml.StartElement) error
 	return e.EncodeElement(out, start)
 }
 
-func (t *BoundaryEvent) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type BoundaryEventUnmarshaler BoundaryEvent
-	out := BoundaryEventUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = BoundaryEvent(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *BusinessRuleTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := BusinessRuleTask(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *BusinessRuleTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type BusinessRuleTaskUnmarshaler BusinessRuleTask
-	out := BusinessRuleTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = BusinessRuleTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *CallableElement) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -13942,32 +13801,10 @@ func (t *CallableElement) MarshalXML(e *xml.Encoder, start xml.StartElement) err
 	return e.EncodeElement(out, start)
 }
 
-func (t *CallableElement) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CallableElementUnmarshaler CallableElement
-	out := CallableElementUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CallableElement(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *CallActivity) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := CallActivity(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *CallActivity) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CallActivityUnmarshaler CallActivity
-	out := CallActivityUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CallActivity(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *CallChoreography) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -13976,32 +13813,10 @@ func (t *CallChoreography) MarshalXML(e *xml.Encoder, start xml.StartElement) er
 	return e.EncodeElement(out, start)
 }
 
-func (t *CallChoreography) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CallChoreographyUnmarshaler CallChoreography
-	out := CallChoreographyUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CallChoreography(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *CallConversation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := CallConversation(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *CallConversation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CallConversationUnmarshaler CallConversation
-	out := CallConversationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CallConversation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *CancelEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14010,32 +13825,10 @@ func (t *CancelEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElemen
 	return e.EncodeElement(out, start)
 }
 
-func (t *CancelEventDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CancelEventDefinitionUnmarshaler CancelEventDefinition
-	out := CancelEventDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CancelEventDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *CatchEvent) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := CatchEvent(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *CatchEvent) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CatchEventUnmarshaler CatchEvent
-	out := CatchEventUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CatchEvent(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Category) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14044,32 +13837,10 @@ func (t *Category) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Category) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CategoryUnmarshaler Category
-	out := CategoryUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Category(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *CategoryValue) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := CategoryValue(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *CategoryValue) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CategoryValueUnmarshaler CategoryValue
-	out := CategoryValueUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CategoryValue(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Choreography) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14078,32 +13849,10 @@ func (t *Choreography) MarshalXML(e *xml.Encoder, start xml.StartElement) error 
 	return e.EncodeElement(out, start)
 }
 
-func (t *Choreography) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ChoreographyUnmarshaler Choreography
-	out := ChoreographyUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Choreography(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ChoreographyActivity) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ChoreographyActivity(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ChoreographyActivity) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ChoreographyActivityUnmarshaler ChoreographyActivity
-	out := ChoreographyActivityUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ChoreographyActivity(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *ChoreographyTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14112,32 +13861,10 @@ func (t *ChoreographyTask) MarshalXML(e *xml.Encoder, start xml.StartElement) er
 	return e.EncodeElement(out, start)
 }
 
-func (t *ChoreographyTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ChoreographyTaskUnmarshaler ChoreographyTask
-	out := ChoreographyTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ChoreographyTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Collaboration) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Collaboration(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Collaboration) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CollaborationUnmarshaler Collaboration
-	out := CollaborationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Collaboration(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *CompensateEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14146,32 +13873,10 @@ func (t *CompensateEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartEl
 	return e.EncodeElement(out, start)
 }
 
-func (t *CompensateEventDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CompensateEventDefinitionUnmarshaler CompensateEventDefinition
-	out := CompensateEventDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CompensateEventDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ComplexBehaviorDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ComplexBehaviorDefinition(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ComplexBehaviorDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ComplexBehaviorDefinitionUnmarshaler ComplexBehaviorDefinition
-	out := ComplexBehaviorDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ComplexBehaviorDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *ComplexGateway) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14180,32 +13885,10 @@ func (t *ComplexGateway) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 	return e.EncodeElement(out, start)
 }
 
-func (t *ComplexGateway) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ComplexGatewayUnmarshaler ComplexGateway
-	out := ComplexGatewayUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ComplexGateway(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ConditionalEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ConditionalEventDefinition(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ConditionalEventDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ConditionalEventDefinitionUnmarshaler ConditionalEventDefinition
-	out := ConditionalEventDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ConditionalEventDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Conversation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14214,32 +13897,10 @@ func (t *Conversation) MarshalXML(e *xml.Encoder, start xml.StartElement) error 
 	return e.EncodeElement(out, start)
 }
 
-func (t *Conversation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ConversationUnmarshaler Conversation
-	out := ConversationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Conversation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ConversationAssociation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ConversationAssociation(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ConversationAssociation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ConversationAssociationUnmarshaler ConversationAssociation
-	out := ConversationAssociationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ConversationAssociation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *ConversationLink) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14248,32 +13909,10 @@ func (t *ConversationLink) MarshalXML(e *xml.Encoder, start xml.StartElement) er
 	return e.EncodeElement(out, start)
 }
 
-func (t *ConversationLink) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ConversationLinkUnmarshaler ConversationLink
-	out := ConversationLinkUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ConversationLink(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ConversationNode) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ConversationNode(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ConversationNode) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ConversationNodeUnmarshaler ConversationNode
-	out := ConversationNodeUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ConversationNode(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *CorrelationKey) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14282,32 +13921,10 @@ func (t *CorrelationKey) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 	return e.EncodeElement(out, start)
 }
 
-func (t *CorrelationKey) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CorrelationKeyUnmarshaler CorrelationKey
-	out := CorrelationKeyUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CorrelationKey(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *CorrelationProperty) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := CorrelationProperty(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *CorrelationProperty) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CorrelationPropertyUnmarshaler CorrelationProperty
-	out := CorrelationPropertyUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CorrelationProperty(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *CorrelationPropertyBinding) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14316,32 +13933,10 @@ func (t *CorrelationPropertyBinding) MarshalXML(e *xml.Encoder, start xml.StartE
 	return e.EncodeElement(out, start)
 }
 
-func (t *CorrelationPropertyBinding) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CorrelationPropertyBindingUnmarshaler CorrelationPropertyBinding
-	out := CorrelationPropertyBindingUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CorrelationPropertyBinding(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *CorrelationPropertyRetrievalExpression) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := CorrelationPropertyRetrievalExpression(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *CorrelationPropertyRetrievalExpression) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CorrelationPropertyRetrievalExpressionUnmarshaler CorrelationPropertyRetrievalExpression
-	out := CorrelationPropertyRetrievalExpressionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CorrelationPropertyRetrievalExpression(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *CorrelationSubscription) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14350,32 +13945,10 @@ func (t *CorrelationSubscription) MarshalXML(e *xml.Encoder, start xml.StartElem
 	return e.EncodeElement(out, start)
 }
 
-func (t *CorrelationSubscription) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type CorrelationSubscriptionUnmarshaler CorrelationSubscription
-	out := CorrelationSubscriptionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = CorrelationSubscription(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *DataAssociation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := DataAssociation(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *DataAssociation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DataAssociationUnmarshaler DataAssociation
-	out := DataAssociationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = DataAssociation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *DataInput) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14384,32 +13957,10 @@ func (t *DataInput) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *DataInput) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DataInputUnmarshaler DataInput
-	out := DataInputUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = DataInput(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *DataInputAssociation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := DataInputAssociation(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *DataInputAssociation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DataInputAssociationUnmarshaler DataInputAssociation
-	out := DataInputAssociationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = DataInputAssociation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *DataObject) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14418,32 +13969,10 @@ func (t *DataObject) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *DataObject) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DataObjectUnmarshaler DataObject
-	out := DataObjectUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = DataObject(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *DataObjectReference) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := DataObjectReference(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *DataObjectReference) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DataObjectReferenceUnmarshaler DataObjectReference
-	out := DataObjectReferenceUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = DataObjectReference(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *DataOutput) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14452,32 +13981,10 @@ func (t *DataOutput) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *DataOutput) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DataOutputUnmarshaler DataOutput
-	out := DataOutputUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = DataOutput(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *DataOutputAssociation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := DataOutputAssociation(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *DataOutputAssociation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DataOutputAssociationUnmarshaler DataOutputAssociation
-	out := DataOutputAssociationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = DataOutputAssociation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *DataState) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14486,32 +13993,10 @@ func (t *DataState) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *DataState) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DataStateUnmarshaler DataState
-	out := DataStateUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = DataState(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *DataStore) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := DataStore(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *DataStore) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DataStoreUnmarshaler DataStore
-	out := DataStoreUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = DataStore(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *DataStoreReference) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14520,32 +14005,10 @@ func (t *DataStoreReference) MarshalXML(e *xml.Encoder, start xml.StartElement) 
 	return e.EncodeElement(out, start)
 }
 
-func (t *DataStoreReference) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DataStoreReferenceUnmarshaler DataStoreReference
-	out := DataStoreReferenceUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = DataStoreReference(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Documentation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Documentation(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Documentation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type DocumentationUnmarshaler Documentation
-	out := DocumentationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Documentation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *EndEvent) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14554,32 +14017,10 @@ func (t *EndEvent) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *EndEvent) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type EndEventUnmarshaler EndEvent
-	out := EndEventUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = EndEvent(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *EndPoint) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := EndPoint(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *EndPoint) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type EndPointUnmarshaler EndPoint
-	out := EndPointUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = EndPoint(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Error) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14588,32 +14029,10 @@ func (t *Error) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Error) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ErrorUnmarshaler Error
-	out := ErrorUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Error(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ErrorEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ErrorEventDefinition(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ErrorEventDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ErrorEventDefinitionUnmarshaler ErrorEventDefinition
-	out := ErrorEventDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ErrorEventDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Escalation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14622,32 +14041,10 @@ func (t *Escalation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Escalation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type EscalationUnmarshaler Escalation
-	out := EscalationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Escalation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *EscalationEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := EscalationEventDefinition(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *EscalationEventDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type EscalationEventDefinitionUnmarshaler EscalationEventDefinition
-	out := EscalationEventDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = EscalationEventDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Event) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14656,32 +14053,10 @@ func (t *Event) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Event) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type EventUnmarshaler Event
-	out := EventUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Event(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *EventBasedGateway) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := EventBasedGateway(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *EventBasedGateway) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type EventBasedGatewayUnmarshaler EventBasedGateway
-	out := EventBasedGatewayUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = EventBasedGateway(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *EventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14690,32 +14065,10 @@ func (t *EventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) err
 	return e.EncodeElement(out, start)
 }
 
-func (t *EventDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type EventDefinitionUnmarshaler EventDefinition
-	out := EventDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = EventDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ExclusiveGateway) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ExclusiveGateway(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ExclusiveGateway) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ExclusiveGatewayUnmarshaler ExclusiveGateway
-	out := ExclusiveGatewayUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ExclusiveGateway(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Expression) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14724,32 +14077,10 @@ func (t *Expression) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Expression) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ExpressionUnmarshaler Expression
-	out := ExpressionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Expression(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Extension) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Extension(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Extension) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ExtensionUnmarshaler Extension
-	out := ExtensionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Extension(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *ExtensionElements) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14758,32 +14089,10 @@ func (t *ExtensionElements) MarshalXML(e *xml.Encoder, start xml.StartElement) e
 	return e.EncodeElement(out, start)
 }
 
-func (t *ExtensionElements) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ExtensionElementsUnmarshaler ExtensionElements
-	out := ExtensionElementsUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ExtensionElements(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *FlowElement) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := FlowElement(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *FlowElement) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type FlowElementUnmarshaler FlowElement
-	out := FlowElementUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = FlowElement(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *FlowNode) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14792,32 +14101,10 @@ func (t *FlowNode) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *FlowNode) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type FlowNodeUnmarshaler FlowNode
-	out := FlowNodeUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = FlowNode(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *FormalExpression) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := FormalExpression(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *FormalExpression) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type FormalExpressionUnmarshaler FormalExpression
-	out := FormalExpressionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = FormalExpression(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Gateway) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14826,32 +14113,10 @@ func (t *Gateway) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Gateway) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type GatewayUnmarshaler Gateway
-	out := GatewayUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Gateway(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *GlobalBusinessRuleTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := GlobalBusinessRuleTask(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *GlobalBusinessRuleTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type GlobalBusinessRuleTaskUnmarshaler GlobalBusinessRuleTask
-	out := GlobalBusinessRuleTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = GlobalBusinessRuleTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *GlobalChoreographyTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14860,32 +14125,10 @@ func (t *GlobalChoreographyTask) MarshalXML(e *xml.Encoder, start xml.StartEleme
 	return e.EncodeElement(out, start)
 }
 
-func (t *GlobalChoreographyTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type GlobalChoreographyTaskUnmarshaler GlobalChoreographyTask
-	out := GlobalChoreographyTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = GlobalChoreographyTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *GlobalConversation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := GlobalConversation(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *GlobalConversation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type GlobalConversationUnmarshaler GlobalConversation
-	out := GlobalConversationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = GlobalConversation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *GlobalManualTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14894,32 +14137,10 @@ func (t *GlobalManualTask) MarshalXML(e *xml.Encoder, start xml.StartElement) er
 	return e.EncodeElement(out, start)
 }
 
-func (t *GlobalManualTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type GlobalManualTaskUnmarshaler GlobalManualTask
-	out := GlobalManualTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = GlobalManualTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *GlobalScriptTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := GlobalScriptTask(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *GlobalScriptTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type GlobalScriptTaskUnmarshaler GlobalScriptTask
-	out := GlobalScriptTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = GlobalScriptTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *GlobalTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14928,32 +14149,10 @@ func (t *GlobalTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *GlobalTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type GlobalTaskUnmarshaler GlobalTask
-	out := GlobalTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = GlobalTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *GlobalUserTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := GlobalUserTask(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *GlobalUserTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type GlobalUserTaskUnmarshaler GlobalUserTask
-	out := GlobalUserTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = GlobalUserTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Group) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14962,32 +14161,10 @@ func (t *Group) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Group) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type GroupUnmarshaler Group
-	out := GroupUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Group(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *HumanPerformer) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := HumanPerformer(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *HumanPerformer) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type HumanPerformerUnmarshaler HumanPerformer
-	out := HumanPerformerUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = HumanPerformer(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *ImplicitThrowEvent) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -14996,32 +14173,10 @@ func (t *ImplicitThrowEvent) MarshalXML(e *xml.Encoder, start xml.StartElement) 
 	return e.EncodeElement(out, start)
 }
 
-func (t *ImplicitThrowEvent) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ImplicitThrowEventUnmarshaler ImplicitThrowEvent
-	out := ImplicitThrowEventUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ImplicitThrowEvent(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *InclusiveGateway) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := InclusiveGateway(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *InclusiveGateway) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type InclusiveGatewayUnmarshaler InclusiveGateway
-	out := InclusiveGatewayUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = InclusiveGateway(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *InputSet) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15030,32 +14185,10 @@ func (t *InputSet) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *InputSet) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type InputSetUnmarshaler InputSet
-	out := InputSetUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = InputSet(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Interface) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Interface(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Interface) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type InterfaceUnmarshaler Interface
-	out := InterfaceUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Interface(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *IntermediateCatchEvent) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15064,32 +14197,10 @@ func (t *IntermediateCatchEvent) MarshalXML(e *xml.Encoder, start xml.StartEleme
 	return e.EncodeElement(out, start)
 }
 
-func (t *IntermediateCatchEvent) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type IntermediateCatchEventUnmarshaler IntermediateCatchEvent
-	out := IntermediateCatchEventUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = IntermediateCatchEvent(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *IntermediateThrowEvent) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := IntermediateThrowEvent(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *IntermediateThrowEvent) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type IntermediateThrowEventUnmarshaler IntermediateThrowEvent
-	out := IntermediateThrowEventUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = IntermediateThrowEvent(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *InputOutputBinding) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15098,32 +14209,10 @@ func (t *InputOutputBinding) MarshalXML(e *xml.Encoder, start xml.StartElement) 
 	return e.EncodeElement(out, start)
 }
 
-func (t *InputOutputBinding) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type InputOutputBindingUnmarshaler InputOutputBinding
-	out := InputOutputBindingUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = InputOutputBinding(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *InputOutputSpecification) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := InputOutputSpecification(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *InputOutputSpecification) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type InputOutputSpecificationUnmarshaler InputOutputSpecification
-	out := InputOutputSpecificationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = InputOutputSpecification(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *ItemDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15132,32 +14221,10 @@ func (t *ItemDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 	return e.EncodeElement(out, start)
 }
 
-func (t *ItemDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ItemDefinitionUnmarshaler ItemDefinition
-	out := ItemDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ItemDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Lane) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Lane(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Lane) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type LaneUnmarshaler Lane
-	out := LaneUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Lane(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *LaneSet) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15166,32 +14233,10 @@ func (t *LaneSet) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *LaneSet) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type LaneSetUnmarshaler LaneSet
-	out := LaneSetUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = LaneSet(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *LinkEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := LinkEventDefinition(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *LinkEventDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type LinkEventDefinitionUnmarshaler LinkEventDefinition
-	out := LinkEventDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = LinkEventDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *LoopCharacteristics) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15200,32 +14245,10 @@ func (t *LoopCharacteristics) MarshalXML(e *xml.Encoder, start xml.StartElement)
 	return e.EncodeElement(out, start)
 }
 
-func (t *LoopCharacteristics) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type LoopCharacteristicsUnmarshaler LoopCharacteristics
-	out := LoopCharacteristicsUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = LoopCharacteristics(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ManualTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ManualTask(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ManualTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ManualTaskUnmarshaler ManualTask
-	out := ManualTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ManualTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Message) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15234,32 +14257,10 @@ func (t *Message) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Message) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type MessageUnmarshaler Message
-	out := MessageUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Message(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *MessageEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := MessageEventDefinition(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *MessageEventDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type MessageEventDefinitionUnmarshaler MessageEventDefinition
-	out := MessageEventDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = MessageEventDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *MessageFlow) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15268,32 +14269,10 @@ func (t *MessageFlow) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *MessageFlow) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type MessageFlowUnmarshaler MessageFlow
-	out := MessageFlowUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = MessageFlow(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *MessageFlowAssociation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := MessageFlowAssociation(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *MessageFlowAssociation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type MessageFlowAssociationUnmarshaler MessageFlowAssociation
-	out := MessageFlowAssociationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = MessageFlowAssociation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Monitoring) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15302,32 +14281,10 @@ func (t *Monitoring) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Monitoring) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type MonitoringUnmarshaler Monitoring
-	out := MonitoringUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Monitoring(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *MultiInstanceLoopCharacteristics) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := MultiInstanceLoopCharacteristics(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *MultiInstanceLoopCharacteristics) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type MultiInstanceLoopCharacteristicsUnmarshaler MultiInstanceLoopCharacteristics
-	out := MultiInstanceLoopCharacteristicsUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = MultiInstanceLoopCharacteristics(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Operation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15336,32 +14293,10 @@ func (t *Operation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Operation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type OperationUnmarshaler Operation
-	out := OperationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Operation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *OutputSet) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := OutputSet(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *OutputSet) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type OutputSetUnmarshaler OutputSet
-	out := OutputSetUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = OutputSet(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *ParallelGateway) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15370,32 +14305,10 @@ func (t *ParallelGateway) MarshalXML(e *xml.Encoder, start xml.StartElement) err
 	return e.EncodeElement(out, start)
 }
 
-func (t *ParallelGateway) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ParallelGatewayUnmarshaler ParallelGateway
-	out := ParallelGatewayUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ParallelGateway(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Participant) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Participant(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Participant) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ParticipantUnmarshaler Participant
-	out := ParticipantUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Participant(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *ParticipantAssociation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15404,32 +14317,10 @@ func (t *ParticipantAssociation) MarshalXML(e *xml.Encoder, start xml.StartEleme
 	return e.EncodeElement(out, start)
 }
 
-func (t *ParticipantAssociation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ParticipantAssociationUnmarshaler ParticipantAssociation
-	out := ParticipantAssociationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ParticipantAssociation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ParticipantMultiplicity) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ParticipantMultiplicity(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ParticipantMultiplicity) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ParticipantMultiplicityUnmarshaler ParticipantMultiplicity
-	out := ParticipantMultiplicityUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ParticipantMultiplicity(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *PartnerEntity) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15438,32 +14329,10 @@ func (t *PartnerEntity) MarshalXML(e *xml.Encoder, start xml.StartElement) error
 	return e.EncodeElement(out, start)
 }
 
-func (t *PartnerEntity) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type PartnerEntityUnmarshaler PartnerEntity
-	out := PartnerEntityUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = PartnerEntity(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *PartnerRole) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := PartnerRole(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *PartnerRole) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type PartnerRoleUnmarshaler PartnerRole
-	out := PartnerRoleUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = PartnerRole(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Performer) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15472,32 +14341,10 @@ func (t *Performer) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Performer) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type PerformerUnmarshaler Performer
-	out := PerformerUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Performer(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *PotentialOwner) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := PotentialOwner(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *PotentialOwner) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type PotentialOwnerUnmarshaler PotentialOwner
-	out := PotentialOwnerUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = PotentialOwner(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Process) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15506,32 +14353,10 @@ func (t *Process) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Process) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ProcessUnmarshaler Process
-	out := ProcessUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Process(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Property) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Property(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Property) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type PropertyUnmarshaler Property
-	out := PropertyUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Property(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *ReceiveTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15540,32 +14365,10 @@ func (t *ReceiveTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *ReceiveTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ReceiveTaskUnmarshaler ReceiveTask
-	out := ReceiveTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ReceiveTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Relationship) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Relationship(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Relationship) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type RelationshipUnmarshaler Relationship
-	out := RelationshipUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Relationship(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Rendering) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15574,32 +14377,10 @@ func (t *Rendering) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Rendering) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type RenderingUnmarshaler Rendering
-	out := RenderingUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Rendering(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Resource) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Resource(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Resource) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ResourceUnmarshaler Resource
-	out := ResourceUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Resource(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *ResourceAssignmentExpression) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15608,32 +14389,10 @@ func (t *ResourceAssignmentExpression) MarshalXML(e *xml.Encoder, start xml.Star
 	return e.EncodeElement(out, start)
 }
 
-func (t *ResourceAssignmentExpression) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ResourceAssignmentExpressionUnmarshaler ResourceAssignmentExpression
-	out := ResourceAssignmentExpressionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ResourceAssignmentExpression(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ResourceParameter) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ResourceParameter(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ResourceParameter) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ResourceParameterUnmarshaler ResourceParameter
-	out := ResourceParameterUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ResourceParameter(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *ResourceParameterBinding) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15642,32 +14401,10 @@ func (t *ResourceParameterBinding) MarshalXML(e *xml.Encoder, start xml.StartEle
 	return e.EncodeElement(out, start)
 }
 
-func (t *ResourceParameterBinding) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ResourceParameterBindingUnmarshaler ResourceParameterBinding
-	out := ResourceParameterBindingUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ResourceParameterBinding(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ResourceRole) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ResourceRole(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ResourceRole) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ResourceRoleUnmarshaler ResourceRole
-	out := ResourceRoleUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ResourceRole(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *RootElement) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15676,32 +14413,10 @@ func (t *RootElement) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *RootElement) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type RootElementUnmarshaler RootElement
-	out := RootElementUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = RootElement(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ScriptTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ScriptTask(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ScriptTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ScriptTaskUnmarshaler ScriptTask
-	out := ScriptTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ScriptTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Script) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15710,32 +14425,10 @@ func (t *Script) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Script) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ScriptUnmarshaler Script
-	out := ScriptUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Script(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *SendTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := SendTask(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *SendTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type SendTaskUnmarshaler SendTask
-	out := SendTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = SendTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *SequenceFlow) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15744,32 +14437,10 @@ func (t *SequenceFlow) MarshalXML(e *xml.Encoder, start xml.StartElement) error 
 	return e.EncodeElement(out, start)
 }
 
-func (t *SequenceFlow) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type SequenceFlowUnmarshaler SequenceFlow
-	out := SequenceFlowUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = SequenceFlow(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ServiceTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ServiceTask(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ServiceTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ServiceTaskUnmarshaler ServiceTask
-	out := ServiceTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ServiceTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Signal) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15778,32 +14449,10 @@ func (t *Signal) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Signal) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type SignalUnmarshaler Signal
-	out := SignalUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Signal(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *SignalEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := SignalEventDefinition(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *SignalEventDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type SignalEventDefinitionUnmarshaler SignalEventDefinition
-	out := SignalEventDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = SignalEventDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *StandardLoopCharacteristics) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15812,32 +14461,10 @@ func (t *StandardLoopCharacteristics) MarshalXML(e *xml.Encoder, start xml.Start
 	return e.EncodeElement(out, start)
 }
 
-func (t *StandardLoopCharacteristics) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type StandardLoopCharacteristicsUnmarshaler StandardLoopCharacteristics
-	out := StandardLoopCharacteristicsUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = StandardLoopCharacteristics(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *StartEvent) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := StartEvent(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *StartEvent) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type StartEventUnmarshaler StartEvent
-	out := StartEventUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = StartEvent(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *SubChoreography) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15846,32 +14473,10 @@ func (t *SubChoreography) MarshalXML(e *xml.Encoder, start xml.StartElement) err
 	return e.EncodeElement(out, start)
 }
 
-func (t *SubChoreography) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type SubChoreographyUnmarshaler SubChoreography
-	out := SubChoreographyUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = SubChoreography(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *SubConversation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := SubConversation(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *SubConversation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type SubConversationUnmarshaler SubConversation
-	out := SubConversationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = SubConversation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *SubProcess) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15880,32 +14485,10 @@ func (t *SubProcess) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *SubProcess) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type SubProcessUnmarshaler SubProcess
-	out := SubProcessUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = SubProcess(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Task) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Task(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *Task) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type TaskUnmarshaler Task
-	out := TaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Task(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *TerminateEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15914,32 +14497,10 @@ func (t *TerminateEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartEle
 	return e.EncodeElement(out, start)
 }
 
-func (t *TerminateEventDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type TerminateEventDefinitionUnmarshaler TerminateEventDefinition
-	out := TerminateEventDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = TerminateEventDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *TextAnnotation) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := TextAnnotation(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *TextAnnotation) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type TextAnnotationUnmarshaler TextAnnotation
-	out := TextAnnotationUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = TextAnnotation(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *Text) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15948,32 +14509,10 @@ func (t *Text) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(out, start)
 }
 
-func (t *Text) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type TextUnmarshaler Text
-	out := TextUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Text(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *ThrowEvent) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := ThrowEvent(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *ThrowEvent) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ThrowEventUnmarshaler ThrowEvent
-	out := ThrowEventUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = ThrowEvent(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }
 
 func (t *TimerEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -15982,47 +14521,14 @@ func (t *TimerEventDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement
 	return e.EncodeElement(out, start)
 }
 
-func (t *TimerEventDefinition) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type TimerEventDefinitionUnmarshaler TimerEventDefinition
-	out := TimerEventDefinitionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = TimerEventDefinition(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *Transaction) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := Transaction(*t)
 	return e.EncodeElement(out, start)
 }
 
-func (t *Transaction) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type TransactionUnmarshaler Transaction
-	out := TransactionUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = Transaction(out)
-	PostUnmarshal(t, de, &start)
-	return nil
-}
-
 func (t *UserTask) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	PreMarshal(t, e, &start)
 	out := UserTask(*t)
 	return e.EncodeElement(out, start)
-}
-
-func (t *UserTask) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type UserTaskUnmarshaler UserTask
-	out := UserTaskUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return nil
-	}
-	*t = UserTask(out)
-	PostUnmarshal(t, de, &start)
-	return nil
 }

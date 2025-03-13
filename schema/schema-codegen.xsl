@@ -100,295 +100,297 @@
 
     <xsl:template name="type">
         <xsl:param name="type" required="yes"/>
-        <!-- Type -->
+            <!-- Type -->
 
-
-        <xsl:text>type </xsl:text>
-        <xsl:value-of select="local:struct-case($type/@name)"/>
-        <xsl:text> struct {  </xsl:text>
-        <xsl:for-each select="./xs:complexContent/xs:extension[@base]">
-            <xsl:value-of select="local:struct-case(./@base)"/>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-        </xsl:for-each>
-        <xsl:for-each select=".//xs:attribute">
-            <xsl:value-of select="local:field-name(.)"/>
-            <xsl:text xml:space="preserve"> </xsl:text>
-            <xsl:value-of select="local:field-type(.)"/>
-            <xsl:text xml:space="preserve"> `xml:"</xsl:text>
-            <xsl:value-of select="./@name"/>
-            <xsl:text xml:space="preserve">,attr,omitempty"`
-            </xsl:text>
-        </xsl:for-each>
-        <xsl:for-each select="local:specific-elements(.)">
-            <xsl:choose>
-                <xsl:when test="exists(./@name)">
-                    <xsl:value-of select="local:field-name(.)"/>
-                    <xsl:text xml:space="preserve"> </xsl:text>
-                    <xsl:value-of select="local:field-type(.)"/>
-                    <xsl:text xml:space="preserve"> `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL </xsl:text>
-                    <xsl:value-of select="./@name"/>
-                    <xsl:text xml:space="preserve">"`
-                    </xsl:text>
-                </xsl:when>
-                <xsl:when test="local:is-a-ref(.)">
-                    <xsl:value-of select="local:field-name(.)"/>
-                    <xsl:text xml:space="preserve"> </xsl:text>
-                    <xsl:value-of select="local:ref-type(.)"/>
-                    <xsl:text xml:space="preserve"> `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL </xsl:text>
-                    <xsl:value-of select="./@ref"/>
-                    <xsl:text xml:space="preserve">"`
-                    </xsl:text>
-                </xsl:when>
-                <xsl:otherwise/>
-            </xsl:choose>
-        </xsl:for-each>
-        <xsl:if test="local:struct-case($type/@name) = 'ExtensionElements'">
-            <xsl:text>DataObjectBody *ExtensionDataObjectBody `xml:"http://olive.io/spec/BPMN/MODEL dataObjectBody"`</xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-            <xsl:text>TaskDefinitionField *TaskDefinition `xml:"http://olive.io/spec/BPMN/MODEL taskDefinition"`</xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-            <xsl:text>TaskHeaderField *TaskHeader `xml:"http://olive.io/spec/BPMN/MODEL taskHeaders"`</xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-            <xsl:text>PropertiesField *Properties `xml:"http://olive.io/spec/BPMN/MODEL properties"`</xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-            <xsl:text>ResultsField *Result `xml:"http://olive.io/spec/BPMN/MODEL results"`</xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-            <xsl:text>ScriptField *ExtensionScript `xml:"http://olive.io/spec/BPMN/MODEL script"`</xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-            <xsl:text>CalledElement *ExtensionCalledElement `xml:"http://olive.io/spec/BPMN/MODEL calledElement"`</xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-            <xsl:text>CalledDecision *ExtensionCalledDecision `xml:"http://olive.io/spec/BPMN/MODEL calledDecision"`</xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-            <xsl:text>DataInput []ExtensionAssociation `xml:"http://olive.io/spec/BPMN/MODEL dataInput"`</xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-            <xsl:text>DataOutput []ExtensionAssociation `xml:"http://olive.io/spec/BPMN/MODEL dataOutput"`</xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-        </xsl:if>
-        <xsl:if test="local:struct-case($type/@name) = 'Definitions'">
-            <xsl:text>DiagramField *BPMNDiagram `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNDiagram"`
-            </xsl:text>
-        </xsl:if>
-        <xsl:if test="not($type/@abstract)">
-            <xsl:text>TextPayloadField *Payload `xml:",chardata"`</xsl:text>
-        </xsl:if>
-        <xsl:text xml:space="preserve"> }
-        </xsl:text>
-        <!-- Constructor -->
-
-        <xsl:variable name="quot">"</xsl:variable>
-
-        <!-- defaults -->
-
-        <xsl:for-each select=".//xs:attribute[exists(@default)]">
-            <!--<xsl:if test="not(contains(./@default, '#'))">-->
-            <xsl:text>var default</xsl:text>
+            <xsl:text>type </xsl:text>
             <xsl:value-of select="local:struct-case($type/@name)"/>
-            <xsl:value-of select="local:field-name(.)"/>
-            <xsl:text xml:spce="preserve"> </xsl:text>
-            <xsl:value-of select="local:type(./@type)"/>
-            <xsl:text>=</xsl:text>
-            <xsl:choose>
-                <xsl:when test="./@type = 'xsd:boolean'">
-                    <xsl:value-of select="./@default"/>
-                </xsl:when>
-                <xsl:when test="./@type = 'xsd:int'">
-                    <xsl:value-of select="./@default"/>
-                </xsl:when>
-                <xsl:when test="./@type = 'xsd:string' or ./@type = 'xsd:anyURI'">
-                    <xsl:value-of select="concat($quot, ./@default, $quot)"/>
-                </xsl:when>
-                <xsl:when test="./@type = 'xsd:integer'">
-                    <xsl:value-of select="concat('*big.NewInt(', ./@default, ')')"/>
-                </xsl:when>
-                <xsl:when test="not(contains(./@type, 'xsd:'))">
-                    <xsl:value-of select="concat($quot, ./@default, $quot)"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:value-of select="./@default"/>
-                </xsl:otherwise>
-            </xsl:choose>
-            <xsl:text xml:space="preserve">
-                </xsl:text>
-            <!--</xsl:if>-->
-        </xsl:for-each>
-
-        <xsl:text xml:space="preserve">func Default</xsl:text>
-        <xsl:value-of select="local:struct-case($type/@name)"/>
-        <xsl:text>()</xsl:text>
-        <xsl:value-of select="local:struct-case($type/@name)"/>
-        <xsl:text>{</xsl:text>
-        <xsl:text xml:space="preserve">return </xsl:text>
-        <xsl:value-of select="local:struct-case($type/@name)"/>
-        <xsl:text xml:space="preserve">{
-        </xsl:text>
-
-        <xsl:for-each select="./xs:complexContent/xs:extension[@base]">
-            <xsl:value-of select="local:struct-case(./@base)"/>
-            <xsl:text>: Default</xsl:text>
-            <xsl:value-of select="local:struct-case(./@base)"/>
-            <xsl:text xml:space="preserve">(),
+            <xsl:text> struct {  </xsl:text>
+            <xsl:for-each select="./xs:complexContent/xs:extension[@base]">
+                <xsl:value-of select="local:struct-case(./@base)"/>
+                <xsl:text xml:space="preserve">
             </xsl:text>
-        </xsl:for-each>
-
-        <xsl:for-each select=".//xs:attribute[exists(@default)]">
-            <xsl:if test="not(contains(./@default, '#'))">
+            </xsl:for-each>
+            <xsl:for-each select=".//xs:attribute">
                 <xsl:value-of select="local:field-name(.)"/>
-                <xsl:text>:</xsl:text>
-                <xsl:if test="local:is-optional-attribute(.)">
-                    <xsl:text>&amp;</xsl:text>
-                </xsl:if>
+                <xsl:text xml:space="preserve"> </xsl:text>
+                <xsl:value-of select="local:field-type(.)"/>
+                <xsl:text xml:space="preserve"> `xml:"</xsl:text>
+                <xsl:value-of select="./@name"/>
+                <xsl:text xml:space="preserve">,attr,omitempty"`
+            </xsl:text>
+            </xsl:for-each>
+            <xsl:for-each select="local:specific-elements(.)">
                 <xsl:choose>
-                    <xsl:when test="./@type = 'xsd:string' or ./@type = 'xsd:anyURI'">
-                        <xsl:text>default</xsl:text>
-                        <xsl:value-of select="local:struct-case($type/@name)"/>
+                    <xsl:when test="exists(./@name)">
                         <xsl:value-of select="local:field-name(.)"/>
+                        <xsl:text xml:space="preserve"> </xsl:text>
+                        <xsl:value-of select="local:field-type(.)"/>
+                        <xsl:text xml:space="preserve"> `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL </xsl:text>
+                        <xsl:value-of select="./@name"/>
+                        <xsl:text xml:space="preserve">"`
+                    </xsl:text>
                     </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:text>default</xsl:text>
-                        <xsl:value-of select="local:struct-case($type/@name)"/>
+                    <xsl:when test="local:is-a-ref(.)">
                         <xsl:value-of select="local:field-name(.)"/>
-                    </xsl:otherwise>
+                        <xsl:text xml:space="preserve"> </xsl:text>
+                        <xsl:value-of select="local:ref-type(.)"/>
+                        <xsl:text xml:space="preserve"> `xml:"http://www.omg.org/spec/BPMN/20100524/MODEL </xsl:text>
+                        <xsl:value-of select="./@ref"/>
+                        <xsl:text xml:space="preserve">"`
+                    </xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise/>
                 </xsl:choose>
-                <xsl:text xml:space="preserve">,
+            </xsl:for-each>
+            <xsl:if test="local:struct-case($type/@name) = 'ExtensionElements'">
+                <xsl:text>ExtensionElementsType</xsl:text>
+                <xsl:text xml:space="preserve">
+                </xsl:text>
+<!--                <xsl:text>DataObjectBody *ExtensionDataObjectBody `xml:"http://olive.io/spec/BPMN/MODEL dataObjectBody"`</xsl:text>-->
+<!--                <xsl:text xml:space="preserve">-->
+<!--                </xsl:text>-->
+<!--                <xsl:text>TaskDefinitionField *TaskDefinition `xml:"http://olive.io/spec/BPMN/MODEL taskDefinition"`</xsl:text>-->
+<!--                <xsl:text xml:space="preserve">-->
+<!--                </xsl:text>-->
+<!--                <xsl:text>TaskHeaderField *TaskHeader `xml:"http://olive.io/spec/BPMN/MODEL taskHeaders"`</xsl:text>-->
+<!--                <xsl:text xml:space="preserve">-->
+<!--                </xsl:text>-->
+<!--                <xsl:text>PropertiesField *Properties `xml:"http://olive.io/spec/BPMN/MODEL properties"`</xsl:text>-->
+<!--                <xsl:text xml:space="preserve">-->
+<!--                </xsl:text>-->
+<!--                <xsl:text>ResultsField *Result `xml:"http://olive.io/spec/BPMN/MODEL results"`</xsl:text>-->
+<!--                <xsl:text xml:space="preserve">-->
+<!--                </xsl:text>-->
+<!--                <xsl:text>ScriptField *ExtensionScript `xml:"http://olive.io/spec/BPMN/MODEL script"`</xsl:text>-->
+<!--                <xsl:text xml:space="preserve">-->
+<!--                </xsl:text>-->
+<!--                <xsl:text>CalledElement *ExtensionCalledElement `xml:"http://olive.io/spec/BPMN/MODEL calledElement"`</xsl:text>-->
+<!--                <xsl:text xml:space="preserve">-->
+<!--                </xsl:text>-->
+<!--                <xsl:text>CalledDecision *ExtensionCalledDecision `xml:"http://olive.io/spec/BPMN/MODEL calledDecision"`</xsl:text>-->
+<!--                <xsl:text xml:space="preserve">-->
+<!--                </xsl:text>-->
+<!--                <xsl:text>DataInput []ExtensionAssociation `xml:"http://olive.io/spec/BPMN/MODEL dataInput"`</xsl:text>-->
+<!--                <xsl:text xml:space="preserve">-->
+<!--                </xsl:text>-->
+<!--                <xsl:text>DataOutput []ExtensionAssociation `xml:"http://olive.io/spec/BPMN/MODEL dataOutput"`</xsl:text>-->
+<!--                <xsl:text xml:space="preserve">-->
+<!--                </xsl:text>-->
+            </xsl:if>
+            <xsl:if test="local:struct-case($type/@name) = 'Definitions'">
+                <xsl:text>DiagramField *BPMNDiagram `xml:"http://www.omg.org/spec/BPMN/20100524/DI BPMNDiagram"`
                 </xsl:text>
             </xsl:if>
-        </xsl:for-each>
-        <xsl:text>}</xsl:text>
-        <xsl:text xml:space="preserve">}
+            <xsl:if test="not($type/@abstract)">
+                <xsl:text>TextPayloadField *Payload `xml:",chardata"`</xsl:text>
+            </xsl:if>
+            <xsl:text xml:space="preserve"> }
+        </xsl:text>
+            <!-- Constructor -->
+
+            <xsl:variable name="quot">"</xsl:variable>
+
+            <!-- defaults -->
+
+            <xsl:for-each select=".//xs:attribute[exists(@default)]">
+                <!--<xsl:if test="not(contains(./@default, '#'))">-->
+                <xsl:text>var default</xsl:text>
+                <xsl:value-of select="local:struct-case($type/@name)"/>
+                <xsl:value-of select="local:field-name(.)"/>
+                <xsl:text xml:spce="preserve"> </xsl:text>
+                <xsl:value-of select="local:type(./@type)"/>
+                <xsl:text>=</xsl:text>
+                <xsl:choose>
+                    <xsl:when test="./@type = 'xsd:boolean'">
+                        <xsl:value-of select="./@default"/>
+                    </xsl:when>
+                    <xsl:when test="./@type = 'xsd:int'">
+                        <xsl:value-of select="./@default"/>
+                    </xsl:when>
+                    <xsl:when test="./@type = 'xsd:string' or ./@type = 'xsd:anyURI'">
+                        <xsl:value-of select="concat($quot, ./@default, $quot)"/>
+                    </xsl:when>
+                    <xsl:when test="./@type = 'xsd:integer'">
+                        <xsl:value-of select="concat('*big.NewInt(', ./@default, ')')"/>
+                    </xsl:when>
+                    <xsl:when test="not(contains(./@type, 'xsd:'))">
+                        <xsl:value-of select="concat($quot, ./@default, $quot)"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="./@default"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+                <xsl:text xml:space="preserve">
+                </xsl:text>
+                <!--</xsl:if>-->
+            </xsl:for-each>
+
+            <xsl:text xml:space="preserve">func Default</xsl:text>
+            <xsl:value-of select="local:struct-case($type/@name)"/>
+            <xsl:text>()</xsl:text>
+            <xsl:value-of select="local:struct-case($type/@name)"/>
+            <xsl:text>{</xsl:text>
+            <xsl:text xml:space="preserve">return </xsl:text>
+            <xsl:value-of select="local:struct-case($type/@name)"/>
+            <xsl:text xml:space="preserve">{
         </xsl:text>
 
-        <xsl:text>type </xsl:text>
-        <xsl:value-of select="local:struct-case($type/@name)"/>
-        <xsl:text xml:space="preserve">Interface interface {
+            <xsl:for-each select="./xs:complexContent/xs:extension[@base]">
+                <xsl:value-of select="local:struct-case(./@base)"/>
+                <xsl:text>: Default</xsl:text>
+                <xsl:value-of select="local:struct-case(./@base)"/>
+                <xsl:text xml:space="preserve">(),
+            </xsl:text>
+            </xsl:for-each>
+
+            <xsl:for-each select=".//xs:attribute[exists(@default)]">
+                <xsl:if test="not(contains(./@default, '#'))">
+                    <xsl:value-of select="local:field-name(.)"/>
+                    <xsl:text>:</xsl:text>
+                    <xsl:if test="local:is-optional-attribute(.)">
+                        <xsl:text>&amp;</xsl:text>
+                    </xsl:if>
+                    <xsl:choose>
+                        <xsl:when test="./@type = 'xsd:string' or ./@type = 'xsd:anyURI'">
+                            <xsl:text>default</xsl:text>
+                            <xsl:value-of select="local:struct-case($type/@name)"/>
+                            <xsl:value-of select="local:field-name(.)"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:text>default</xsl:text>
+                            <xsl:value-of select="local:struct-case($type/@name)"/>
+                            <xsl:value-of select="local:field-name(.)"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                    <xsl:text xml:space="preserve">,
+                </xsl:text>
+                </xsl:if>
+            </xsl:for-each>
+            <xsl:text>}</xsl:text>
+            <xsl:text xml:space="preserve">}
+        </xsl:text>
+
+            <xsl:text>type </xsl:text>
+            <xsl:value-of select="local:struct-case($type/@name)"/>
+            <xsl:text xml:space="preserve">Interface interface {
             Element
         </xsl:text>
 
-        <xsl:for-each select="./xs:complexContent/xs:extension[@base]">
-            <xsl:value-of select="local:struct-case(./@base)"/>
-            <xsl:text xml:space="preserve">Interface
+            <xsl:for-each select="./xs:complexContent/xs:extension[@base]">
+                <xsl:value-of select="local:struct-case(./@base)"/>
+                <xsl:text xml:space="preserve">Interface
             </xsl:text>
-        </xsl:for-each>
+            </xsl:for-each>
 
-        <!-- Getters -->
-        <xsl:for-each select=".//xs:attribute">
-            <xsl:value-of select="local:struct-case(./@name)"/>
-            <xsl:text xml:space="preserve">() (result </xsl:text>
-            <xsl:value-of select="local:returning-type(.)"/>
-            <xsl:if test="local:is-optional-attribute-with-no-default(.)">
-                <xsl:text xml:space="preserve">, present bool</xsl:text>
+            <!-- Getters -->
+            <xsl:for-each select=".//xs:attribute">
+                <xsl:value-of select="local:struct-case(./@name)"/>
+                <xsl:text xml:space="preserve">() (result </xsl:text>
+                <xsl:value-of select="local:returning-type(.)"/>
+                <xsl:if test="local:is-optional-attribute-with-no-default(.)">
+                    <xsl:text xml:space="preserve">, present bool</xsl:text>
+                </xsl:if>
+                <xsl:text xml:space="preserve">)
+            </xsl:text>
+            </xsl:for-each>
+            <xsl:for-each select="local:specific-elements(.)">
+                <xsl:choose>
+                    <xsl:when test="exists(./@name)">
+                        <xsl:value-of select="local:field-method(.)"/>
+                        <xsl:text xml:space="preserve">() (result </xsl:text>
+                        <xsl:value-of select="local:returning-type(.)"/>
+                        <xsl:if test="local:is-optional(.)">
+                            <xsl:text xml:space="preserve">, present bool</xsl:text>
+                        </xsl:if>
+                        <xsl:text xml:space="preserve">)
+                    </xsl:text>
+                    </xsl:when>
+                    <xsl:when test="local:is-a-ref(.)">
+                        <xsl:value-of select="local:field-method(.)"/>
+                        <xsl:text xml:space="preserve">() (result </xsl:text>
+                        <xsl:value-of select="local:returning-ref-type(.)"/>
+                        <xsl:if test="local:is-optional(.)">
+                            <xsl:text xml:space="preserve">, present bool</xsl:text>
+                        </xsl:if>
+                        <xsl:text xml:space="preserve">)
+                    </xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise/>
+                </xsl:choose>
+            </xsl:for-each>
+            <xsl:for-each select="local:abstract-elements(.)">
+                <xsl:value-of select="local:field-method(.)"/><xsl:text xml:space="preserve">() </xsl:text>
+                <xsl:value-of select="local:abstract-ref-type(.)"/>
+                <xsl:text xml:space="preserve">
+            </xsl:text>
+            </xsl:for-each>
+            <!-- Setters -->
+            <xsl:for-each select=".//xs:attribute">
+                <xsl:text>Set</xsl:text>
+                <xsl:value-of select="local:struct-case(./@name)"/>
+                <xsl:text xml:space="preserve">(value </xsl:text>
+                <xsl:if test="local:is-optional-attribute(.)">
+                    <xsl:text>*</xsl:text>
+                </xsl:if>
+                <xsl:value-of select="local:type(./@type)"/>
+                <xsl:text>) </xsl:text>
+                <xsl:text xml:space="preserve">
+            </xsl:text>
+            </xsl:for-each>
+            <xsl:for-each select="local:specific-elements(.)">
+                <xsl:choose>
+                    <xsl:when test="exists(./@name)">
+                        <xsl:text>Set</xsl:text>
+                        <xsl:value-of select="local:field-method(.)"/>
+                        <xsl:text xml:space="preserve">(value </xsl:text>
+                        <xsl:value-of select="local:param-type(.)"/>
+                        <xsl:text>) </xsl:text>
+                        <xsl:text xml:space="preserve">
+                    </xsl:text>
+                    </xsl:when>
+                    <xsl:when test="local:is-a-ref(.)">
+                        <xsl:text>Set</xsl:text>
+                        <xsl:value-of select="local:field-method(.)"/>
+                        <xsl:text xml:space="preserve">(value </xsl:text>
+                        <xsl:value-of select="local:ref-type(.)"/>
+                        <xsl:text>) </xsl:text>
+                        <xsl:text xml:space="preserve">
+                    </xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise/>
+                </xsl:choose>
+            </xsl:for-each>
+            <!-- Text payload -->
+            <xsl:if test="not($type/@abstract)">
+                <xsl:text>
+                    TextPayload() *string
+                    SetTextPayload(string)
+                </xsl:text>
             </xsl:if>
-            <xsl:text xml:space="preserve">)
-            </xsl:text>
-        </xsl:for-each>
-        <xsl:for-each select="local:specific-elements(.)">
-            <xsl:choose>
-                <xsl:when test="exists(./@name)">
-                    <xsl:value-of select="local:field-method(.)"/>
-                    <xsl:text xml:space="preserve">() (result </xsl:text>
-                    <xsl:value-of select="local:returning-type(.)"/>
-                    <xsl:if test="local:is-optional(.)">
-                        <xsl:text xml:space="preserve">, present bool</xsl:text>
-                    </xsl:if>
-                    <xsl:text xml:space="preserve">)
-                    </xsl:text>
-                </xsl:when>
-                <xsl:when test="local:is-a-ref(.)">
-                    <xsl:value-of select="local:field-method(.)"/>
-                    <xsl:text xml:space="preserve">() (result </xsl:text>
-                    <xsl:value-of select="local:returning-ref-type(.)"/>
-                    <xsl:if test="local:is-optional(.)">
-                        <xsl:text xml:space="preserve">, present bool</xsl:text>
-                    </xsl:if>
-                    <xsl:text xml:space="preserve">)
-                    </xsl:text>
-                </xsl:when>
-                <xsl:otherwise/>
-            </xsl:choose>
-        </xsl:for-each>
-        <xsl:for-each select="local:abstract-elements(.)">
-            <xsl:value-of select="local:field-method(.)"/><xsl:text xml:space="preserve">() </xsl:text>
-            <xsl:value-of select="local:abstract-ref-type(.)"/>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-        </xsl:for-each>
-        <!-- Setters -->
-        <xsl:for-each select=".//xs:attribute">
-            <xsl:text>Set</xsl:text>
-            <xsl:value-of select="local:struct-case(./@name)"/>
-            <xsl:text xml:space="preserve">(value </xsl:text>
-            <xsl:if test="local:is-optional-attribute(.)">
-                <xsl:text>*</xsl:text>
-            </xsl:if>
-            <xsl:value-of select="local:type(./@type)"/>
-            <xsl:text>) </xsl:text>
-            <xsl:text xml:space="preserve">
-            </xsl:text>
-        </xsl:for-each>
-        <xsl:for-each select="local:specific-elements(.)">
-            <xsl:choose>
-                <xsl:when test="exists(./@name)">
-                    <xsl:text>Set</xsl:text>
-                    <xsl:value-of select="local:field-method(.)"/>
-                    <xsl:text xml:space="preserve">(value </xsl:text>
-                    <xsl:value-of select="local:param-type(.)"/>
-                    <xsl:text>) </xsl:text>
-                    <xsl:text xml:space="preserve">
-                    </xsl:text>
-                </xsl:when>
-                <xsl:when test="local:is-a-ref(.)">
-                    <xsl:text>Set</xsl:text>
-                    <xsl:value-of select="local:field-method(.)"/>
-                    <xsl:text xml:space="preserve">(value </xsl:text>
-                    <xsl:value-of select="local:ref-type(.)"/>
-                    <xsl:text>) </xsl:text>
-                    <xsl:text xml:space="preserve">
-                    </xsl:text>
-                </xsl:when>
-                <xsl:otherwise/>
-            </xsl:choose>
-        </xsl:for-each>
-        <!-- Text payload -->
-        <xsl:if test="not($type/@abstract)">
-            <xsl:text>
-                TextPayload() *string
-                SetTextPayload(string)
-            </xsl:text>
-        </xsl:if>
 
-        <xsl:text xml:space="preserve"> }
+            <xsl:text xml:space="preserve"> }
         </xsl:text>
-        <!-- Interface implementation -->
-        <xsl:if test="not($type/@abstract)">
-            <xsl:text xml:space="preserve">
+            <!-- Interface implementation -->
+            <xsl:if test="not($type/@abstract)">
+                <xsl:text xml:space="preserve">
             func (t *</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
-            <xsl:text xml:space="preserve">) TextPayload() *string {
+                <xsl:text xml:space="preserve">) TextPayload() *string {
             s := t.TextPayloadField.String()
             return &amp;s
             }
             </xsl:text>
-            <xsl:text xml:space="preserve">
+                <xsl:text xml:space="preserve">
             func (t *</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
-            <xsl:text xml:space="preserve">) SetTextPayload(text string) {
+                <xsl:text xml:space="preserve">) SetTextPayload(text string) {
             payload := Payload(text)
 	        t.TextPayloadField = &amp;payload
             }
 
             </xsl:text>
-        </xsl:if>
+            </xsl:if>
 
-        <xsl:text xml:space="preserve">func (t *</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
-        <xsl:text xml:space="preserve">) FindBy(f ElementPredicate) (result Element, found bool) {
+            <xsl:text xml:space="preserve">func (t *</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/>
+            <xsl:text xml:space="preserve">) FindBy(f ElementPredicate) (result Element, found bool) {
             if t == nil {
               return
             }
@@ -399,292 +401,292 @@
             }
         </xsl:text>
 
-        <xsl:for-each select="./xs:complexContent/xs:extension[@base]">
-            <xsl:text>if result, found = t.</xsl:text><xsl:value-of select="local:struct-case(./@base)"/>
-            <xsl:text xml:space="preserve">.FindBy(f); found {
+            <xsl:for-each select="./xs:complexContent/xs:extension[@base]">
+                <xsl:text>if result, found = t.</xsl:text><xsl:value-of select="local:struct-case(./@base)"/>
+                <xsl:text xml:space="preserve">.FindBy(f); found {
                 return
             }
             </xsl:text>
-        </xsl:for-each>
-        <xsl:for-each select="local:specific-elements(.)">
-            <xsl:variable name="ref" select="./@ref"/>
-            <xsl:choose>
-                <xsl:when test="contains($ref, ':') or contains(./@type, ':')">
-                    <!-- other schemas are of no interest -->
-                </xsl:when>
-                <xsl:when test="exists($schema/xs:simpleType[@name = $ref]) or exists($schema/xs:simpleType[@name = $type])">
-                    <!-- don't search simple types -->
-                </xsl:when>
-                <xsl:when test="./@maxOccurs = 'unbounded'">
-                    <xsl:text>
-                        for i := range t.</xsl:text><xsl:value-of select="local:field-name(.)"/><xsl:text xml:space="preserve">{
+            </xsl:for-each>
+            <xsl:for-each select="local:specific-elements(.)">
+                <xsl:variable name="ref" select="./@ref"/>
+                <xsl:choose>
+                    <xsl:when test="contains($ref, ':') or contains(./@type, ':')">
+                        <!-- other schemas are of no interest -->
+                    </xsl:when>
+                    <xsl:when test="exists($schema/xs:simpleType[@name = $ref]) or exists($schema/xs:simpleType[@name = $type])">
+                        <!-- don't search simple types -->
+                    </xsl:when>
+                    <xsl:when test="./@maxOccurs = 'unbounded'">
+                        <xsl:text>
+                            for i := range t.</xsl:text><xsl:value-of select="local:field-name(.)"/><xsl:text xml:space="preserve">{
                         if result, found = t.</xsl:text><xsl:value-of select="local:field-name(.)"/><xsl:text xml:space="preserve">[i].FindBy(f); found {
                                return
                          }
                          }
                      </xsl:text>
-                </xsl:when>
-                <xsl:when test="./@minOccurs = '0' and ./@maxOccurs = '1'">
-                    <xsl:text>
-                        if value := t.</xsl:text><xsl:value-of select="local:field-name(.)"/><xsl:text xml:space="preserve">; value != nil {
+                    </xsl:when>
+                    <xsl:when test="./@minOccurs = '0' and ./@maxOccurs = '1'">
+                        <xsl:text>
+                            if value := t.</xsl:text><xsl:value-of select="local:field-name(.)"/><xsl:text xml:space="preserve">; value != nil {
                         if result, found = value.FindBy(f); found {
                                return
                          }
                          }
                         </xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:text>
-                        if result, found = t.</xsl:text><xsl:value-of select="local:field-name(.)"/><xsl:text xml:space="preserve">.FindBy(f); found {
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>
+                            if result, found = t.</xsl:text><xsl:value-of select="local:field-name(.)"/><xsl:text xml:space="preserve">.FindBy(f); found {
                                return
                          }
                         </xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+                    </xsl:otherwise>
+                </xsl:choose>
 
-        </xsl:for-each>
-        <xsl:text xml:space="preserve">
+            </xsl:for-each>
+            <xsl:text xml:space="preserve">
           return
         }
         </xsl:text>
 
-        <!-- attributes -->
-        <xsl:for-each select=".//xs:attribute">
-            <!-- Getter -->
-            <xsl:text xml:space="preserve">func (t *</xsl:text>
-            <xsl:value-of select="local:struct-case($type/@name)"/>
-            <xsl:text xml:space="preserve">) </xsl:text>
-            <xsl:value-of select="local:field-method(.)"/>
-            <xsl:text xml:space="preserve">() (result </xsl:text>
-            <xsl:value-of select="local:returning-type(.)"/>
-            <xsl:if test="local:is-optional-attribute-with-no-default(.)">
-                <xsl:text xml:space="preserve">, present bool</xsl:text>
-            </xsl:if>
-            <xsl:text>){
-            </xsl:text>
-            <xsl:if test="local:is-optional-attribute-with-no-default(.)">
-                <xsl:text>if t.</xsl:text>
-                <xsl:value-of select="local:field-name(.)"/>
-                <xsl:text> != nil {
-                    present = true
-                    }
-                </xsl:text>
-            </xsl:if>
-            <xsl:if test="local:is-optional-attribute(.) and exists(./@default)">
-                <xsl:text>if t.</xsl:text>
-                <xsl:value-of select="local:field-name(.)"/>
-                <xsl:text xml:space="preserve"> == nil {
-                    result  = </xsl:text>
-                <xsl:if test="contains(local:returning-type(.), '*')">
-                    <xsl:text>&amp;</xsl:text>
-                </xsl:if>
-                <xsl:text>default</xsl:text>
+            <!-- attributes -->
+            <xsl:for-each select=".//xs:attribute">
+                <!-- Getter -->
+                <xsl:text xml:space="preserve">func (t *</xsl:text>
                 <xsl:value-of select="local:struct-case($type/@name)"/>
-                <xsl:value-of select="local:field-name(.)"/><xsl:text xml:space="preserve">
+                <xsl:text xml:space="preserve">) </xsl:text>
+                <xsl:value-of select="local:field-method(.)"/>
+                <xsl:text xml:space="preserve">() (result </xsl:text>
+                <xsl:value-of select="local:returning-type(.)"/>
+                <xsl:if test="local:is-optional-attribute-with-no-default(.)">
+                    <xsl:text xml:space="preserve">, present bool</xsl:text>
+                </xsl:if>
+                <xsl:text>){
+                </xsl:text>
+                <xsl:if test="local:is-optional-attribute-with-no-default(.)">
+                    <xsl:text>if t.</xsl:text>
+                    <xsl:value-of select="local:field-name(.)"/>
+                    <xsl:text> != nil {
+                        present = true
+                        }
+                    </xsl:text>
+                </xsl:if>
+                <xsl:if test="local:is-optional-attribute(.) and exists(./@default)">
+                    <xsl:text>if t.</xsl:text>
+                    <xsl:value-of select="local:field-name(.)"/>
+                    <xsl:text xml:space="preserve"> == nil {
+                    result  = </xsl:text>
+                    <xsl:if test="contains(local:returning-type(.), '*')">
+                        <xsl:text>&amp;</xsl:text>
+                    </xsl:if>
+                    <xsl:text>default</xsl:text>
+                    <xsl:value-of select="local:struct-case($type/@name)"/>
+                    <xsl:value-of select="local:field-name(.)"/><xsl:text xml:space="preserve">
                     return
                 }
                 </xsl:text>
-            </xsl:if>
-            <xsl:text>    result = </xsl:text>
-            <xsl:if test="not(contains(local:returning-type(.), '*'))">
-                <xsl:text>*</xsl:text>
-            </xsl:if>
-            <xsl:value-of select="local:returning(.)"/>
-            <xsl:text>t.</xsl:text>
-            <xsl:value-of select="local:field-name(.)"/>
-            <xsl:text xml:space="preserve">
+                </xsl:if>
+                <xsl:text>    result = </xsl:text>
+                <xsl:if test="not(contains(local:returning-type(.), '*'))">
+                    <xsl:text>*</xsl:text>
+                </xsl:if>
+                <xsl:value-of select="local:returning(.)"/>
+                <xsl:text>t.</xsl:text>
+                <xsl:value-of select="local:field-name(.)"/>
+                <xsl:text xml:space="preserve">
                 return
                 }
             </xsl:text>
-            <!-- Setter -->
-            <xsl:text xml:space="preserve">func (t *</xsl:text>
-            <xsl:value-of select="local:struct-case($type/@name)"/>
-            <xsl:text xml:space="preserve">) </xsl:text>
-            <xsl:text>Set</xsl:text>
-            <xsl:value-of select="local:field-method(.)"/>
-            <xsl:text xml:space="preserve">(value </xsl:text>
-            <xsl:if test="local:is-optional-attribute(.)">
-                <xsl:text>*</xsl:text>
-            </xsl:if>
-            <xsl:value-of select="local:type(./@type)"/>
-            <xsl:text xml:space="preserve">) </xsl:text>
-            <xsl:text xml:space="preserve">{
+                <!-- Setter -->
+                <xsl:text xml:space="preserve">func (t *</xsl:text>
+                <xsl:value-of select="local:struct-case($type/@name)"/>
+                <xsl:text xml:space="preserve">) </xsl:text>
+                <xsl:text>Set</xsl:text>
+                <xsl:value-of select="local:field-method(.)"/>
+                <xsl:text xml:space="preserve">(value </xsl:text>
+                <xsl:if test="local:is-optional-attribute(.)">
+                    <xsl:text>*</xsl:text>
+                </xsl:if>
+                <xsl:value-of select="local:type(./@type)"/>
+                <xsl:text xml:space="preserve">) </xsl:text>
+                <xsl:text xml:space="preserve">{
             </xsl:text>
-            <xsl:text>t.</xsl:text>
-            <xsl:value-of select="local:field-name(.)"/>
-            <xsl:text> = </xsl:text>
-            <xsl:text>value</xsl:text>
-            <xsl:text xml:space="preserve">
+                <xsl:text>t.</xsl:text>
+                <xsl:value-of select="local:field-name(.)"/>
+                <xsl:text> = </xsl:text>
+                <xsl:text>value</xsl:text>
+                <xsl:text xml:space="preserve">
                 }
             </xsl:text>
-        </xsl:for-each>
-        <!-- abstract -->
-        <xsl:variable name="element" select="."/>
-        <xsl:for-each select="local:abstract-elements(.)">
-            <xsl:text>func (t *</xsl:text>
-            <xsl:value-of select="local:struct-case($type/@name)"/>
-            <xsl:text xml:space="preserve">) </xsl:text>
-            <xsl:value-of select="local:field-method(.)"/>
-            <xsl:text xml:space="preserve">() </xsl:text>
-            <xsl:value-of select="local:abstract-ref-type(.)"/>
-            <xsl:text xml:space="preserve">{
-            </xsl:text>
-            <xsl:variable name="abstract-element" select="."/>
-            <xsl:if test="$abstract-element/@maxOccurs = 'unbounded'">
-                <xsl:text xml:space="preserve">
-                        result := make(</xsl:text>
+            </xsl:for-each>
+            <!-- abstract -->
+            <xsl:variable name="element" select="."/>
+            <xsl:for-each select="local:abstract-elements(.)">
+                <xsl:text>func (t *</xsl:text>
+                <xsl:value-of select="local:struct-case($type/@name)"/>
+                <xsl:text xml:space="preserve">) </xsl:text>
+                <xsl:value-of select="local:field-method(.)"/>
+                <xsl:text xml:space="preserve">() </xsl:text>
                 <xsl:value-of select="local:abstract-ref-type(.)"/>
-                <xsl:text xml:space="preserve">, 0)
+                <xsl:text xml:space="preserve">{
+            </xsl:text>
+                <xsl:variable name="abstract-element" select="."/>
+                <xsl:if test="$abstract-element/@maxOccurs = 'unbounded'">
+                    <xsl:text xml:space="preserve">
+                        result := make(</xsl:text>
+                    <xsl:value-of select="local:abstract-ref-type(.)"/>
+                    <xsl:text xml:space="preserve">, 0)
                     </xsl:text>
-            </xsl:if>
-            <xsl:for-each select="local:specific-elements($element)">
-                <xsl:variable name="specific" select="."/>
-                <xsl:variable name="ref" select="$schema/xs:element[@name = $specific/@ref]"/>
-                <xsl:variable name="type" select="$schema/xs:complexType[@name = $ref/@type]"/>
-                <xsl:if test="$ref/@substitutionGroup = $abstract-element/@ref">
-                    <xsl:choose>
-                        <xsl:when test="$abstract-element/@maxOccurs = 'unbounded'">
-                            <xsl:text>
-                                for i := range t.</xsl:text>
-                            <xsl:value-of select="local:field-name($specific)"/>
-                            <xsl:text xml:space="preserve">{
+                </xsl:if>
+                <xsl:for-each select="local:specific-elements($element)">
+                    <xsl:variable name="specific" select="."/>
+                    <xsl:variable name="ref" select="$schema/xs:element[@name = $specific/@ref]"/>
+                    <xsl:variable name="type" select="$schema/xs:complexType[@name = $ref/@type]"/>
+                    <xsl:if test="$ref/@substitutionGroup = $abstract-element/@ref">
+                        <xsl:choose>
+                            <xsl:when test="$abstract-element/@maxOccurs = 'unbounded'">
+                                <xsl:text>
+                                    for i := range t.</xsl:text>
+                                <xsl:value-of select="local:field-name($specific)"/>
+                                <xsl:text xml:space="preserve">{
                                 result = append(result, &amp;t.</xsl:text>
-                            <xsl:value-of select="local:field-name($specific)"/>
-                            <xsl:text xml:space="preserve">[i])
+                                <xsl:value-of select="local:field-name($specific)"/>
+                                <xsl:text xml:space="preserve">[i])
                             }
                         </xsl:text>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:text>if t.</xsl:text>
-                            <xsl:value-of select="local:field-name($specific)"/>
-                            <xsl:text xml:space="preserve"> != nil {
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:text>if t.</xsl:text>
+                                <xsl:value-of select="local:field-name($specific)"/>
+                                <xsl:text xml:space="preserve"> != nil {
                                 return t.</xsl:text>
-                            <xsl:value-of select="local:field-name($specific)"/>
-                            <xsl:text xml:space="preserve">}
+                                <xsl:value-of select="local:field-name($specific)"/>
+                                <xsl:text xml:space="preserve">}
                             </xsl:text>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:if>
-            </xsl:for-each>
-            <xsl:choose>
-                <xsl:when test="$abstract-element/@maxOccurs = 'unbounded'"> return result </xsl:when>
-                <xsl:otherwise> return nil </xsl:otherwise>
-            </xsl:choose>
-            <xsl:text xml:space="preserve">
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:if>
+                </xsl:for-each>
+                <xsl:choose>
+                    <xsl:when test="$abstract-element/@maxOccurs = 'unbounded'"> return result </xsl:when>
+                    <xsl:otherwise> return nil </xsl:otherwise>
+                </xsl:choose>
+                <xsl:text xml:space="preserve">
              }
              </xsl:text>
-        </xsl:for-each>
+            </xsl:for-each>
 
-        <!-- elements -->
-        <xsl:for-each select="local:specific-elements(.)">
-            <!-- Getter -->
-            <xsl:choose>
-                <xsl:when test="exists(./@name)">
+            <!-- elements -->
+            <xsl:for-each select="local:specific-elements(.)">
+                <!-- Getter -->
+                <xsl:choose>
+                    <xsl:when test="exists(./@name)">
 
-                    <xsl:text xml:space="preserve">func (t *</xsl:text>
-                    <xsl:value-of select="local:struct-case($type/@name)"/>
-                    <xsl:text xml:space="preserve">) </xsl:text>
-                    <xsl:value-of select="local:field-method(.)"/>
-                    <xsl:text xml:space="preserve">() (result </xsl:text>
-                    <xsl:value-of select="local:returning-type(.)"/>
-                    <xsl:if test="local:is-optional(.)">
-                        <xsl:text xml:space="preserve">, present bool</xsl:text>
-                    </xsl:if>
-                    <xsl:text>) {</xsl:text>
-                    <xsl:if test="local:is-optional(.)">
-                        <xsl:text>if t.</xsl:text>
+                        <xsl:text xml:space="preserve">func (t *</xsl:text>
+                        <xsl:value-of select="local:struct-case($type/@name)"/>
+                        <xsl:text xml:space="preserve">) </xsl:text>
+                        <xsl:value-of select="local:field-method(.)"/>
+                        <xsl:text xml:space="preserve">() (result </xsl:text>
+                        <xsl:value-of select="local:returning-type(.)"/>
+                        <xsl:if test="local:is-optional(.)">
+                            <xsl:text xml:space="preserve">, present bool</xsl:text>
+                        </xsl:if>
+                        <xsl:text>) {</xsl:text>
+                        <xsl:if test="local:is-optional(.)">
+                            <xsl:text>if t.</xsl:text>
+                            <xsl:value-of select="local:field-name(.)"/>
+                            <xsl:text> != nil {
+                                present = true
+                                }
+                            </xsl:text>
+                        </xsl:if>
+                        <xsl:text>    result = </xsl:text>
+                        <xsl:value-of select="local:returning(.)"/>
+                        <xsl:text>t.</xsl:text>
                         <xsl:value-of select="local:field-name(.)"/>
-                        <xsl:text> != nil {
-                            present = true
-                            }
-                        </xsl:text>
-                    </xsl:if>
-                    <xsl:text>    result = </xsl:text>
-                    <xsl:value-of select="local:returning(.)"/>
-                    <xsl:text>t.</xsl:text>
-                    <xsl:value-of select="local:field-name(.)"/>
-                    <xsl:text xml:space="preserve">
+                        <xsl:text xml:space="preserve">
                         return
                         }
                     </xsl:text>
-                </xsl:when>
-                <xsl:when test="local:is-a-ref(.)">
-                    <xsl:text xml:space="preserve">func (t *</xsl:text>
-                    <xsl:value-of select="local:struct-case($type/@name)"/>
-                    <xsl:text xml:space="preserve">) </xsl:text>
-                    <xsl:value-of select="local:field-method(.)"/>
-                    <xsl:text xml:space="preserve">() (result </xsl:text>
-                    <xsl:value-of select="local:returning-ref-type(.)"/>
-                    <xsl:if test="local:is-optional(.)">
-                        <xsl:text xml:space="preserve">, present bool</xsl:text>
-                    </xsl:if>
-                    <xsl:text>) {</xsl:text>
-                    <xsl:if test="local:is-optional(.)">
-                        <xsl:text>if t.</xsl:text>
+                    </xsl:when>
+                    <xsl:when test="local:is-a-ref(.)">
+                        <xsl:text xml:space="preserve">func (t *</xsl:text>
+                        <xsl:value-of select="local:struct-case($type/@name)"/>
+                        <xsl:text xml:space="preserve">) </xsl:text>
+                        <xsl:value-of select="local:field-method(.)"/>
+                        <xsl:text xml:space="preserve">() (result </xsl:text>
+                        <xsl:value-of select="local:returning-ref-type(.)"/>
+                        <xsl:if test="local:is-optional(.)">
+                            <xsl:text xml:space="preserve">, present bool</xsl:text>
+                        </xsl:if>
+                        <xsl:text>) {</xsl:text>
+                        <xsl:if test="local:is-optional(.)">
+                            <xsl:text>if t.</xsl:text>
+                            <xsl:value-of select="local:field-name(.)"/>
+                            <xsl:text> != nil {
+                                present = true
+                                }
+                            </xsl:text>
+                        </xsl:if>
+                        <xsl:text>    result = </xsl:text>
+                        <xsl:value-of select="local:returning(.)"/>
+                        <xsl:text>t.</xsl:text>
                         <xsl:value-of select="local:field-name(.)"/>
-                        <xsl:text> != nil {
-                            present = true
-                            }
-                        </xsl:text>
-                    </xsl:if>
-                    <xsl:text>    result = </xsl:text>
-                    <xsl:value-of select="local:returning(.)"/>
-                    <xsl:text>t.</xsl:text>
-                    <xsl:value-of select="local:field-name(.)"/>
-                    <xsl:text xml:space="preserve">
+                        <xsl:text xml:space="preserve">
                         return
                         }
                     </xsl:text>
-                </xsl:when>
-                <xsl:otherwise/>
-            </xsl:choose>
-            <!-- Setter -->
-            <xsl:choose>
-                <xsl:when test="exists(./@name)">
-                    <xsl:text xml:space="preserve">func (t *</xsl:text>
-                    <xsl:value-of select="local:struct-case($type/@name)"/>
-                    <xsl:text>) Set</xsl:text>
-                    <xsl:value-of select="local:field-method(.)"/>
-                    <xsl:text xml:space="preserve">(value </xsl:text>
-                    <xsl:value-of select="local:param-type(.)"/>
-                    <xsl:text>) </xsl:text>
-                    <xsl:text xml:space="preserve">{
+                    </xsl:when>
+                    <xsl:otherwise/>
+                </xsl:choose>
+                <!-- Setter -->
+                <xsl:choose>
+                    <xsl:when test="exists(./@name)">
+                        <xsl:text xml:space="preserve">func (t *</xsl:text>
+                        <xsl:value-of select="local:struct-case($type/@name)"/>
+                        <xsl:text>) Set</xsl:text>
+                        <xsl:value-of select="local:field-method(.)"/>
+                        <xsl:text xml:space="preserve">(value </xsl:text>
+                        <xsl:value-of select="local:param-type(.)"/>
+                        <xsl:text>) </xsl:text>
+                        <xsl:text xml:space="preserve">{
                     </xsl:text>
-                    <xsl:text>t.</xsl:text>
-                    <xsl:value-of select="local:field-name(.)"/>
-                    <xsl:text> = </xsl:text>
-                    <!-- <xsl:if test="local:is-optional(.)">
-                         <xsl:text>&amp;</xsl:text>
-                     </xsl:if>-->
-                    <xsl:text>value</xsl:text>
-                    <xsl:text xml:space="preserve">
+                        <xsl:text>t.</xsl:text>
+                        <xsl:value-of select="local:field-name(.)"/>
+                        <xsl:text> = </xsl:text>
+                        <!-- <xsl:if test="local:is-optional(.)">
+                             <xsl:text>&amp;</xsl:text>
+                         </xsl:if>-->
+                        <xsl:text>value</xsl:text>
+                        <xsl:text xml:space="preserve">
                         }
                     </xsl:text>
-                </xsl:when>
-                <xsl:when test="local:is-a-ref(.)">
-                    <xsl:text xml:space="preserve">func (t *</xsl:text>
-                    <xsl:value-of select="local:struct-case($type/@name)"/>
-                    <xsl:text>) Set</xsl:text>
-                    <xsl:value-of select="local:field-method(.)"/>
-                    <xsl:text xml:space="preserve">(value </xsl:text>
-                    <xsl:value-of select="local:ref-type(.)"/>
-                    <xsl:text>) </xsl:text>
-                    <xsl:text xml:space="preserve">{
+                    </xsl:when>
+                    <xsl:when test="local:is-a-ref(.)">
+                        <xsl:text xml:space="preserve">func (t *</xsl:text>
+                        <xsl:value-of select="local:struct-case($type/@name)"/>
+                        <xsl:text>) Set</xsl:text>
+                        <xsl:value-of select="local:field-method(.)"/>
+                        <xsl:text xml:space="preserve">(value </xsl:text>
+                        <xsl:value-of select="local:ref-type(.)"/>
+                        <xsl:text>) </xsl:text>
+                        <xsl:text xml:space="preserve">{
                     </xsl:text>
-                    <xsl:text>t.</xsl:text>
-                    <xsl:value-of select="local:field-name(.)"/>
-                    <xsl:text> = </xsl:text>
-                    <!--<xsl:if test="local:is-optional(.)">
-                        <xsl:text>&amp;</xsl:text>
-                        </xsl:if>-->
-                    <xsl:text>value</xsl:text>
-                    <xsl:text xml:space="preserve">
+                        <xsl:text>t.</xsl:text>
+                        <xsl:value-of select="local:field-name(.)"/>
+                        <xsl:text> = </xsl:text>
+                        <!--<xsl:if test="local:is-optional(.)">
+                            <xsl:text>&amp;</xsl:text>
+                            </xsl:if>-->
+                        <xsl:text>value</xsl:text>
+                        <xsl:text xml:space="preserve">
                         }
                     </xsl:text>
-                </xsl:when>
-                <xsl:otherwise/>
-            </xsl:choose>
-        </xsl:for-each>
+                    </xsl:when>
+                    <xsl:otherwise/>
+                </xsl:choose>
+            </xsl:for-each>
     </xsl:template>
 
     <xsl:template name="element">
@@ -706,33 +708,33 @@
         <xsl:text xml:space="preserve">
         </xsl:text>
 
-        <xsl:text xml:space="preserve">func (t *</xsl:text><xsl:value-of select="local:struct-case($element/@type)"/>
-        <xsl:text xml:space="preserve">) UnMarshalXML(de *xml.Decoder, start xml.StartElement) error {</xsl:text>
-        <xsl:text xml:space="preserve">type </xsl:text><xsl:value-of select="local:struct-case($element/@type)"/>
-        <xsl:text xml:space="preserve">Unmarshaler </xsl:text>
-        <xsl:value-of select="local:struct-case($element/@type)"/>
-        <xsl:text xml:space="preserve">
-        </xsl:text>
-        <xsl:text xml:space="preserve">out := </xsl:text><xsl:value-of select="local:struct-case($element/@type)"/>
-        <xsl:text xml:space="preserve">Unmarshaler{}</xsl:text>
-        <xsl:text xml:space="preserve" />
-        <xsl:text xml:space="preserve">
-	        if err := de.DecodeElement(&amp;out, &amp;start); err != nil { return nil }
-        </xsl:text>
-        <xsl:text xml:space="preserve">*t = </xsl:text><xsl:value-of select="local:struct-case($element/@type)"/>
-        <xsl:text xml:space="preserve">(out) </xsl:text>
-        <xsl:text xml:space="preserve">
-            PostUnmarshal(t, de, &amp;start)
-            return nil
-            }
+<!--        <xsl:text xml:space="preserve">func (t *</xsl:text><xsl:value-of select="local:struct-case($element/@type)"/>-->
+<!--        <xsl:text xml:space="preserve">) UnmarshalXML(de *xml.Decoder, start xml.StartElement) error {</xsl:text>-->
+<!--        <xsl:text xml:space="preserve">type </xsl:text><xsl:value-of select="local:struct-case($element/@type)"/>-->
+<!--        <xsl:text xml:space="preserve">Unmarshaler </xsl:text>-->
+<!--        <xsl:value-of select="local:struct-case($element/@type)"/>-->
+<!--        <xsl:text xml:space="preserve">-->
+<!--        </xsl:text>-->
+<!--        <xsl:text xml:space="preserve">out := </xsl:text><xsl:value-of select="local:struct-case($element/@type)"/>-->
+<!--        <xsl:text xml:space="preserve">Unmarshaler{}</xsl:text>-->
+<!--        <xsl:text xml:space="preserve" />-->
+<!--        <xsl:text xml:space="preserve">-->
+<!--	        if err := de.DecodeElement(&amp;out, &amp;start); err != nil { return nil }-->
+<!--        </xsl:text>-->
+<!--        <xsl:text xml:space="preserve">*t = </xsl:text><xsl:value-of select="local:struct-case($element/@type)"/>-->
+<!--        <xsl:text xml:space="preserve">(out) </xsl:text>-->
+<!--        <xsl:text xml:space="preserve">-->
+<!--            PostUnmarshal(t, de, &amp;start)-->
+<!--            return nil-->
+<!--            }-->
 
-        </xsl:text>
+<!--        </xsl:text>-->
     </xsl:template>
 
     <xsl:template name="type-test">
         <xsl:param name="type" required="yes"/>
 
-        <xsl:text xml:space="preserve">func Test</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/><xsl:text xml:space="preserve">Interface(t *testing.Flow) {
+        <xsl:text xml:space="preserve">func Test</xsl:text><xsl:value-of select="local:struct-case($type/@name)"/><xsl:text xml:space="preserve">Interface(t *testing.T) {
             // won't compile if the interaces are not implemented
             var _ </xsl:text>
         <xsl:value-of select="local:struct-case($type/@name)"/>

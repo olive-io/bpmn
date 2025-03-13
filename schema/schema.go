@@ -330,6 +330,20 @@ const (
 	ItemTypeFloat   ItemType = "float"
 )
 
+type ExtensionElementsType struct {
+	DataObjectBody      *ExtensionDataObjectBody `xml:"http://olive.io/spec/BPMN/MODEL dataObjectBody"`
+	TaskDefinitionField *TaskDefinition          `xml:"http://olive.io/spec/BPMN/MODEL taskDefinition"`
+	TaskHeaderField     *TaskHeader              `xml:"http://olive.io/spec/BPMN/MODEL taskHeaders"`
+	PropertiesField     *Properties              `xml:"http://olive.io/spec/BPMN/MODEL properties"`
+	ResultsField        *Result                  `xml:"http://olive.io/spec/BPMN/MODEL results"`
+	ScriptField         *ExtensionScript         `xml:"http://olive.io/spec/BPMN/MODEL script"`
+	CalledElement       *ExtensionCalledElement  `xml:"http://olive.io/spec/BPMN/MODEL calledElement"`
+	CalledDecision      *ExtensionCalledDecision `xml:"http://olive.io/spec/BPMN/MODEL calledDecision"`
+	DataInput           []ExtensionAssociation   `xml:"http://olive.io/spec/BPMN/MODEL dataInput"`
+	DataOutput          []ExtensionAssociation   `xml:"http://olive.io/spec/BPMN/MODEL dataOutput"`
+	TextPayloadField    *Payload                 `xml:",chardata"`
+}
+
 type TaskDefinition struct {
 	Type    string `xml:"type,attr"`
 	Timeout string `xml:"timeout,attr"`
@@ -343,6 +357,16 @@ func (t *TaskDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 	}
 
 	return e.EncodeElement(out, start)
+}
+
+func (t *TaskDefinition) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	type TaskDefinitionUnmarshaler TaskDefinition
+	out := TaskDefinitionUnmarshaler{}
+	if err := d.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = TaskDefinition(out)
+	return nil
 }
 
 type Item struct {
