@@ -1,18 +1,18 @@
 /*
-   Copyright 2023 The bpmn Authors
+Copyright 2023 The bpmn Authors
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
 
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library;
+You should have received a copy of the GNU Lesser General Public
+License along with this library;
 */
 
 package bpmn
@@ -38,16 +38,16 @@ func NewLockedFlowNodeMapping() *FlowNodeMapping {
 	return mapping
 }
 
-func (mapping *FlowNodeMapping) RegisterElementToFlowNode(element schema.FlowNodeInterface, flowNode IFlowNode) (err error) {
-	if id, present := element.Id(); present {
-		mapping.mapping[*id] = flowNode
-	} else {
-		err = errors.RequirementExpectationError{
+func (mapping *FlowNodeMapping) RegisterElementToFlowNode(element schema.FlowNodeInterface, flowNode IFlowNode) error {
+	id, present := element.Id()
+	if !present {
+		return errors.RequirementExpectationError{
 			Expected: "All flow nodes must have an ID",
 			Actual:   element,
 		}
 	}
-	return
+	mapping.mapping[*id] = flowNode
+	return nil
 }
 
 func (mapping *FlowNodeMapping) Finalize() {
