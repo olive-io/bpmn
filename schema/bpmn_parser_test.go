@@ -75,6 +75,7 @@ func TestParseSample(t *testing.T) {
 
 	_ = extension
 	t.Log(extension.TaskHeaderField.Header[0])
+	t.Log(extension.TaskDefinitionField.Type)
 }
 
 func TestParseSampleNs(t *testing.T) {

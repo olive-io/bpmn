@@ -344,6 +344,16 @@ type ExtensionElementsType struct {
 	TextPayloadField    *Payload                 `xml:",chardata"`
 }
 
+func (t *ExtensionElementsType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	type ExtensionElementsTypeUnmarshaler ExtensionElementsType
+	out := ExtensionElementsTypeUnmarshaler{}
+	if err := d.DecodeElement(&out, &start); err != nil {
+		return nil
+	}
+	*t = ExtensionElementsType(out)
+	return nil
+}
+
 type TaskDefinition struct {
 	Type    string `xml:"type,attr"`
 	Timeout string `xml:"timeout,attr"`
