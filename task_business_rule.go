@@ -24,8 +24,6 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/data"
 )
 
-type BusinessRuleTaskKey struct{}
-
 type nextBusinessActionMessage struct {
 	headers  map[string]string
 	response chan IAction
@@ -85,9 +83,8 @@ func (task *BusinessRuleTask) run(ctx context.Context) {
 					headers := m.headers
 					timeout := FetchTaskTimeout(task.element)
 
-					at := NewTaskTraceBuilder().
+					at := newTaskTraceBuilder().
 						Context(task.ctx).
-						Value(BusinessRuleTaskKey{}, extensionElement.CalledDecision).
 						Timeout(timeout).
 						Activity(task).
 						Headers(headers).

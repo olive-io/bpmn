@@ -52,7 +52,7 @@ func TestScriptTask(t *testing.T) {
 						//break loop
 					}
 				}
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				trace.Do()
 				//t.Logf("%#v", trace)
 			case bpmn.ErrorTrace:

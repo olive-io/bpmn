@@ -39,8 +39,8 @@ func NewRelay(ctx context.Context, in, out ITracer, transformer Transformer) {
 			case trace, ok := <-ch:
 				if ok {
 					traces := transformer(trace)
-					for _, trace := range traces {
-						out.Trace(trace)
+					for _, t := range traces {
+						out.Trace(t)
 					}
 				}
 			}

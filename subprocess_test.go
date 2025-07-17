@@ -43,7 +43,7 @@ func TestSubprocess(t *testing.T) {
 			switch trace := trace.(type) {
 			case bpmn.FlowTrace:
 
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				trace.Do()
 				//t.Logf("%#v", trace)
 			case bpmn.CeaseFlowTrace:
@@ -81,7 +81,7 @@ func TestEmbedSubprocess(t *testing.T) {
 			switch trace := trace.(type) {
 			case bpmn.FlowTrace:
 
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				trace.Do()
 				//t.Logf("%#v", trace)
 			case bpmn.CeaseFlowTrace:

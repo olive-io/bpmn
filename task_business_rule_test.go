@@ -18,6 +18,7 @@ License along with this library;
 package bpmn_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/olive-io/bpmn/schema"
@@ -42,10 +43,18 @@ func TestBusinessRuleTask(t *testing.T) {
 			trace := tracing.Unwrap(<-traces)
 			switch trace := trace.(type) {
 			case bpmn.FlowTrace:
-			case *bpmn.TaskTrace:
-				calledDecision := trace.Context().Value(bpmn.BusinessRuleTaskKey{}).(*schema.ExtensionCalledDecision)
-				//t.Logf("call decisionId [%s]", calledDecision.DecisionId)
-				trace.Do(bpmn.DoWithResults(map[string]any{calledDecision.Result: "3"}))
+			case bpmn.TaskTrace:
+				var calledDecision *schema.ExtensionCalledDecision
+				extension, _ := trace.GetActivity().Element().ExtensionElements()
+				if extension != nil {
+					calledDecision = extension.CalledDecision
+				}
+				if calledDecision != nil {
+					//t.Logf("call decisionId [%s]", calledDecision.DecisionId)
+					trace.Do(bpmn.DoWithResults(map[string]any{calledDecision.Result: "3"}))
+				} else {
+					trace.Do(bpmn.DoWithErr(fmt.Errorf("no result")))
+				}
 			case bpmn.ErrorTrace:
 				t.Fatalf("%#v", trace)
 			case bpmn.CeaseFlowTrace:

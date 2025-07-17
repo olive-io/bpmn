@@ -159,7 +159,7 @@ func (task *ScriptTask) run(ctx context.Context) {
 					properties := m.properties
 					timeout := FetchTaskTimeout(task.element)
 
-					at := NewTaskTraceBuilder().
+					at := newTaskTraceBuilder().
 						Context(task.ctx).
 						Timeout(timeout).
 						Activity(task).

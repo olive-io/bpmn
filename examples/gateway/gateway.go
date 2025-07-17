@@ -68,7 +68,7 @@ func main() {
 			trace = tracing.Unwrap(trace)
 			switch trace := trace.(type) {
 			case bpmn.FlowTrace:
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				act := trace.GetActivity()
 				ele := act.Element()
 				name, _ := ele.Name()

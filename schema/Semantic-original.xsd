@@ -292,7 +292,7 @@
 				<xsd:attribute name="name" type="xsd:string"/>
 				<xsd:attribute name="isClosed" type="xsd:boolean" default="false"/>
 			</xsd:extension>
-		</xsd:complexContent>
+		</xsd:complexContent>r
 	</xsd:complexType>
 
 	<xsd:element name="compensateEventDefinition" type="tCompensateEventDefinition"

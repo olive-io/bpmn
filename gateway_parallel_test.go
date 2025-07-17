@@ -57,7 +57,7 @@ func TestParallelGateway(t *testing.T) {
 				} else {
 					t.Fatalf("can't find element with FlowNodeId %#v", id)
 				}
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				trace.Do()
 			case bpmn.CeaseFlowTrace:
 				break loop
@@ -106,7 +106,7 @@ func TestParallelGatewayMtoN(t *testing.T) {
 				} else {
 					t.Fatalf("can't find element with FlowNodeId %#v", id)
 				}
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				trace.Do()
 			case bpmn.CeaseFlowTrace:
 				break loop
@@ -154,7 +154,7 @@ func TestParallelGatewayNtoM(t *testing.T) {
 					t.Fatalf("can't find element with FlowNodeId %#v", id)
 				}
 				//t.Logf("%#v", reached)
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				trace.Do()
 			case bpmn.CeaseFlowTrace:
 				break loop
@@ -224,7 +224,7 @@ func TestParallelGatewayIncompleteJoin(t *testing.T) {
 				} else {
 					t.Fatalf("can't find element with FlowNodeId %#v", id)
 				}
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				trace.Do()
 			case bpmn.ErrorTrace:
 				t.Fatalf("%#v", trace)

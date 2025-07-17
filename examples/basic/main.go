@@ -151,7 +151,7 @@ func main() {
 
 	err = wf.Run(func(trace tracing.ITrace) {
 		switch tr := trace.(type) {
-		case *bpmn.TaskTrace:
+		case bpmn.TaskTrace:
 			log.Printf("%#v\n", trace)
 			tr.Do()
 		case bpmn.ErrorTrace:

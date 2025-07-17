@@ -140,7 +140,7 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 						break loop1
 					}
 				}
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				if id, present := trace.GetActivity().Element().Id(); present {
 					if *id == "task" {
 						//v.Execute()

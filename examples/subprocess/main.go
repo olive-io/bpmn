@@ -71,7 +71,7 @@ func main() {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case bpmn.FlowTrace:
-				case *bpmn.TaskTrace:
+				case bpmn.TaskTrace:
 					trace.Do()
 					log.Printf("%#v", trace)
 				case bpmn.ErrorTrace:

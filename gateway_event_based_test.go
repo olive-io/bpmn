@@ -107,7 +107,7 @@ func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...ev
 						ch <- reached
 						return
 					}
-				case *bpmn.TaskTrace:
+				case bpmn.TaskTrace:
 					trace.Do()
 				case bpmn.CeaseFlowTrace:
 					ch <- reached

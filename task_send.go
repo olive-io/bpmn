@@ -76,17 +76,12 @@ func (task *SendTask) run(ctx context.Context) {
 					}
 
 					tctx := task.ctx
-					if task.element.ExtensionElementsField != nil &&
-						task.element.ExtensionElementsField.TaskDefinitionField != nil {
-						st := task.element.ExtensionElementsField.TaskDefinitionField.Type
-						tctx = context.WithValue(tctx, TypeKey{}, st)
-					}
 
 					headers := m.headers
 					properties := m.properties
 					timeout := FetchTaskTimeout(task.element)
 
-					at := NewTaskTraceBuilder().
+					at := newTaskTraceBuilder().
 						Context(tctx).
 						Timeout(timeout).
 						Activity(task).

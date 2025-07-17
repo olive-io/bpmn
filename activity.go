@@ -51,8 +51,6 @@ const (
 	SubprocessType   Type = "Subprocess"
 )
 
-type TypeKey struct{}
-
 // Activity is a generic interface to flow nodes that are activities
 type Activity interface {
 	IFlowNode
@@ -267,57 +265,67 @@ func newDoOption(opts ...DoOption) *DoResponse {
 	return &rsp
 }
 
-type TaskTraceBuilder struct {
-	t TaskTrace
+type taskTraceBuilder struct {
+	t *taskTrace
 }
 
-func NewTaskTraceBuilder() *TaskTraceBuilder {
+func newTaskTraceBuilder() *taskTraceBuilder {
 	trace := newTaskTrace()
-	return &TaskTraceBuilder{t: *trace}
+	return &taskTraceBuilder{t: trace}
 }
 
-func (b *TaskTraceBuilder) Context(ctx context.Context) *TaskTraceBuilder {
+func (b *taskTraceBuilder) Context(ctx context.Context) *taskTraceBuilder {
 	b.t.ctx = ctx
 	return b
 }
 
-func (b *TaskTraceBuilder) Value(key, value any) *TaskTraceBuilder {
+func (b *taskTraceBuilder) Value(key, value any) *taskTraceBuilder {
 	b.t.ctx = context.WithValue(b.t.ctx, key, value)
 	return b
 }
 
-func (b *TaskTraceBuilder) Timeout(timeout time.Duration) *TaskTraceBuilder {
+func (b *taskTraceBuilder) Timeout(timeout time.Duration) *taskTraceBuilder {
 	b.t.timeout = timeout
 	return b
 }
 
-func (b *TaskTraceBuilder) Activity(activity Activity) *TaskTraceBuilder {
+func (b *taskTraceBuilder) Activity(activity Activity) *taskTraceBuilder {
 	b.t.activity = activity
 	return b
 }
 
-func (b *TaskTraceBuilder) DataObjects(dataObjects map[string]any) *TaskTraceBuilder {
+func (b *taskTraceBuilder) DataObjects(dataObjects map[string]any) *taskTraceBuilder {
 	b.t.dataObjects = dataObjects
 	return b
 }
 
-func (b *TaskTraceBuilder) Headers(headers map[string]string) *TaskTraceBuilder {
+func (b *taskTraceBuilder) Headers(headers map[string]string) *taskTraceBuilder {
 	b.t.headers = headers
 	return b
 }
 
-func (b *TaskTraceBuilder) Properties(properties map[string]any) *TaskTraceBuilder {
+func (b *taskTraceBuilder) Properties(properties map[string]any) *taskTraceBuilder {
 	b.t.properties = properties
 	return b
 }
 
-func (b *TaskTraceBuilder) Build() *TaskTrace {
+func (b *taskTraceBuilder) Build() *taskTrace {
 	go b.t.process()
-	return &b.t
+	return b.t
 }
 
-// TaskTrace describes common channel handler for all tasks
-type TaskTrace struct {
+// TaskTrace describes a common channel handler for all tasks
+type TaskTrace interface {
+	Element() any
+	Context() context.Context
+	GetActivity() Activity
+	GetDataObjects() map[string]any
+	GetHeaders() map[string]string
+	GetProperties() map[string]any
+	Do(options ...DoOption)
+}
+
+type taskTrace struct {
 	ctx         context.Context
 	timeout     time.Duration
 	activity    Activity
@@ -329,8 +337,8 @@ type TaskTrace struct {
 	done        chan struct{}
 }
 
-func newTaskTrace() *TaskTrace {
-	trace := TaskTrace{
+func newTaskTrace() *taskTrace {
+	trace := taskTrace{
 		ctx:         context.TODO(),
 		timeout:     DefaultTaskExecTimeout,
 		headers:     make(map[string]string),
@@ -343,33 +351,33 @@ func newTaskTrace() *TaskTrace {
 	return &trace
 }
 
-func (t *TaskTrace) Element() any { return t.activity }
+func (t *taskTrace) Element() any { return t.activity }
 
-func (t *TaskTrace) Context() context.Context {
+func (t *taskTrace) Context() context.Context {
 	return t.ctx
 }
 
-func (t *TaskTrace) GetActivity() Activity {
+func (t *taskTrace) GetActivity() Activity {
 	return t.activity
 }
 
-func (t *TaskTrace) GetDataObjects() map[string]any {
+func (t *taskTrace) GetDataObjects() map[string]any {
 	return t.dataObjects
 }
 
-func (t *TaskTrace) GetHeaders() map[string]string {
+func (t *taskTrace) GetHeaders() map[string]string {
 	return t.headers
 }
 
-func (t *TaskTrace) GetProperties() map[string]any {
+func (t *taskTrace) GetProperties() map[string]any {
 	return t.properties
 }
 
-func (t *TaskTrace) out() <-chan DoResponse {
+func (t *taskTrace) out() <-chan DoResponse {
 	return t.response
 }
 
-func (t *TaskTrace) Do(options ...DoOption) {
+func (t *taskTrace) Do(options ...DoOption) {
 	select {
 	case <-t.done:
 		return
@@ -380,7 +388,7 @@ func (t *TaskTrace) Do(options ...DoOption) {
 	t.forward <- *response
 }
 
-func (t *TaskTrace) process() {
+func (t *taskTrace) process() {
 	duration := t.timeout
 	if duration < time.Second {
 		duration = time.Second

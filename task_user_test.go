@@ -46,7 +46,7 @@ func TestUserTask(t *testing.T) {
 		for {
 			trace := tracing.Unwrap(<-traces)
 			switch trace := trace.(type) {
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				trace.Do()
 				id, _ := trace.GetActivity().Element().Id()
 				assert.NotEqual(t, *id, "")

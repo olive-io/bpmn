@@ -116,7 +116,7 @@ type ActiveListeningTrace struct {
 func (t ActiveListeningTrace) Element() any { return t.Node }
 
 // EventObservedTrace signals the fact that a particular event
-// has been in fact observed by the node
+// has in fact observed by the node
 type EventObservedTrace struct {
 	Node  *schema.CatchEvent
 	Event event.IEvent

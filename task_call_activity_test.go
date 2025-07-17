@@ -42,7 +42,7 @@ func TestCallActivity(t *testing.T) {
 			trace := tracing.Unwrap(<-traces)
 			switch trace := trace.(type) {
 			case bpmn.FlowTrace:
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				trace.Do()
 				//calledElement := trace.Context().Value(bpmn.CallActivityKey{}).(*schema.ExtensionCalledElement)
 				//t.Logf("call process [%s] in [%s]", calledElement.ProcessId, calledElement.DefinitionId)

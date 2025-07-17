@@ -50,7 +50,7 @@ func TestManualTask(t *testing.T) {
 					}
 
 				}
-			case *bpmn.TaskTrace:
+			case bpmn.TaskTrace:
 				trace.Do()
 			case bpmn.ErrorTrace:
 				t.Fatalf("%#v", trace)

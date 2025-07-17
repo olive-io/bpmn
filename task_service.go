@@ -83,7 +83,7 @@ func (task *ServiceTask) run(ctx context.Context) {
 
 					timeout := FetchTaskTimeout(task.element)
 
-					at := NewTaskTraceBuilder().
+					at := newTaskTraceBuilder().
 						Context(task.ctx).
 						Activity(task).
 						Timeout(timeout).

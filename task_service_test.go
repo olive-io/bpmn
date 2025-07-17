@@ -65,7 +65,7 @@ func TestServiceTask(t *testing.T) {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case bpmn.FlowTrace:
-				case *bpmn.TaskTrace:
+				case bpmn.TaskTrace:
 					trace.Do(bpmn.DoWithResults(map[string]interface{}{"foo": 1, "bar": "2"}))
 					//t.Logf("%#v", trace)
 					//properties := trace.GetProperties()
@@ -120,7 +120,7 @@ func TestServiceTaskWithError(t *testing.T) {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case bpmn.FlowTrace:
-				case *bpmn.TaskTrace:
+				case bpmn.TaskTrace:
 					trace.Do(bpmn.DoWithErr(fmt.Errorf("text error")))
 					//t.Logf("%#v", trace)
 				case bpmn.ErrorTrace:
@@ -174,7 +174,7 @@ func TestServiceTaskWithRetry(t *testing.T) {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case bpmn.FlowTrace:
-				case *bpmn.TaskTrace:
+				case bpmn.TaskTrace:
 					runnum += 1
 					handler := make(chan bpmn.ErrHandler, 1)
 					go func() {
@@ -236,7 +236,7 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case bpmn.FlowTrace:
-				case *bpmn.TaskTrace:
+				case bpmn.TaskTrace:
 					assert.Equal(t, trace.GetDataObjects()["in"], map[string]any{"a": "ac"})
 					trace.Do(bpmn.DoWithResults(map[string]any{"out": map[string]any{"a": "cc"}}))
 					//t.Logf("%#v", trace)

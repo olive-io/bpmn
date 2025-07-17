@@ -72,7 +72,7 @@ func main() {
 				trace = tracing.Unwrap(trace)
 				switch trace := trace.(type) {
 				case bpmn.FlowTrace:
-				case *bpmn.TaskTrace:
+				case bpmn.TaskTrace:
 					id, _ := trace.GetActivity().Element().Id()
 					if _, ok := cache[*id]; ok {
 						// already executed, skip it
