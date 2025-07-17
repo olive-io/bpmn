@@ -25,7 +25,7 @@ import (
 )
 
 // CatchEventSatisfier is an algorithm that allows to apply events to a schema.CatchEventInterface element
-// and obtain a determination whether all conditions were satisfied.
+// and get a determination whether all conditions were satisfied.
 type CatchEventSatisfier struct {
 	schema.CatchEventInterface
 	eventDefinitionInstances []event.IDefinitionInstance
@@ -62,13 +62,13 @@ const EventDidNotMatch = -1
 //
 //   - If event didn't match, the value will be equal to EventDidNotMatch
 //   - If event matched, `chain` will be the matching chain's index
-//   - If event matched and it was not a parallel multiple catch event, or
+//   - If event matched, and it was not a parallel multiple catch event, or
 //     parallel multiple with just one event definition, `chain` will be equal
 //     to `0`
 //
 // It is important to mention how chains get re-ordered upon their removal.
 // Chain with the largest index (the last one) gets moved to the index of
-// the removed chain and the array is shrunk by one element at the end.
+// the removed chain, and the array is shrunk by one element at the end.
 // The knowledge of this behavior is important for being able to mirror
 // changes if necessary.
 //

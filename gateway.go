@@ -17,7 +17,7 @@ License along with this library;
 
 package bpmn
 
-func DistributeFlows(awaitingActions []chan IAction, sequenceFlows []*SequenceFlow) {
+func distributeFlows(awaitingActions []chan IAction, sequenceFlows []*SequenceFlow) {
 	indices := make([]int, len(sequenceFlows))
 	for i := range indices {
 		indices[i] = i

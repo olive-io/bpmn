@@ -122,7 +122,7 @@ func TestCondDataObject(t *testing.T) {
 					require.True(t, found)
 					aware.Put(k == cond)
 				}
-				err := instance.StartAll()
+				err = instance.StartAll()
 				if err != nil {
 					t.Fatalf("failed to run the instance: %s", err)
 				}

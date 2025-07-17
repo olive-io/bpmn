@@ -210,7 +210,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element))
+		harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, TaskActivity))
 		if err != nil {
 			return
 		}
@@ -227,7 +227,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		harness, err = NewHarness(ctx, wiring, idGenerator, NewBusinessRuleTask(ctx, element))
+		harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, BusinessRuleActivity))
 		if err != nil {
 			return
 		}
@@ -244,7 +244,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		harness, err = NewHarness(ctx, wiring, idGenerator, NewCallActivity(ctx, element))
+		harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, CallActivity))
 		if err != nil {
 			return
 		}
@@ -261,7 +261,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		harness, err = NewHarness(ctx, wiring, idGenerator, NewManualTask(ctx, element))
+		harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, ManualTaskActivity))
 		if err != nil {
 			return
 		}
@@ -278,7 +278,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		serviceTask := NewServiceTask(ctx, element)
+		serviceTask := NewTask(ctx, element, ServiceTaskActivity)
 		harness, err = NewHarness(ctx, wiring, idGenerator, serviceTask)
 		if err != nil {
 			return
@@ -296,7 +296,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		userTask := NewUserTask(ctx, element)
+		userTask := NewTask(ctx, element, UserTaskActivity)
 		harness, err = NewHarness(ctx, wiring, idGenerator, userTask)
 		if err != nil {
 			return
@@ -314,7 +314,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		scriptTask := NewReceiveTask(ctx, element)
+		scriptTask := NewTask(ctx, element, ScriptTaskActivity)
 		harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
 		if err != nil {
 			return
@@ -332,7 +332,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		scriptTask := NewScriptTask(ctx, element)
+		scriptTask := NewTask(ctx, element, ScriptTaskActivity)
 		harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
 		if err != nil {
 			return
@@ -350,7 +350,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		scriptTask := NewSendTask(ctx, element)
+		scriptTask := NewTask(ctx, element, ScriptTaskActivity)
 		harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
 		if err != nil {
 			return
@@ -574,7 +574,7 @@ func (ins *Instance) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.C
 }
 
 // WaitUntilComplete waits until the instance is complete.
-// Returns true if the instance was complete, false if the context signalled `Done`
+// Returns true if the instance was complete, false if the context signaled `Done`
 func (ins *Instance) WaitUntilComplete(ctx context.Context) (complete bool) {
 	signal := make(chan bool)
 	go func() {

@@ -52,8 +52,8 @@ func (gw *ParallelGateway) flowWhenReady() {
 		gw.reportedIncomingFlows = 0
 		awaitingActions := gw.awaitingActions
 		gw.awaitingActions = make([]chan IAction, 0)
-		sequenceFlows := AllSequenceFlows(&gw.Outgoing)
-		DistributeFlows(awaitingActions, sequenceFlows)
+		sequences := AllSequenceFlows(&gw.Outgoing)
+		distributeFlows(awaitingActions, sequences)
 	}
 }
 
@@ -89,7 +89,7 @@ func (gw *ParallelGateway) Element() schema.FlowNodeInterface {
 }
 
 // IncomingFlowProcessedTrace signals that a particular flow
-// has been processed. If any action have been taken, it already happened
+// has been processed. If any action has been taken, it has already happened
 type IncomingFlowProcessedTrace struct {
 	Node *schema.ParallelGateway
 	Flow Flow

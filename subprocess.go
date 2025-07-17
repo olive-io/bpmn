@@ -159,7 +159,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			harness, err = NewHarness(ctx, wiring, idGenerator, NewBusinessRuleTask(ctx, element))
+			harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, BusinessRuleActivity))
 			if err != nil {
 				return
 			}
@@ -176,7 +176,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			harness, err = NewHarness(ctx, wiring, idGenerator, NewCallActivity(ctx, element))
+			harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, CallActivity))
 			if err != nil {
 				return
 			}
@@ -193,7 +193,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element))
+			harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, TaskActivity))
 			if err != nil {
 				return
 			}
@@ -210,7 +210,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			harness, err = NewHarness(ctx, wiring, idGenerator, NewManualTask(ctx, element))
+			harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, ManualTaskActivity))
 			if err != nil {
 				return
 			}
@@ -227,7 +227,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			serviceTask := NewServiceTask(ctx, element)
+			serviceTask := NewTask(ctx, element, ServiceTaskActivity)
 			harness, err = NewHarness(ctx, wiring, idGenerator, serviceTask)
 			if err != nil {
 				return
@@ -245,7 +245,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			userTask := NewUserTask(ctx, element)
+			userTask := NewTask(ctx, element, UserTaskActivity)
 			harness, err = NewHarness(ctx, wiring, idGenerator, userTask)
 			if err != nil {
 				return
@@ -263,7 +263,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			scriptTask := NewReceiveTask(ctx, element)
+			scriptTask := NewTask(ctx, element, ReceiveTaskActivity)
 			harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
 			if err != nil {
 				return
@@ -281,7 +281,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			scriptTask := NewScriptTask(ctx, element)
+			scriptTask := NewTask(ctx, element, ScriptTaskActivity)
 			harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
 			if err != nil {
 				return
@@ -299,7 +299,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			scriptTask := NewSendTask(ctx, element)
+			scriptTask := NewTask(ctx, element, SendTaskActivity)
 			harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
 			if err != nil {
 				return
@@ -560,9 +560,9 @@ func (p *SubProcess) run(ctx context.Context, out tracing.ITracer) {
 							out.Trace(ProcessLandMarkTrace{Node: p.element})
 							break loop
 						case CompletionTrace:
-							// ignore end event of sub process
+							// ignore end event of subprocess
 						case TerminationTrace:
-							// ignore end event of sub process
+							// ignore end event of subprocess
 						default:
 							out.Trace(tr)
 						}
@@ -591,8 +591,8 @@ func (p *SubProcess) Element() schema.FlowNodeInterface {
 	return p.element
 }
 
-func (p *SubProcess) Type() Type {
-	return SubprocessType
+func (p *SubProcess) Type() ActivityType {
+	return SubprocessActivity
 }
 
 func (p *SubProcess) Cancel() <-chan bool {

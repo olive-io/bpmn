@@ -219,7 +219,7 @@ func (f *flow) handleSequenceFlow(ctx context.Context, sequenceFlow *SequenceFlo
 //
 // The reason behind the way this function works is that we don't want these additional sequence flows
 // to flow until after we logged the fact that they'll flow (using FlowTrace). This makes it consistent
-// with the behaviour of handleSequenceFlow since it doesn't really flow anywhere but simply sets the current
+// with the behavior of handleSequenceFlow since it doesn't really flow anywhere but simply sets the current
 // flow to continue flowing.
 //
 // Having this FlowTrace consistency is extremely important because otherwise there will be cases when
@@ -360,14 +360,17 @@ func (f *flow) Start(ctx context.Context) {
 
 						if len(res.DataObjects) > 0 {
 							locator, found := f.locator.FindIItemAwareLocator(data.LocatorObject)
-							if found {
-								for name, do := range res.DataObjects {
-									aware, found := locator.FindItemAwareByName(name)
-									if !found {
-										aware = data.NewContainer(nil)
-									}
-									aware.Put(do)
+							if !found {
+								locator = data.NewDataObjectContainer()
+								f.locator.PutIItemAwareLocator(data.LocatorObject, locator)
+							}
+							for name, do := range res.DataObjects {
+								aware, found1 := locator.FindItemAwareByName(name)
+								if !found1 {
+									aware = data.NewContainer(nil)
+									locator.PutItemAwareById(name, aware)
 								}
+								aware.Put(do)
 							}
 						}
 						if len(res.Variables) > 0 {
@@ -377,15 +380,15 @@ func (f *flow) Start(ctx context.Context) {
 						}
 					}
 
-					sequenceFlows := a.SequenceFlows
-					if len(a.SequenceFlows) > 0 {
-						unconditional := make([]bool, len(a.SequenceFlows))
+					sequences := a.SequenceFlows
+					if len(sequences) > 0 {
+						unconditional := make([]bool, len(sequences))
 						for _, index := range a.UnconditionalFlows {
 							unconditional[index] = true
 						}
 						source := f.current.Element()
 
-						current := sequenceFlows[0]
+						current := sequences[0]
 						effectiveFlows := make([]Snapshot, 0)
 
 						flowed := f.handleSequenceFlow(ctx, current, unconditional[0], a.ActionTransformer, a.Terminate)
@@ -394,7 +397,7 @@ func (f *flow) Start(ctx context.Context) {
 							effectiveFlows = append(effectiveFlows, Snapshot{sequenceFlow: current, flowId: f.Id()})
 						}
 
-						rest := sequenceFlows[1:]
+						rest := sequences[1:]
 						flowFuncs := make([]func(), 0)
 						for i, sequenceFlow := range rest {
 							flowId, flowFunc, flowed := f.handleAdditionalSequenceFlow(ctx, sequenceFlow, unconditional[i+1],

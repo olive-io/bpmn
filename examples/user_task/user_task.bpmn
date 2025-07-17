@@ -7,7 +7,7 @@
     <bpmn:userTask id="task" name="user1">
       <bpmn:extensionElements>
         <olive:taskHeaders>
-          <olive:header name="contentType" value="aplication/json" type="string" />
+          <olive:header name="contentType" value="application/json" type="string" />
         </olive:taskHeaders>
         <olive:properties>
           <olive:property name="uid" value="a" type="string" />
@@ -24,7 +24,7 @@
     <bpmn:userTask id="Activity_0opvqqp" name="user2">
       <bpmn:extensionElements>
         <olive:taskHeaders>
-          <olive:header name="contentType" value="aplication/json" type="string" />
+          <olive:header name="contentType" value="application/json" type="string" />
         </olive:taskHeaders>
         <olive:properties>
           <olive:property name="uid" value="b" type="string" />

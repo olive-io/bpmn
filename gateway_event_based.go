@@ -55,9 +55,9 @@ func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 			switch m := msg.(type) {
 			case nextActionMessage:
 				var first int32 = 0
-				sequenceFlows := AllSequenceFlows(&gw.Outgoing)
+				sequences := AllSequenceFlows(&gw.Outgoing)
 				terminationChannels := make(map[schema.IdRef]chan bool)
-				for _, sequenceFlow := range sequenceFlows {
+				for _, sequenceFlow := range sequences {
 					if idPtr, present := sequenceFlow.Id(); present {
 						terminationChannels[*idPtr] = make(chan bool)
 					} else {
@@ -72,9 +72,9 @@ func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 					Terminate: func(sequenceFlowId *schema.IdRef) chan bool {
 						return terminationChannels[*sequenceFlowId]
 					},
-					SequenceFlows: sequenceFlows,
+					SequenceFlows: sequences,
 					ActionTransformer: func(sequenceFlowId *schema.IdRef, action IAction) IAction {
-						// only first one is to flow
+						// only the first one is to flow
 						if atomic.CompareAndSwapInt32(&first, 0, 1) {
 							gw.Tracer.Trace(DeterminationMadeTrace{Node: gw.element})
 							for terminationCandidateId, ch := range terminationChannels {

@@ -128,12 +128,12 @@ func (gw *InclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 					continue
 				}
 				gw.probing = nil
-				flow := make([]*SequenceFlow, 0)
+				sfs := make([]*SequenceFlow, 0)
 				for _, i := range m.result {
-					flow = append(flow, gw.nonDefaultSequenceFlows[i])
+					sfs = append(sfs, gw.nonDefaultSequenceFlows[i])
 				}
 
-				switch len(flow) {
+				switch len(sfs) {
 				case 0:
 					// no successful non-default sequence flows
 					if gw.defaultSequenceFlow == nil {
@@ -144,10 +144,10 @@ func (gw *InclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 							},
 						})
 					} else {
-						DistributeFlows(gw.sync, []*SequenceFlow{gw.defaultSequenceFlow})
+						distributeFlows(gw.sync, []*SequenceFlow{gw.defaultSequenceFlow})
 					}
 				default:
-					DistributeFlows(gw.sync, flow)
+					distributeFlows(gw.sync, sfs)
 				}
 				gw.synchronized = false
 				gw.activated = nil
@@ -262,8 +262,8 @@ func (tracker *flowTracker) run(ctx context.Context) {
 	notify := false
 	// Indicates whether the tracker has observed a flow
 	// that reaches the node that uses this tracker.
-	// This is important because if the node will invoke
-	// `activeFlowsInCohort` before the tracker has caught up,
+	// This is important because if the node invokes
+	// `activeFlowsInCohort`, before the tracker has caught up,
 	// it'll return an empty list, and the node will assume that
 	// there's no other flow to wait for, and will proceed (which
 	// is incorrect)

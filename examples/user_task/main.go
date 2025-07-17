@@ -88,14 +88,14 @@ func main() {
 
 					// executes user task
 					trace.Do()
-					log.Printf("%#v", trace)
+					//log.Printf("%#v", trace)
 				case bpmn.ErrorTrace:
-					log.Fatalf("%#v", trace)
+					//log.Fatalf("%#v", trace)
 					return
 				case bpmn.CeaseFlowTrace:
 					return
 				default:
-					log.Printf("%#v", trace)
+					//log.Printf("%#v", trace)
 				}
 			}
 		}()
@@ -105,8 +105,10 @@ func main() {
 		case <-ctx.Done():
 		}
 
-		pros := ins.Locator().CloneVariables()
-		log.Printf("%#v", pros)
+		ins.WaitUntilComplete(ctx)
+
+		//pros := ins.Locator().CloneVariables()
+		log.Printf("%#v", users)
 		ins.Tracer().Unsubscribe(traces)
 	} else {
 		log.Fatalf("failed to instantiate the process: %s", err)

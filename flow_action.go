@@ -66,10 +66,10 @@ type FlowAction struct {
 	// Index of sequence flows that should flow without
 	// conditionExpression being evaluated
 	UnconditionalFlows []int
-	// The actions produced by the targets should be processed by
+	// The actions produced by the targets should be produced by
 	// this function
 	ActionTransformer ActionTransformer
-	// If supplied channel sends a function that returns true, the flow action
+	// If a supplied channel sends a function that returns true, the flow action
 	// is to be terminated if it wasn't already
 	Terminate Terminate
 }

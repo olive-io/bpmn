@@ -106,12 +106,12 @@ func (gw *ExclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 						continue
 					}
 					delete(gw.probing, m.flowId)
-					flow := make([]*SequenceFlow, 0)
+					sfs := make([]*SequenceFlow, 0)
 					for _, i := range m.result {
-						flow = append(flow, gw.nonDefaultSequenceFlows[i])
+						sfs = append(sfs, gw.nonDefaultSequenceFlows[i])
 						break
 					}
-					switch len(flow) {
+					switch len(sfs) {
 					case 0:
 						// no successful non-default sequence flows
 						if gw.defaultSequenceFlow == nil {
@@ -130,7 +130,7 @@ func (gw *ExclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 						}
 					case 1:
 						*response <- FlowAction{
-							SequenceFlows:      flow,
+							SequenceFlows:      sfs,
 							UnconditionalFlows: []int{0},
 						}
 					default:
@@ -138,7 +138,7 @@ func (gw *ExclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 							Error: errors.InvalidArgumentError{
 								Expected: fmt.Sprintf("maximum 1 outgoing exclusive gateway (%s) flow",
 									gw.Wiring.FlowNodeId),
-								Actual: len(flow),
+								Actual: len(sfs),
 							},
 						})
 					}

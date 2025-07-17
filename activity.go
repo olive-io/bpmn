@@ -36,25 +36,25 @@ var (
 	DefaultTaskExecTimeout = time.Second * 30
 )
 
-type Type string
+type ActivityType string
 
 const (
-	TaskType         Type = "Task"
-	ServiceType      Type = "ServiceTask"
-	ScriptType       Type = "ScriptTask"
-	UserType         Type = "UserTask"
-	ManualType       Type = "ManualTask"
-	CallType         Type = "CallActivity"
-	BusinessRuleType Type = "BusinessRuleTask"
-	SendType         Type = "SendTask"
-	ReceiveType      Type = "ReceiveTask"
-	SubprocessType   Type = "Subprocess"
+	TaskActivity         ActivityType = "Task"
+	ServiceTaskActivity  ActivityType = "ServiceTask"
+	ScriptTaskActivity   ActivityType = "ScriptTask"
+	UserTaskActivity     ActivityType = "UserTask"
+	ManualTaskActivity   ActivityType = "ManualTask"
+	CallActivity         ActivityType = "CallActivity"
+	BusinessRuleActivity ActivityType = "BusinessRuleTask"
+	SendTaskActivity     ActivityType = "SendTask"
+	ReceiveTaskActivity  ActivityType = "ReceiveTask"
+	SubprocessActivity   ActivityType = "Subprocess"
 )
 
 // Activity is a generic interface to flow nodes that are activities
 type Activity interface {
 	IFlowNode
-	Type() Type
+	Type() ActivityType
 	// Cancel initiates a cancellation of activity and returns a channel
 	// that will signal a boolean (`true` if cancellation was successful,
 	// `false` otherwise)

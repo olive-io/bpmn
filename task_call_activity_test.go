@@ -44,8 +44,6 @@ func TestCallActivity(t *testing.T) {
 			case bpmn.FlowTrace:
 			case bpmn.TaskTrace:
 				trace.Do()
-				//calledElement := trace.Context().Value(bpmn.CallActivityKey{}).(*schema.ExtensionCalledElement)
-				//t.Logf("call process [%s] in [%s]", calledElement.ProcessId, calledElement.DefinitionId)
 				//t.Logf("%#v", trace)
 			case bpmn.ErrorTrace:
 				t.Fatalf("%#v", trace)

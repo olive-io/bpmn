@@ -25,30 +25,34 @@ import (
 )
 
 type nextTaskActionMessage struct {
-	headers  map[string]string
-	response chan IAction
+	headers     map[string]string
+	properties  map[string]any
+	dataObjects map[string]any
+	response    chan IAction
 }
 
 func (m nextTaskActionMessage) message() {}
 
 type Task struct {
 	*Wiring
-	ctx     context.Context
-	cancel  context.CancelFunc
-	element *schema.Task
-	mch     chan imessage
+	ctx          context.Context
+	cancel       context.CancelFunc
+	element      schema.FlowNodeInterface
+	activityType ActivityType
+	mch          chan imessage
 }
 
-func NewTask(ctx context.Context, task *schema.Task) Constructor {
+func NewTask(ctx context.Context, element schema.FlowNodeInterface, activityType ActivityType) Constructor {
 	return func(wiring *Wiring) (activity Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
 		taskNode := &Task{
-			Wiring:  wiring,
-			ctx:     ctx,
-			cancel:  cancel,
-			element: task,
-			mch:     make(chan imessage, len(wiring.Incoming)*2+1),
+			Wiring:       wiring,
+			ctx:          ctx,
+			cancel:       cancel,
+			element:      element,
+			activityType: activityType,
+			mch:          make(chan imessage, len(wiring.Incoming)*2+1),
 		}
 		go taskNode.run(ctx)
 		activity = taskNode
@@ -75,13 +79,18 @@ func (task *Task) run(ctx context.Context) {
 					}
 
 					headers := m.headers
+					properties := m.properties
+					dataObjects := m.dataObjects
+
 					timeout := FetchTaskTimeout(task.element)
 
 					at := newTaskTraceBuilder().
 						Context(task.ctx).
-						Timeout(timeout).
 						Activity(task).
+						Timeout(timeout).
 						Headers(headers).
+						Properties(properties).
+						DataObjects(dataObjects).
 						Build()
 
 					task.Tracer.Trace(at)
@@ -91,6 +100,7 @@ func (task *Task) run(ctx context.Context) {
 						return
 					case out := <-at.out():
 						aResponse.Err = out.Err
+						aResponse.DataObjects = ApplyTaskDataOutput(task.element, out.DataObjects)
 						aResponse.Variables = ApplyTaskResult(task.element, out.Results)
 						aResponse.Handler = out.HandlerCh
 					}
@@ -109,10 +119,12 @@ func (task *Task) run(ctx context.Context) {
 func (task *Task) NextAction(Flow) chan IAction {
 	response := make(chan IAction, 1)
 
-	headers, _, _ := FetchTaskDataInput(task.Locator, task.element)
+	headers, properties, dataObjects := FetchTaskDataInput(task.Locator, task.element)
 	msg := nextTaskActionMessage{
-		headers:  headers,
-		response: response,
+		headers:     headers,
+		properties:  properties,
+		dataObjects: dataObjects,
+		response:    response,
 	}
 
 	task.mch <- msg
@@ -123,8 +135,8 @@ func (task *Task) Element() schema.FlowNodeInterface {
 	return task.element
 }
 
-func (task *Task) Type() Type {
-	return TaskType
+func (task *Task) Type() ActivityType {
+	return task.activityType
 }
 
 func (task *Task) Cancel() <-chan bool {
