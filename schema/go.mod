@@ -3,7 +3,7 @@ module github.com/olive-io/bpmn/schema
 go 1.22
 
 require (
-	github.com/bytedance/sonic v1.13.1
+	github.com/bytedance/sonic v1.13.3
 	github.com/stretchr/testify v1.10.0
 )
 
