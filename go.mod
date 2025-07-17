@@ -8,8 +8,8 @@ require (
 	github.com/ChrisTrenkamp/xsel v0.9.16
 	github.com/Chronokeeper/anyxml v0.0.0-20160530174208-54457d8e98c6
 	github.com/bits-and-blooms/bitset v1.22.0
-	github.com/bytedance/sonic v1.13.1
-	github.com/expr-lang/expr v1.16.9
+	github.com/bytedance/sonic v1.13.3
+	github.com/expr-lang/expr v1.17.5
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/muyo/sno v1.2.1
 	github.com/olive-io/bpmn/schema v1.4.2
