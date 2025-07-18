@@ -130,6 +130,9 @@ func (f *flow) executeSequenceFlow(ctx context.Context, sequenceFlow *SequenceFl
 			if locator, found := f.locator.FindIItemAwareLocator(data.LocatorHeader); found {
 				engine.SetItemAwareLocator(data.LocatorHeader, locator)
 			}
+			if locator, found := f.locator.FindIItemAwareLocator(data.LocatorProperty); found {
+				engine.SetItemAwareLocator(data.LocatorProperty, locator)
+			}
 
 			for key, item := range f.locator.CloneVariables() {
 				properties[key] = item

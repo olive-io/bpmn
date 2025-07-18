@@ -111,26 +111,42 @@ func TestExpr_getDataObject(t *testing.T) {
 	}
 	engine.SetItemAwareLocator(data.LocatorProperty, properties)
 
+	var properties1 = map[string]any{
+		"foo": "bar",
+	}
+
 	compiled, err := engine.CompileExpression("d$('dataObject1').msg == 'hello'")
 	assert.Nil(t, err)
-	result, err := engine.EvaluateExpression(compiled, map[string]interface{}{})
+	result, err := engine.EvaluateExpression(compiled, properties1)
 	assert.Nil(t, err)
 	assert.True(t, result.(bool))
 	compiled, err = engine.CompileExpression("d$('dataObject') == 1")
 	assert.Nil(t, err)
-	result, err = engine.EvaluateExpression(compiled, map[string]interface{}{})
+	result, err = engine.EvaluateExpression(compiled, properties1)
 	assert.Nil(t, err)
 	assert.True(t, result.(bool))
 
 	compiled, err = engine.CompileExpression("h$('a') + 1")
 	assert.Nil(t, err)
-	result, err = engine.EvaluateExpression(compiled, map[string]interface{}{})
+	result, err = engine.EvaluateExpression(compiled, properties1)
 	assert.Nil(t, err)
 	assert.Equal(t, result.(int), int(3))
 
-	compiled, err = engine.CompileExpression("p$('foo') == 'bar'")
+	compiled, err = engine.CompileExpression("h$('a') < 0")
 	assert.Nil(t, err)
-	result, err = engine.EvaluateExpression(compiled, map[string]interface{}{})
+	result, err = engine.EvaluateExpression(compiled, properties1)
+	assert.Nil(t, err)
+	assert.Equal(t, result.(bool), false)
+
+	compiled, err = engine.CompileExpression("p$('foo') == 'bar' or p$('foo') != 'bar'")
+	assert.Nil(t, err)
+	result, err = engine.EvaluateExpression(compiled, properties1)
+	assert.Nil(t, err)
+	assert.True(t, result.(bool))
+
+	compiled, err = engine.CompileExpression("foo == 'bar'")
+	assert.Nil(t, err)
+	result, err = engine.EvaluateExpression(compiled, properties1)
 	assert.Nil(t, err)
 	assert.True(t, result.(bool))
 }

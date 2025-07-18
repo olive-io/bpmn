@@ -65,11 +65,7 @@ func NewWorkflow(ctx context.Context, reader io.Reader, opts ...bpmn.Option) (*W
 
 	for _, element := range *definitions.Processes() {
 		able, ok := element.IsExecutable()
-		if !ok {
-			continue
-		}
-
-		if !able {
+		if !ok || !able {
 			continue
 		}
 
@@ -158,7 +154,7 @@ func main() {
 			log.Fatalf("%#v", trace)
 		default:
 			if tr == nil {
-				log.Fatalf("empty trace: %Flow", tr)
+				log.Fatalf("empty trace: %v", tr)
 			}
 			log.Printf("%#v\n", trace)
 		}

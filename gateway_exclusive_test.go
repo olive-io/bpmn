@@ -183,7 +183,7 @@ func TestExclusiveGatewayIncompleteJoin(t *testing.T) {
 
 	processElement := (*testExclusiveGatewayIncompleteJoin.Processes())[0]
 	proc := bpmn.NewProcess(&processElement, &testExclusiveGatewayIncompleteJoin)
-	if instance, err := proc.Instantiate(); err == nil {
+	if instance, err := proc.Instantiate(bpmn.WithVariables(map[string]any{"a": 1})); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {
@@ -206,11 +206,16 @@ func TestExclusiveGatewayIncompleteJoin(t *testing.T) {
 					t.Fatalf("can't find element with FlowNodeId %#v", id)
 				}
 			case bpmn.TaskTrace:
-				trace.Do()
+				name, _ := trace.GetActivity().Element().Id()
+				if *name == "step" {
+					trace.Do(bpmn.DoWithResults(map[string]interface{}{"a": 3}))
+				} else {
+					trace.Do()
+				}
 			case bpmn.CeaseFlowTrace:
 				break loop
 			case bpmn.ErrorTrace:
-				t.Fatalf("%#v", trace)
+				t.Fatalf("%#v", trace.Error.Error())
 			default:
 				//t.Logf("%#v", trace)
 			}

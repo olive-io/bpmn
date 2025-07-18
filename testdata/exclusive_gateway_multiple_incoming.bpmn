@@ -14,15 +14,15 @@
       <bpmn:incoming>Flow_132dhix</bpmn:incoming>
       <bpmn:outgoing>Flow_17wvjfx</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_132dhix" name="false" sourceRef="exclusive" targetRef="task1">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">false</bpmn:conditionExpression>
+    <bpmn:sequenceFlow id="Flow_132dhix" name="a &lt; 1" sourceRef="exclusive" targetRef="task1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">a &lt; 0</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:task id="task2" name="2">
       <bpmn:incoming>Flow_0bxshq1</bpmn:incoming>
       <bpmn:outgoing>Flow_0wdmvpi</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_0bxshq1" name="true" sourceRef="exclusive" targetRef="task2">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">true</bpmn:conditionExpression>
+    <bpmn:sequenceFlow id="Flow_0bxshq1" name="a == 1 || a == 3" sourceRef="exclusive" targetRef="task2">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">a == 1 or a == 3</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:endEvent id="end">
       <bpmn:incoming>Flow_17wvjfx</bpmn:incoming>

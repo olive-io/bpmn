@@ -192,7 +192,7 @@ func (matcher ElementPredicate) Or(andMatcher ElementPredicate) ElementPredicate
 // possible for practicality.
 
 // For this, a special type called AnExpression will be added and schema generator will
-// replace Expression type with it.
+// replace an Expression type with it.
 
 // AnExpression Expression family container
 //
