@@ -30,7 +30,6 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 
 	_ "github.com/olive-io/bpmn/v2/pkg/expression/expr"
-	_ "github.com/olive-io/bpmn/v2/pkg/expression/xpath"
 )
 
 // Flow specifies an interface for BPMN flows
