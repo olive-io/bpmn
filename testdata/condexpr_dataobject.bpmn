@@ -15,14 +15,14 @@
       <bpmn:outgoing>Flow_0gwt8id</bpmn:outgoing>
     </bpmn:task>
     <bpmn:sequenceFlow id="cond1" name="cond1" sourceRef="Gateway_14p39vu" targetRef="a1">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">d$('cond1o')</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">getDataObject('cond1o')</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:task id="a2" name="a2">
       <bpmn:incoming>cond2</bpmn:incoming>
       <bpmn:outgoing>Flow_04cxx78</bpmn:outgoing>
     </bpmn:task>
     <bpmn:sequenceFlow id="cond2" name="cond2" sourceRef="Gateway_14p39vu" targetRef="a2">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">d$('cond2o')</bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">getDataObject('cond2o')</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:endEvent id="end">
       <bpmn:incoming>Flow_0gwt8id</bpmn:incoming>

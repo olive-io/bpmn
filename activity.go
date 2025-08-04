@@ -390,8 +390,8 @@ func (t *taskTrace) Do(options ...DoOption) {
 
 func (t *taskTrace) process() {
 	duration := t.timeout
-	if duration < time.Second {
-		duration = time.Second
+	if duration == 0 {
+		duration = DefaultTaskExecTimeout
 	}
 
 	select {

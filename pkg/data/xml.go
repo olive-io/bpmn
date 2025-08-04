@@ -23,6 +23,4 @@ type IAsXML interface {
 
 type XMLSource []byte
 
-func (x XMLSource) AsXML() []byte {
-	return x
-}
+func (x XMLSource) AsXML() []byte { return x }

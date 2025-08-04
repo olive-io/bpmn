@@ -42,9 +42,7 @@ type Instance struct {
 	eventConsumers     []event.IConsumer
 }
 
-func (ins *Instance) Id() id.Id {
-	return ins.id
-}
+func (ins *Instance) Id() id.Id { return ins.id }
 
 func (ins *Instance) Process() *schema.Process { return ins.process }
 
@@ -69,9 +67,7 @@ func (ins *Instance) RegisterEventConsumer(ev event.IConsumer) (err error) {
 	return
 }
 
-func (ins *Instance) FlowNodeMapping() *FlowNodeMapping {
-	return ins.flowNodeMapping
-}
+func (ins *Instance) FlowNodeMapping() *FlowNodeMapping { return ins.flowNodeMapping }
 
 func NewInstance(process *schema.Process, definitions *schema.Definitions, options *Options) (instance *Instance, err error) {
 	instance = &Instance{
