@@ -37,7 +37,7 @@ func GetEngine(ctx context.Context, url string) (engine IEngine) {
 	if engineConstructor, ok := enginesMap[url]; ok {
 		engine = engineConstructor(ctx)
 	} else {
-		engine = enginesMap["https://github.com/expr-lang/expr"](ctx)
+		engine = enginesMap["http://www.w3.org/1999/XPath"](ctx)
 	}
 	return
 }
