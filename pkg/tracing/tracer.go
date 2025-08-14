@@ -112,7 +112,7 @@ func (t *tracer) Subscribe() chan ITrace {
 }
 
 func (t *tracer) SubscribeChannel(channel chan ITrace) chan ITrace {
-	okCh := make(chan struct{})
+	okCh := make(chan struct{}, 1)
 	sub := subscription{channel: channel, ok: okCh}
 	t.subscription <- sub
 	<-okCh
@@ -138,7 +138,7 @@ loop:
 	}
 }
 
-func (t *tracer) Trace(trace ITrace) {
+func (t *tracer) Send(trace ITrace) {
 	t.traces <- trace
 }
 

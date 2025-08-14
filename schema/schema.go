@@ -431,13 +431,22 @@ func (i *Item) ValueTo(dst any) error {
 			return err
 		}
 	} else if rv.CanInt() && i.Type == ItemTypeInteger {
-		n, _ := strconv.ParseInt(i.Value, 10, 64)
+		n, err := strconv.ParseInt(i.Value, 10, 64)
+		if err != nil {
+			return err
+		}
 		rv.SetInt(n)
 	} else if rv.CanUint() && i.Type == ItemTypeInteger {
-		n, _ := strconv.ParseUint(i.Value, 10, 64)
+		n, err := strconv.ParseUint(i.Value, 10, 64)
+		if err != nil {
+			return err
+		}
 		rv.SetUint(n)
 	} else if rv.CanFloat() && i.Type == ItemTypeFloat {
-		f, _ := strconv.ParseFloat(i.Value, 10)
+		f, err := strconv.ParseFloat(i.Value, 10)
+		if err != nil {
+			return err
+		}
 		rv.SetFloat(f)
 	}
 

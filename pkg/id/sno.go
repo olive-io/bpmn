@@ -56,7 +56,7 @@ func (g *Sno) RestoreIdGenerator(ctx context.Context, bytes []byte, tracer traci
 		for {
 			select {
 			case notification := <-sequenceOverflowNotificationChannel:
-				tracer.Trace(WarningTrace{Warning: notification})
+				tracer.Send(WarningTrace{Warning: notification})
 			case <-ctx.Done():
 				return
 			}

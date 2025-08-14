@@ -41,6 +41,7 @@ func (e ExclusiveNoEffectiveSequenceFlows) Error() string {
 
 type ExclusiveGateway struct {
 	*Wiring
+	ctx                     context.Context
 	element                 *schema.ExclusiveGateway
 	mch                     chan imessage
 	defaultSequenceFlow     *SequenceFlow
@@ -78,14 +79,14 @@ func NewExclusiveGateway(ctx context.Context, wiring *Wiring, exclusiveGateway *
 
 	gw = &ExclusiveGateway{
 		Wiring:                  wiring,
+		ctx:                     ctx,
 		element:                 exclusiveGateway,
 		mch:                     make(chan imessage, len(wiring.Incoming)*2+1),
 		nonDefaultSequenceFlows: nonDefaultSequenceFlows,
 		defaultSequenceFlow:     defaultSequenceFlow,
 		probing:                 make(map[id.Id]*chan IAction),
 	}
-	sender := gw.Tracer.RegisterSender()
-	go gw.run(ctx, sender)
+
 	return
 }
 
@@ -116,7 +117,7 @@ func (gw *ExclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 						// no successful non-default sequence flows
 						if gw.defaultSequenceFlow == nil {
 							// exception (Table 13.2)
-							gw.Wiring.Tracer.Trace(ErrorTrace{
+							gw.Wiring.Tracer.Send(ErrorTrace{
 								Error: ExclusiveNoEffectiveSequenceFlows{
 									ExclusiveGateway: gw.element,
 								},
@@ -134,7 +135,7 @@ func (gw *ExclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 							UnconditionalFlows: []int{0},
 						}
 					default:
-						gw.Wiring.Tracer.Trace(ErrorTrace{
+						gw.Wiring.Tracer.Send(ErrorTrace{
 							Error: errors.InvalidArgumentError{
 								Expected: fmt.Sprintf("maximum 1 outgoing exclusive gateway (%s) flow",
 									gw.Wiring.FlowNodeId),
@@ -143,7 +144,7 @@ func (gw *ExclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 						})
 					}
 				} else {
-					gw.Wiring.Tracer.Trace(ErrorTrace{
+					gw.Wiring.Tracer.Send(ErrorTrace{
 						Error: errors.InvalidStateError{
 							Expected: fmt.Sprintf("probing[%s] is to be present (exclusive gateway %s)",
 								m.flowId.String(), gw.Wiring.FlowNodeId),
@@ -169,13 +170,16 @@ func (gw *ExclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 			default:
 			}
 		case <-ctx.Done():
-			gw.Tracer.Trace(CancellationFlowNodeTrace{Node: gw.element})
+			gw.Tracer.Send(CancellationFlowNodeTrace{Node: gw.element})
 			return
 		}
 	}
 }
 
 func (gw *ExclusiveGateway) NextAction(flow Flow) chan IAction {
+	sender := gw.Tracer.RegisterSender()
+	go gw.run(gw.ctx, sender)
+
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response

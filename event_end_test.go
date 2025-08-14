@@ -46,12 +46,14 @@ func TestEndEvent(t *testing.T) {
 				if id, present := trace.Node.Id(); present {
 					if *id == "end" {
 						// success!
-						break loop
+						t.Logf("do end event")
 					}
 
 				}
 			case bpmn.ErrorTrace:
 				t.Fatalf("%#v", trace)
+			case bpmn.CeaseFlowTrace:
+				break loop
 			default:
 				//t.Logf("%#v", trace)
 			}

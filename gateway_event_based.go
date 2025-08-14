@@ -29,6 +29,7 @@ import (
 
 type EventBasedGateway struct {
 	*Wiring
+	ctx       context.Context
 	element   *schema.EventBasedGateway
 	mch       chan imessage
 	activated bool
@@ -37,12 +38,11 @@ type EventBasedGateway struct {
 func NewEventBasedGateway(ctx context.Context, wiring *Wiring, eventBasedGateway *schema.EventBasedGateway) (gw *EventBasedGateway, err error) {
 	gw = &EventBasedGateway{
 		Wiring:    wiring,
+		ctx:       ctx,
 		element:   eventBasedGateway,
 		mch:       make(chan imessage, len(wiring.Incoming)*2+1),
 		activated: false,
 	}
-	sender := gw.Tracer.RegisterSender()
-	go gw.run(ctx, sender)
 	return
 }
 
@@ -64,7 +64,7 @@ func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 						err := errors.NotFoundError{
 							Expected: fmt.Sprintf("id for %#v", sequenceFlow),
 						}
-						gw.Tracer.Trace(ErrorTrace{Error: err})
+						gw.Tracer.Send(ErrorTrace{Error: err})
 					}
 				}
 
@@ -76,7 +76,7 @@ func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 					ActionTransformer: func(sequenceFlowId *schema.IdRef, action IAction) IAction {
 						// only the first one is to flow
 						if atomic.CompareAndSwapInt32(&first, 0, 1) {
-							gw.Tracer.Trace(DeterminationMadeTrace{Node: gw.element})
+							gw.Tracer.Send(DeterminationMadeTrace{Node: gw.element})
 							for terminationCandidateId, ch := range terminationChannels {
 								if sequenceFlowId != nil && terminationCandidateId != *sequenceFlowId {
 									ch <- true
@@ -95,13 +95,16 @@ func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 			default:
 			}
 		case <-ctx.Done():
-			gw.Tracer.Trace(CancellationFlowNodeTrace{Node: gw.element})
+			gw.Tracer.Send(CancellationFlowNodeTrace{Node: gw.element})
 			return
 		}
 	}
 }
 
 func (gw *EventBasedGateway) NextAction(flow Flow) chan IAction {
+	sender := gw.Tracer.RegisterSender()
+	go gw.run(gw.ctx, sender)
+
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response
@@ -115,4 +118,4 @@ type DeterminationMadeTrace struct {
 	Node schema.FlowNodeInterface
 }
 
-func (t DeterminationMadeTrace) Element() any { return t.Node }
+func (t DeterminationMadeTrace) Unpack() any { return t.Node }

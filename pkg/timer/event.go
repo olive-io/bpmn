@@ -69,7 +69,7 @@ func (e *eventDefinitionInstanceBuilder) NewEventDefinitionInstance(def schema.E
 					}
 					_, err := e.eventIngress.ConsumeEvent(event.MakeTimerEvent(definitionInstance))
 					if err != nil {
-						e.tracer.Trace(bpmn.ErrorTrace{Error: err})
+						e.tracer.Send(bpmn.ErrorTrace{Error: err})
 					}
 				}
 			}

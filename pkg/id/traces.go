@@ -21,4 +21,4 @@ type WarningTrace struct {
 	Warning any
 }
 
-func (t WarningTrace) Element() any { return t.Warning }
+func (t WarningTrace) Unpack() any { return t.Warning }

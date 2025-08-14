@@ -143,14 +143,14 @@ func (f *flow) executeSequenceFlow(ctx context.Context, sequenceFlow *SequenceFl
 			compiled, err = engine.CompileExpression(source)
 			if err != nil {
 				result = false
-				f.tracer.Trace(ErrorTrace{Error: err})
+				f.tracer.Send(ErrorTrace{Error: err})
 				return
 			}
 			var abstractResult expression.IResult
 			abstractResult, err = engine.EvaluateExpression(compiled, properties)
 			if err != nil {
 				result = false
-				f.tracer.Trace(ErrorTrace{Error: err})
+				f.tracer.Send(ErrorTrace{Error: err})
 				return
 			}
 			switch actualResult := abstractResult.(type) {
@@ -162,7 +162,7 @@ func (f *flow) executeSequenceFlow(ctx context.Context, sequenceFlow *SequenceFl
 					Actual:   actualResult,
 				}
 				result = false
-				f.tracer.Trace(ErrorTrace{Error: err})
+				f.tracer.Send(ErrorTrace{Error: err})
 				return
 			}
 		case *schema.Expression:
@@ -180,17 +180,17 @@ func (f *flow) handleSequenceFlow(ctx context.Context, sequenceFlow *SequenceFlo
 	actionTransformer ActionTransformer, terminate Terminate) (flowed bool) {
 	ok, err := f.executeSequenceFlow(ctx, sequenceFlow, unconditional)
 	if err != nil {
-		f.tracer.Trace(ErrorTrace{Error: err})
+		f.tracer.Send(ErrorTrace{Error: err})
 		return
 	}
 	if !ok {
 		return
 	}
 
-	f.tracer.Trace(LeaveTrace{Node: f.current.Element()})
+	f.tracer.Send(LeaveTrace{Node: f.current.Element()})
 	target, err := sequenceFlow.Target()
 	if err != nil {
-		f.tracer.Trace(ErrorTrace{Error: err})
+		f.tracer.Send(ErrorTrace{Error: err})
 		return
 	}
 
@@ -198,20 +198,20 @@ func (f *flow) handleSequenceFlow(ctx context.Context, sequenceFlow *SequenceFlo
 		if idPtr, present := sequenceFlow.Id(); present {
 			f.sequenceFlowId = idPtr
 		} else {
-			f.tracer.Trace(ErrorTrace{
+			f.tracer.Send(ErrorTrace{
 				Error: errors.NotFoundError{Expected: fmt.Sprintf("id for sequence flow %#v", sequenceFlow)},
 			})
 		}
 		f.current = flowNode
 		f.terminate = terminate
 		node := f.current.Element()
-		f.tracer.Trace(VisitTrace{Node: node})
+		f.tracer.Send(VisitTrace{Node: node})
 		f.actionTransformer = actionTransformer
 		flowed = true
 		return
 	}
 
-	f.tracer.Trace(ErrorTrace{
+	f.tracer.Send(ErrorTrace{
 		Error: errors.NotFoundError{Expected: fmt.Sprintf("flow node for element %#v", target)},
 	})
 	return
@@ -233,7 +233,7 @@ func (f *flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow *S
 	terminate Terminate) (flowId id.Id, handle func(), flowed bool) {
 	ok, err := f.executeSequenceFlow(ctx, sequenceFlow, unconditional)
 	if err != nil {
-		f.tracer.Trace(ErrorTrace{Error: err})
+		f.tracer.Send(ErrorTrace{Error: err})
 		return
 	}
 	if !ok {
@@ -241,7 +241,7 @@ func (f *flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow *S
 	}
 	target, err := sequenceFlow.Target()
 	if err != nil {
-		f.tracer.Trace(ErrorTrace{Error: err})
+		f.tracer.Send(ErrorTrace{Error: err})
 		return
 	}
 	if flowNode, found := f.flowNodeMapping.ResolveElementToFlowNode(target); found {
@@ -253,7 +253,7 @@ func (f *flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow *S
 			if idPtr, present := sequenceFlow.Id(); present {
 				flowable.sequenceFlowId = idPtr
 			} else {
-				f.tracer.Trace(ErrorTrace{
+				f.tracer.Send(ErrorTrace{
 					Error: errors.NotFoundError{Expected: fmt.Sprintf("id for sequence flow %#v", sequenceFlow)},
 				})
 			}
@@ -262,7 +262,7 @@ func (f *flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow *S
 		}
 		flowed = true
 	} else {
-		f.tracer.Trace(ErrorTrace{
+		f.tracer.Send(ErrorTrace{
 			Error: errors.NotFoundError{Expected: fmt.Sprintf("flow node for element %#v", target)},
 		})
 	}
@@ -282,20 +282,20 @@ func (f *flow) Start(ctx context.Context) {
 	sender := f.tracer.RegisterSender()
 	go func() {
 		defer sender.Done()
-		f.tracer.Trace(NewFlowTrace{FlowId: f.id})
+		f.tracer.Send(NewFlowTrace{FlowId: f.id})
 		defer f.flowWaitGroup.Done()
-		f.tracer.Trace(VisitTrace{Node: f.current.Element()})
+		f.tracer.Send(VisitTrace{Node: f.current.Element()})
 		for {
 		await:
 			select {
 			case <-ctx.Done():
-				f.tracer.Trace(CancellationFlowTrace{
+				f.tracer.Send(CancellationFlowTrace{
 					FlowId: f.Id(),
 				})
 				return
 			case terminate := <-f.termination():
 				if terminate {
-					f.tracer.Trace(TerminationTrace{
+					f.tracer.Send(TerminationTrace{
 						FlowId: f.Id(),
 						Source: f.current.Element(),
 					})
@@ -316,7 +316,7 @@ func (f *flow) Start(ctx context.Context) {
 								results = append(results, i)
 							}
 						} else {
-							f.tracer.Trace(ErrorTrace{Error: err})
+							f.tracer.Send(ErrorTrace{Error: err})
 						}
 					}
 					a.ProbeReport(results)
@@ -325,7 +325,7 @@ func (f *flow) Start(ctx context.Context) {
 						if res.Err != nil {
 							source := f.current.Element()
 							fid, _ := source.Id()
-							f.tracer.Trace(ErrorTrace{Error: errors.TaskExecError{
+							f.tracer.Send(ErrorTrace{Error: errors.TaskExecError{
 								Id:     *fid,
 								Reason: res.Err.Error(),
 							}})
@@ -412,7 +412,7 @@ func (f *flow) Start(ctx context.Context) {
 						}
 
 						if len(effectiveFlows) > 0 {
-							f.tracer.Trace(FlowTrace{
+							f.tracer.Send(FlowTrace{
 								Source: source,
 								Flows:  effectiveFlows,
 							})
@@ -421,7 +421,7 @@ func (f *flow) Start(ctx context.Context) {
 							}
 						} else {
 							// no flows to continue with, abort
-							f.tracer.Trace(TerminationTrace{
+							f.tracer.Send(TerminationTrace{
 								FlowId: f.Id(),
 								Source: source,
 							})
@@ -433,16 +433,16 @@ func (f *flow) Start(ctx context.Context) {
 						return
 					}
 				case CompleteAction:
-					f.tracer.Trace(CompletionTrace{
+					f.tracer.Send(CompletionTrace{
 						Node: f.current.Element(),
 					})
-					f.tracer.Trace(TerminationTrace{
+					f.tracer.Send(TerminationTrace{
 						FlowId: f.Id(),
 						Source: f.current.Element(),
 					})
 					return
 				case NoAction:
-					f.tracer.Trace(TerminationTrace{
+					f.tracer.Send(TerminationTrace{
 						FlowId: f.Id(),
 						Source: f.current.Element(),
 					})

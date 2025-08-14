@@ -88,14 +88,14 @@ func main() {
 
 					// executes user task
 					trace.Do()
-					//log.Printf("%#v", trace)
+					log.Printf("%#v", trace)
 				case bpmn.ErrorTrace:
-					//log.Fatalf("%#v", trace)
+					log.Fatalf("%#v", trace)
 					return
 				case bpmn.CeaseFlowTrace:
 					return
 				default:
-					//log.Printf("%#v", trace)
+					log.Printf("%#v", trace)
 				}
 			}
 		}()

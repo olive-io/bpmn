@@ -40,7 +40,7 @@ func NewRelay(ctx context.Context, in, out ITracer, transformer Transformer) {
 				if ok {
 					traces := transformer(trace)
 					for _, t := range traces {
-						out.Trace(t)
+						out.Send(t)
 					}
 				}
 			}
