@@ -449,7 +449,7 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 	sender := instance.tracer.RegisterSender()
 	go instance.ceaseFlowMonitor(subTracer)(ctx, sender)
 
-	instance.tracer.Trace(InstantiationTrace{InstanceId: instance.id})
+	instance.tracer.Send(InstantiationTrace{InstanceId: instance.id})
 
 	return
 }
@@ -563,7 +563,7 @@ func (ins *Instance) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.C
 		select {
 		case <-waitIsOver:
 			// Send out a cease flow trace
-			tracer.Trace(CeaseFlowTrace{Process: ins.process})
+			tracer.Send(CeaseFlowTrace{Process: ins.process})
 		case <-ctx.Done():
 		}
 	}

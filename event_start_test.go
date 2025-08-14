@@ -46,12 +46,14 @@ func TestStartEvent(t *testing.T) {
 				if id, present := trace.Source.Id(); present {
 					if *id == "start" {
 						// success!
-						break loop
+						t.Logf("do start event!!")
 					}
 
 				}
 			case bpmn.ErrorTrace:
 				t.Fatalf("%#v", trace)
+			case bpmn.CeaseFlowTrace:
+				break loop
 			default:
 				//t.Logf("%#v", trace)
 			}

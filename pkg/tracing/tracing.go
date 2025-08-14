@@ -22,7 +22,7 @@ package tracing
 // flow nodes, tests and other components to know what happened
 // in other parts of the system.
 type ITrace interface {
-	Element() any
+	Unpack() any
 }
 
 // ISenderHandle is an interface for registered senders
@@ -48,8 +48,8 @@ type ITracer interface {
 	// Unsubscribe removes channel from subscription list
 	Unsubscribe(channel chan ITrace)
 
-	// Trace sends in a trace to a tracer
-	Trace(trace ITrace)
+	// Send sends in a trace to a tracer
+	Send(trace ITrace)
 
 	// RegisterSender register a sender for terminate purposes
 	//

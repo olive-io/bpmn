@@ -54,6 +54,7 @@ type flowSync struct {
 
 type InclusiveGateway struct {
 	*Wiring
+	ctx                     context.Context
 	element                 *schema.InclusiveGateway
 	mch                     chan imessage
 	defaultSequenceFlow     *SequenceFlow
@@ -97,14 +98,13 @@ func NewInclusiveGateway(ctx context.Context, wiring *Wiring, inclusiveGateway *
 
 	gw = &InclusiveGateway{
 		Wiring:                  wiring,
+		ctx:                     ctx,
 		element:                 inclusiveGateway,
 		mch:                     make(chan imessage, len(wiring.Incoming)*2+1),
 		nonDefaultSequenceFlows: nonDefaultSequenceFlows,
 		defaultSequenceFlow:     defaultSequenceFlow,
 		flowTracker:             newFlowTracker(ctx, wiring.Tracer, inclusiveGateway),
 	}
-	sender := gw.Tracer.RegisterSender()
-	go gw.run(ctx, sender)
 	return
 }
 
@@ -138,7 +138,7 @@ func (gw *InclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 					// no successful non-default sequence flows
 					if gw.defaultSequenceFlow == nil {
 						// exception (Table 13.2)
-						gw.Wiring.Tracer.Trace(ErrorTrace{
+						gw.Wiring.Tracer.Send(ErrorTrace{
 							Error: InclusiveNoEffectiveSequenceFlows{
 								InclusiveGateway: gw.element,
 							},
@@ -182,7 +182,7 @@ func (gw *InclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 				gw.trySync()
 			}
 		case <-ctx.Done():
-			gw.Tracer.Trace(CancellationFlowNodeTrace{Node: gw.element})
+			gw.Tracer.Send(CancellationFlowNodeTrace{Node: gw.element})
 			return
 		}
 	}
@@ -218,6 +218,9 @@ func (gw *InclusiveGateway) trySync() {
 }
 
 func (gw *InclusiveGateway) NextAction(flow Flow) chan IAction {
+	sender := gw.Tracer.RegisterSender()
+	go gw.run(gw.ctx, sender)
+
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response

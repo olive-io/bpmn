@@ -54,7 +54,6 @@ func NewTask(ctx context.Context, element schema.FlowNodeInterface, activityType
 			activityType: activityType,
 			mch:          make(chan imessage, len(wiring.Incoming)*2+1),
 		}
-		go taskNode.run(ctx)
 		activity = taskNode
 		return
 	}
@@ -93,10 +92,10 @@ func (task *Task) run(ctx context.Context) {
 						DataObjects(dataObjects).
 						Build()
 
-					task.Tracer.Trace(at)
+					task.Tracer.Send(at)
 					select {
 					case <-ctx.Done():
-						task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
+						task.Tracer.Send(CancellationFlowNodeTrace{Node: task.element})
 						return
 					case out := <-at.out():
 						aResponse.Err = out.Err
@@ -110,13 +109,15 @@ func (task *Task) run(ctx context.Context) {
 			default:
 			}
 		case <-ctx.Done():
-			task.Tracer.Trace(CancellationFlowNodeTrace{Node: task.element})
+			task.Tracer.Send(CancellationFlowNodeTrace{Node: task.element})
 			return
 		}
 	}
 }
 
 func (task *Task) NextAction(Flow) chan IAction {
+	go task.run(task.ctx)
+
 	response := make(chan IAction, 1)
 
 	headers, properties, dataObjects := FetchTaskDataInput(task.Locator, task.element)

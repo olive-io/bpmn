@@ -39,6 +39,7 @@ func (m eventMessage) message() {}
 
 type StartEvent struct {
 	*Wiring
+	ctx         context.Context
 	element     *schema.StartEvent
 	mch         chan imessage
 	activated   bool
@@ -63,6 +64,7 @@ func NewStartEvent(ctx context.Context, wiring *Wiring,
 
 	evt = &StartEvent{
 		Wiring:      wiring,
+		ctx:         ctx,
 		element:     startEvent,
 		mch:         make(chan imessage, len(wiring.Incoming)*2+1),
 		activated:   false,
@@ -70,7 +72,7 @@ func NewStartEvent(ctx context.Context, wiring *Wiring,
 		satisfier:   logic.NewCatchEventSatisfier(startEvent, wiring.EventDefinitionInstanceBuilder),
 	}
 	sender := evt.Tracer.RegisterSender()
-	go evt.run(ctx, sender)
+	go evt.run(evt.ctx, sender)
 	err = evt.EventEgress.RegisterEventConsumer(evt)
 	if err != nil {
 		return
@@ -103,7 +105,7 @@ func (evt *StartEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 			default:
 			}
 		case <-ctx.Done():
-			evt.Tracer.Trace(CancellationFlowNodeTrace{Node: evt.element})
+			evt.Tracer.Send(CancellationFlowNodeTrace{Node: evt.element})
 			return
 		}
 	}

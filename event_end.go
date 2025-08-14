@@ -27,6 +27,7 @@ import (
 
 type EndEvent struct {
 	*Wiring
+	ctx                  context.Context
 	element              *schema.EndEvent
 	activated            bool
 	completed            bool
@@ -37,14 +38,13 @@ type EndEvent struct {
 func NewEndEvent(ctx context.Context, wiring *Wiring, endEvent *schema.EndEvent) (evt *EndEvent, err error) {
 	evt = &EndEvent{
 		Wiring:               wiring,
+		ctx:                  ctx,
 		element:              endEvent,
 		activated:            false,
 		completed:            false,
 		mch:                  make(chan imessage, len(wiring.Incoming)*2+1),
 		startEventsActivated: make([]*schema.StartEvent, 0),
 	}
-	sender := evt.Tracer.RegisterSender()
-	go evt.run(ctx, sender)
 	return
 }
 
@@ -69,18 +69,21 @@ func (evt *EndEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 					evt.completed = true
 					m.response <- CompleteAction{}
 				} else {
-					evt.Wiring.Tracer.Trace(ErrorTrace{Error: err})
+					evt.Wiring.Tracer.Send(ErrorTrace{Error: err})
 				}
 			default:
 			}
 		case <-ctx.Done():
-			evt.Tracer.Trace(CancellationFlowNodeTrace{Node: evt.element})
+			evt.Tracer.Send(CancellationFlowNodeTrace{Node: evt.element})
 			return
 		}
 	}
 }
 
 func (evt *EndEvent) NextAction(Flow) chan IAction {
+	sender := evt.Tracer.RegisterSender()
+	go evt.run(evt.ctx, sender)
+
 	response := make(chan IAction, 1)
 	evt.mch <- nextActionMessage{response: response}
 	return response

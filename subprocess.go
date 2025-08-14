@@ -35,7 +35,7 @@ type ProcessLandMarkTrace struct {
 	Node schema.FlowNodeInterface
 }
 
-func (t ProcessLandMarkTrace) Element() any { return t.Node }
+func (t ProcessLandMarkTrace) Unpack() any { return t.Node }
 
 type SubProcess struct {
 	*Wiring
@@ -43,6 +43,7 @@ type SubProcess struct {
 	cancel context.CancelFunc
 
 	element                *schema.SubProcess
+	parentTracer           tracing.ITracer
 	tracer                 tracing.ITracer
 	flowNodeMapping        *FlowNodeMapping
 	flowWaitGroup          sync.WaitGroup
@@ -73,6 +74,7 @@ func NewSubProcess(ctx context.Context,
 			ctx:                    ctx,
 			cancel:                 cancel,
 			element:                subProcess,
+			parentTracer:           tracer,
 			tracer:                 subTracer,
 			flowNodeMapping:        flowNodeMapping,
 			eventDefinitionBuilder: eventDefinitionBuilder,
@@ -400,7 +402,6 @@ func NewSubProcess(ctx context.Context,
 		// StartAll cease flow monitor
 		sender := process.Tracer.RegisterSender()
 		go process.ceaseFlowMonitor(subTracer)(ctx, sender)
-		go process.run(ctx, tracer)
 		node = process
 		return
 	}
@@ -513,7 +514,7 @@ func (p *SubProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.C
 		select {
 		case <-waitIsOver:
 			// Send out a cease flow trace
-			tracer.Trace(CeaseFlowTrace{Process: p.element})
+			tracer.Send(CeaseFlowTrace{Process: p.element})
 		case <-ctx.Done():
 
 		}
@@ -536,7 +537,7 @@ func (p *SubProcess) run(ctx context.Context, out tracing.ITracer) {
 						if pid, present := p.element.Id(); present {
 							subProcessId = *pid
 						}
-						out.Trace(ErrorTrace{Error: &errors.SubProcessError{
+						out.Send(ErrorTrace{Error: &errors.SubProcessError{
 							Id:     subProcessId,
 							Reason: err.Error(),
 						}})
@@ -550,21 +551,21 @@ func (p *SubProcess) run(ctx context.Context, out tracing.ITracer) {
 						select {
 						case trace = <-traces:
 						case <-ctx.Done():
-							p.Tracer.Trace(CancellationFlowNodeTrace{Node: p.element})
+							p.Tracer.Send(CancellationFlowNodeTrace{Node: p.element})
 							return
 						}
 
 						trace = tracing.Unwrap(trace)
 						switch tr := trace.(type) {
 						case CeaseFlowTrace:
-							out.Trace(ProcessLandMarkTrace{Node: p.element})
+							out.Send(ProcessLandMarkTrace{Node: p.element})
 							break loop
 						case CompletionTrace:
 							// ignore end event of subprocess
 						case TerminationTrace:
 							// ignore end event of subprocess
 						default:
-							out.Trace(tr)
+							out.Send(tr)
 						}
 					}
 					p.tracer.Unsubscribe(traces)
@@ -575,13 +576,15 @@ func (p *SubProcess) run(ctx context.Context, out tracing.ITracer) {
 			default:
 			}
 		case <-ctx.Done():
-			p.Tracer.Trace(CancellationFlowNodeTrace{Node: p.element})
+			p.Tracer.Send(CancellationFlowNodeTrace{Node: p.element})
 			return
 		}
 	}
 }
 
 func (p *SubProcess) NextAction(Flow) chan IAction {
+	go p.run(p.ctx, p.parentTracer)
+
 	response := make(chan IAction, 1)
 	p.mch <- nextActionMessage{response: response}
 	return response

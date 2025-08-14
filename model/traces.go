@@ -27,4 +27,4 @@ type EventInstantiationAttemptedTrace struct {
 	Node  schema.FlowNodeInterface
 }
 
-func (e EventInstantiationAttemptedTrace) Element() any { return e.Node }
+func (e EventInstantiationAttemptedTrace) Unpack() any { return e.Node }

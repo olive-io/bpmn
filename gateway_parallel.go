@@ -26,6 +26,7 @@ import (
 
 type ParallelGateway struct {
 	*Wiring
+	ctx                   context.Context
 	element               *schema.ParallelGateway
 	mch                   chan imessage
 	reportedIncomingFlows int
@@ -36,14 +37,14 @@ type ParallelGateway struct {
 func NewParallelGateway(ctx context.Context, wiring *Wiring, parallelGateway *schema.ParallelGateway) (gateway *ParallelGateway, err error) {
 	gateway = &ParallelGateway{
 		Wiring:                wiring,
+		ctx:                   ctx,
 		element:               parallelGateway,
 		mch:                   make(chan imessage, len(wiring.Incoming)*2+1),
 		reportedIncomingFlows: 0,
 		awaitingActions:       make([]chan IAction, 0),
 		noOfIncomingFlows:     len(wiring.Incoming),
 	}
-	sender := gateway.Tracer.RegisterSender()
-	go gateway.run(ctx, sender)
+
 	return
 }
 
@@ -68,17 +69,20 @@ func (gw *ParallelGateway) run(ctx context.Context, sender tracing.ISenderHandle
 				gw.reportedIncomingFlows++
 				gw.awaitingActions = append(gw.awaitingActions, m.response)
 				gw.flowWhenReady()
-				gw.Tracer.Trace(IncomingFlowProcessedTrace{Node: gw.element, Flow: m.flow})
+				gw.Tracer.Send(IncomingFlowProcessedTrace{Node: gw.element, Flow: m.flow})
 			default:
 			}
 		case <-ctx.Done():
-			gw.Tracer.Trace(CancellationFlowNodeTrace{Node: gw.element})
+			gw.Tracer.Send(CancellationFlowNodeTrace{Node: gw.element})
 			return
 		}
 	}
 }
 
 func (gw *ParallelGateway) NextAction(flow Flow) chan IAction {
+	sender := gw.Tracer.RegisterSender()
+	go gw.run(gw.ctx, sender)
+
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response
@@ -95,4 +99,4 @@ type IncomingFlowProcessedTrace struct {
 	Flow Flow
 }
 
-func (t IncomingFlowProcessedTrace) Element() any { return t.Node }
+func (t IncomingFlowProcessedTrace) Unpack() any { return t.Node }

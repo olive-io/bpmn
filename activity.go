@@ -70,6 +70,7 @@ func (m nextHarnessActionMessage) message() {}
 
 type Harness struct {
 	*Wiring
+	ctx                context.Context
 	mch                chan imessage
 	activity           Activity
 	active             int32
@@ -126,6 +127,7 @@ func NewHarness(ctx context.Context, wiring *Wiring, idGenerator id.IGenerator, 
 
 	node = &Harness{
 		Wiring:   wiring,
+		ctx:      ctx,
 		mch:      make(chan imessage, len(wiring.Incoming)*2+1),
 		activity: activity,
 	}
@@ -163,8 +165,6 @@ func NewHarness(ctx context.Context, wiring *Wiring, idGenerator id.IGenerator, 
 		flowable := newFlow(node.Definitions, catchEvent, node.Tracer, node.FlowNodeMapping, node.FlowWaitGroup, idGenerator, actionTransformer, node.Locator)
 		flowable.Start(ctx)
 	}
-	sender := node.Tracer.RegisterSender()
-	go node.run(ctx, sender)
 	return
 }
 
@@ -177,14 +177,14 @@ func (node *Harness) run(ctx context.Context, sender tracing.ISenderHandle) {
 			switch m := msg.(type) {
 			case nextHarnessActionMessage:
 				atomic.StoreInt32(&node.active, 1)
-				node.Tracer.Trace(ActiveBoundaryTrace{Start: true, Node: node.activity.Element()})
+				node.Tracer.Send(ActiveBoundaryTrace{Start: true, Node: node.activity.Element()})
 				in := node.activity.NextAction(m.flow)
 				out := make(chan IAction, 1)
 				go func(ctx context.Context) {
 					select {
 					case out <- <-in:
 						atomic.StoreInt32(&node.active, 0)
-						node.Tracer.Trace(ActiveBoundaryTrace{Start: false, Node: node.activity.Element()})
+						node.Tracer.Send(ActiveBoundaryTrace{Start: false, Node: node.activity.Element()})
 					case <-ctx.Done():
 						return
 					}
@@ -193,13 +193,16 @@ func (node *Harness) run(ctx context.Context, sender tracing.ISenderHandle) {
 			default:
 			}
 		case <-ctx.Done():
-			node.Tracer.Trace(CancellationFlowNodeTrace{Node: node.activity.Element()})
+			node.Tracer.Send(CancellationFlowNodeTrace{Node: node.activity.Element()})
 			return
 		}
 	}
 }
 
 func (node *Harness) NextAction(flow Flow) chan IAction {
+	sender := node.Tracer.RegisterSender()
+	go node.run(node.ctx, sender)
+
 	response := make(chan chan IAction, 1)
 	node.mch <- nextHarnessActionMessage{flow: flow, response: response}
 	return <-response
@@ -212,7 +215,7 @@ type ActiveBoundaryTrace struct {
 	Node  schema.FlowNodeInterface
 }
 
-func (b ActiveBoundaryTrace) Element() any { return b.Node }
+func (b ActiveBoundaryTrace) Unpack() any { return b.Node }
 
 type DoOption func(*DoResponse)
 
@@ -316,7 +319,7 @@ func (b *taskTraceBuilder) Build() *taskTrace {
 
 // TaskTrace describes a common channel handler for all tasks
 type TaskTrace interface {
-	Element() any
+	Unpack() any
 	Context() context.Context
 	GetActivity() Activity
 	GetDataObjects() map[string]any
@@ -351,7 +354,7 @@ func newTaskTrace() *taskTrace {
 	return &trace
 }
 
-func (t *taskTrace) Element() any { return t.activity }
+func (t *taskTrace) Unpack() any { return t.activity }
 
 func (t *taskTrace) Context() context.Context {
 	return t.ctx
