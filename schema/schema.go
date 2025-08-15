@@ -511,7 +511,7 @@ func (p *Properties) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 }
 
 type Result struct {
-	Item []*Item `xml:"http://olive.io/spec/BPMN/MODEL item"`
+	Field []*Item `xml:"http://olive.io/spec/BPMN/MODEL field"`
 }
 
 func (r *Result) MarshalXML(e *xml.Encoder, start xml.StartElement) error {

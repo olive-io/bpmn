@@ -12,9 +12,9 @@
       <bpmn:incoming>Flow_1hox6h5</bpmn:incoming>
       <bpmn:outgoing>Flow_0rnfgnz</bpmn:outgoing>
       <bpmn:extensionElements>
-        <olive:taskDefinition type="service" retries="2"/>
+        <olive:taskDefinition type="http" retries="2"/>
         <olive:taskHeaders>
-          <olive:header name="contentType" value="aplication/json" type="string"/>
+          <olive:header name="contentType" value="application/json" type="string"/>
         </olive:taskHeaders>
         <olive:properties>
           <olive:property name="a" value="1" type="integer"/>
@@ -22,6 +22,10 @@
           <olive:property name="c" value="" type="object"/>
           <olive:property name="d" value="hello"/>
         </olive:properties>
+        <olive:results>
+          <olive:field name="a" value="" type="integer"/>
+          <olive:field name="c" value="" type="object"/>
+        </olive:results>
       </bpmn:extensionElements>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_1hox6h5" sourceRef="start" targetRef="task" />

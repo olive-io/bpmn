@@ -23,7 +23,7 @@
           <olive:property name="d" value="" type="array"/>
         </olive:properties>
         <olive:results>
-          <olive:item name="foo" type="integer"/>
+          <olive:field name="foo" type="integer"/>
         </olive:results>
       </bpmn:extensionElements>
     </bpmn:serviceTask>

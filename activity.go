@@ -492,7 +492,7 @@ func ApplyTaskResult(element schema.BaseElementInterface, results map[string]any
 	outputs := map[string]data.IItem{}
 	if extension, found := element.ExtensionElements(); found {
 		if field := extension.ResultsField; field != nil {
-			for _, item := range extension.ResultsField.Item {
+			for _, item := range extension.ResultsField.Field {
 				value, ok := results[item.Name]
 				if ok {
 					outputs[item.Name] = value
@@ -502,8 +502,8 @@ func ApplyTaskResult(element schema.BaseElementInterface, results map[string]any
 		}
 	}
 
-	for key, value := range results {
-		outputs[key] = value
-	}
+	//for key, value := range results {
+	//	outputs[key] = value
+	//}
 	return outputs
 }
