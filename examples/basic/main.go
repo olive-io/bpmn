@@ -78,6 +78,7 @@ func NewWorkflow(ctx context.Context, reader io.Reader, opts ...bpmn.Option) (*W
 		ctx:         ctx,
 		cancel:      cancel,
 		definitions: &definitions,
+		processes:   instances,
 		tracer:      tracer,
 	}
 

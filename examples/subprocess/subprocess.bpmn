@@ -7,7 +7,7 @@
         xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
         xmlns:olive="http://olive.io/spec/BPMN/MODEL"
         id="Definitions_1x5sbww" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="14.0.0">
-  <bpmn:process id="Process_131dbre" isExecutable="false">
+  <bpmn:process id="Process_131dbre" isExecutable="true">
     <bpmn:startEvent id="StartEvent_12u3vga">
       <bpmn:outgoing>Flow_0hblmon</bpmn:outgoing>
     </bpmn:startEvent>
