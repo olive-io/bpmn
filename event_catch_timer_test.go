@@ -36,8 +36,7 @@ func TestCatchEvent_Timer(t *testing.T) {
 
 	LoadTestFile("testdata/intermediate_catch_event_timer.bpmn", &timerDoc)
 
-	processElement := (*timerDoc.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &timerDoc)
+	engine := bpmn.NewEngine()
 	fanOut := event.NewFanOut()
 	c := clock.NewMock()
 	ctx := clock.ToContext(context.Background(), c)
@@ -46,41 +45,38 @@ func TestCatchEvent_Timer(t *testing.T) {
 		timer.EventDefinitionInstanceBuilder(ctx, fanOut, tracer),
 	)
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))
-	if i, err := proc.Instantiate(
-		bpmn.WithTracer(tracer),
-		bpmn.WithEventDefinitionInstanceBuilder(eventInstanceBuilder),
-		bpmn.WithEventEgress(fanOut),
-		bpmn.WithEventIngress(fanOut),
-	); err == nil {
-		err := i.StartAll()
-		if err != nil {
-			t.Fatalf("failed to run the instance: %s", err)
-		}
-		advancedTime := false
-	loop:
-		for {
-			trace := tracing.Unwrap(<-traces)
-			switch trace := trace.(type) {
-			case bpmn.ActiveListeningTrace:
-				c.Add(1 * time.Minute)
-				advancedTime = true
-			case bpmn.CompletionTrace:
-				if id, present := trace.Node.Id(); present {
-					if *id == "end" {
-						require.True(t, advancedTime)
-						// success!
-						break loop
-					}
 
-				}
-			case bpmn.ErrorTrace:
-				t.Fatalf("%#v", trace)
-			default:
-				//t.Logf("%#v", trace)
-			}
-		}
-		i.Tracer().Unsubscribe(traces)
-	} else {
-		t.Fatalf("failed to instantiate the process: %s", err)
+	proc, err := engine.NewProcess(&timerDoc, bpmn.WithTracer(tracer),
+		bpmn.WithProcessEventDefinitionInstanceBuilder(eventInstanceBuilder),
+		bpmn.WithEventEgress(fanOut),
+		bpmn.WithEventIngress(fanOut))
+
+	err = proc.StartAll()
+	if err != nil {
+		t.Fatalf("failed to run the instance: %s", err)
 	}
+	advancedTime := false
+loop:
+	for {
+		trace := tracing.Unwrap(<-traces)
+		switch trace := trace.(type) {
+		case bpmn.ActiveListeningTrace:
+			c.Add(1 * time.Minute)
+			advancedTime = true
+		case bpmn.CompletionTrace:
+			if id, present := trace.Node.Id(); present {
+				if *id == "end" {
+					require.True(t, advancedTime)
+					// success!
+					break loop
+				}
+
+			}
+		case bpmn.ErrorTrace:
+			t.Fatalf("%#v", trace)
+		default:
+			//t.Logf("%#v", trace)
+		}
+	}
+	proc.Tracer().Unsubscribe(traces)
 }

@@ -34,11 +34,10 @@ func TestInclusiveGateway(t *testing.T) {
 	var testInclusiveGateway schema.Definitions
 	LoadTestFile("testdata/inclusive_gateway.bpmn", &testInclusiveGateway)
 
-	processElement := (*testInclusiveGateway.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testInclusiveGateway)
+	engine := bpmn.NewEngine()
 	tracer := tracing.NewTracer(context.Background())
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 32))
-	if inst, err := proc.Instantiate(bpmn.WithTracer(tracer)); err == nil {
+	if inst, err := engine.NewProcess(&testInclusiveGateway, bpmn.WithTracer(tracer)); err == nil {
 		err := inst.StartAll()
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
@@ -88,11 +87,10 @@ func TestInclusiveGatewayDefault(t *testing.T) {
 	var testInclusiveGatewayDefault schema.Definitions
 	LoadTestFile("testdata/inclusive_gateway_default.bpmn", &testInclusiveGatewayDefault)
 
-	processElement := (*testInclusiveGatewayDefault.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testInclusiveGatewayDefault)
+	engine := bpmn.NewEngine()
 	tracer := tracing.NewTracer(context.Background())
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 32))
-	if inst, err := proc.Instantiate(bpmn.WithTracer(tracer)); err == nil {
+	if inst, err := engine.NewProcess(&testInclusiveGatewayDefault, bpmn.WithTracer(tracer)); err == nil {
 		err := inst.StartAll()
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
@@ -144,9 +142,8 @@ func TestInclusiveGatewayNoDefault(t *testing.T) {
 	var testInclusiveGatewayNoDefault schema.Definitions
 	LoadTestFile("testdata/inclusive_gateway_no_default.bpmn", &testInclusiveGatewayNoDefault)
 
-	processElement := (*testInclusiveGatewayNoDefault.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testInclusiveGatewayNoDefault)
-	if inst, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if inst, err := engine.NewProcess(&testInclusiveGatewayNoDefault); err == nil {
 		traces := inst.Tracer().Subscribe()
 		err := inst.StartAll()
 		if err != nil {

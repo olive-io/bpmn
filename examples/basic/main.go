@@ -40,7 +40,6 @@ type Workflow struct {
 	tracer      tracing.ITracer
 	//traces      chan tracing.ITrace
 	processes []*bpmn.Process
-	instances []*bpmn.Instance
 }
 
 func NewWorkflow(ctx context.Context, reader io.Reader, opts ...bpmn.Option) (*Workflow, error) {
@@ -57,10 +56,9 @@ func NewWorkflow(ctx context.Context, reader io.Reader, opts ...bpmn.Option) (*W
 	ctx, cancel := context.WithCancel(ctx)
 	tracer := tracing.NewTracer(ctx)
 
-	instances := make([]*bpmn.Instance, 0)
+	instances := make([]*bpmn.Process, 0)
 
 	opts = append(opts, bpmn.WithContext(ctx), bpmn.WithTracer(tracer))
-	options := bpmn.NewOptions(opts...)
 
 	for _, element := range *definitions.Processes() {
 		able, ok := element.IsExecutable()
@@ -68,7 +66,7 @@ func NewWorkflow(ctx context.Context, reader io.Reader, opts ...bpmn.Option) (*W
 			continue
 		}
 
-		instance, err := bpmn.NewInstance(&element, &definitions, options)
+		instance, err := bpmn.NewProcess(&element, &definitions, opts...)
 		if err != nil {
 			cancel()
 			return nil, err
@@ -81,7 +79,6 @@ func NewWorkflow(ctx context.Context, reader io.Reader, opts ...bpmn.Option) (*W
 		cancel:      cancel,
 		definitions: &definitions,
 		tracer:      tracer,
-		instances:   instances,
 	}
 
 	return workflow, nil
@@ -104,7 +101,7 @@ func (w *Workflow) Run(handle Handle) error {
 	defer w.tracer.Unsubscribe(traces)
 	defer w.cancel()
 
-	for _, instance := range w.instances {
+	for _, instance := range w.processes {
 		if err := instance.StartAll(); err != nil {
 			return err
 		}

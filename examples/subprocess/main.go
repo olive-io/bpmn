@@ -42,8 +42,7 @@ func main() {
 		log.Fatalf("XML unmarshalling error: %v", err)
 	}
 
-	processElement := (*definitions.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &definitions)
+	engine := bpmn.NewEngine()
 	options := []bpmn.Option{
 		bpmn.WithVariables(map[string]any{
 			"c": map[string]string{"name": "cc"},
@@ -52,7 +51,7 @@ func main() {
 			"a": struct{}{},
 		}),
 	}
-	if ins, err := proc.Instantiate(options...); err == nil {
+	if ins, err := engine.NewProcess(&definitions, options...); err == nil {
 		traces := ins.Tracer().Subscribe()
 		err = ins.StartAll()
 		if err != nil {

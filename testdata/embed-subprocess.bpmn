@@ -7,7 +7,7 @@
         xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
         xmlns:olive="http://olive.io/spec/BPMN/MODEL"
         id="Definitions_1fuxcbv" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="14.0.0">
-  <bpmn:process id="Process_17pqvfw" isExecutable="false">
+  <bpmn:process id="Process_17pqvfw" isExecutable="true">
     <bpmn:subProcess id="Activity_0ihxgya">
       <bpmn:incoming>Flow_00ap9mm</bpmn:incoming>
       <bpmn:outgoing>Flow_1gcy3aa</bpmn:outgoing>

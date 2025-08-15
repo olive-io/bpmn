@@ -32,9 +32,8 @@ func TestParallelGateway(t *testing.T) {
 	var testParallelGateway schema.Definitions
 	LoadTestFile("testdata/parallel_gateway_fork_join.bpmn", &testParallelGateway)
 
-	processElement := (*testParallelGateway.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testParallelGateway)
-	if instance, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testParallelGateway); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {
@@ -81,9 +80,8 @@ func TestParallelGatewayMtoN(t *testing.T) {
 	var testParallelGatewayMtoN schema.Definitions
 	LoadTestFile("testdata/parallel_gateway_m_n.bpmn", &testParallelGatewayMtoN)
 
-	processElement := (*testParallelGatewayMtoN.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testParallelGatewayMtoN)
-	if instance, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testParallelGatewayMtoN); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {
@@ -129,9 +127,8 @@ func TestParallelGatewayNtoM(t *testing.T) {
 	var testParallelGatewayNtoM schema.Definitions
 	LoadTestFile("testdata/parallel_gateway_n_m.bpmn", &testParallelGatewayNtoM)
 
-	processElement := (*testParallelGatewayNtoM.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testParallelGatewayNtoM)
-	if instance, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testParallelGatewayNtoM); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {
@@ -178,9 +175,8 @@ func TestParallelGatewayIncompleteJoin(t *testing.T) {
 	var testParallelGatewayIncompleteJoin schema.Definitions
 	LoadTestFile("testdata/parallel_gateway_fork_incomplete_join.bpmn", &testParallelGatewayIncompleteJoin)
 
-	processElement := (*testParallelGatewayIncompleteJoin.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testParallelGatewayIncompleteJoin)
-	if instance, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testParallelGatewayIncompleteJoin); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {

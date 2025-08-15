@@ -35,8 +35,7 @@ func TestServiceTask(t *testing.T) {
 	var testTask schema.Definitions
 	LoadTestFile("testdata/service_task.bpmn", &testTask)
 
-	processElement := (*testTask.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testTask)
+	engine := bpmn.NewEngine()
 	options := []bpmn.Option{
 		bpmn.WithVariables(map[string]any{
 			"c": map[string]string{"name": "cc"},
@@ -46,7 +45,7 @@ func TestServiceTask(t *testing.T) {
 			"a": struct{}{},
 		}),
 	}
-	if ins, err := proc.Instantiate(options...); err == nil {
+	if ins, err := engine.NewProcess(&testTask, options...); err == nil {
 		traces := ins.Tracer().Subscribe()
 		err = ins.StartAll()
 		if err != nil {
@@ -98,10 +97,9 @@ func TestServiceTaskWithError(t *testing.T) {
 	var testTask schema.Definitions
 	LoadTestFile("testdata/service_task.bpmn", &testTask)
 
-	processElement := (*testTask.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testTask)
+	engine := bpmn.NewEngine()
 	var te error
-	if ins, err := proc.Instantiate(); err == nil {
+	if ins, err := engine.NewProcess(&testTask); err == nil {
 		traces := ins.Tracer().Subscribe()
 		err := ins.StartAll()
 		if err != nil {
@@ -149,13 +147,12 @@ func TestServiceTaskWithRetry(t *testing.T) {
 	var testTask schema.Definitions
 	LoadTestFile("testdata/service_task.bpmn", &testTask)
 
-	processElement := (*testTask.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testTask)
+	engine := bpmn.NewEngine()
 	var te error
 	runnum := 0
 	_, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	if ins, err := proc.Instantiate(); err == nil {
+	if ins, err := engine.NewProcess(&testTask); err == nil {
 		traces := ins.Tracer().Subscribe()
 		err = ins.StartAll()
 		if err != nil {
@@ -210,14 +207,13 @@ func TestServiceTaskWithRetry(t *testing.T) {
 func TestServiceTaskWithDataInput(t *testing.T) {
 	task := &schema.Definitions{}
 	LoadTestFile("testdata/service_task_data.bpmn", &task)
-	processElement := (*task.Processes())[0]
 	locator := data.NewFlowDataLocator()
 	options := []bpmn.Option{
 		bpmn.WithLocator(locator),
 		bpmn.WithDataObjects(map[string]any{"DataObject_0yhrl3s": map[string]any{"a": "ac"}}),
 	}
-	proc := bpmn.NewProcess(&processElement, task)
-	if ins, err := proc.Instantiate(options...); err == nil {
+	engine := bpmn.NewEngine()
+	if ins, err := engine.NewProcess(task, options...); err == nil {
 		traces := ins.Tracer().Subscribe()
 		err := ins.StartAll()
 		if err != nil {

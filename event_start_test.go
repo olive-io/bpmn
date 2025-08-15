@@ -29,11 +29,11 @@ func TestStartEvent(t *testing.T) {
 
 	LoadTestFile("testdata/start.bpmn", &testDoc)
 
-	processElement := (*testDoc.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testDoc)
-	if instance, err := proc.Instantiate(); err == nil {
-		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+	engine := bpmn.NewEngine()
+	proc, err := engine.NewProcess(&testDoc)
+	if err == nil {
+		traces := proc.Tracer().Subscribe()
+		err := proc.StartAll()
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -57,7 +57,7 @@ func TestStartEvent(t *testing.T) {
 				//t.Logf("%#v", trace)
 			}
 		}
-		instance.Tracer().Unsubscribe(traces)
+		proc.Tracer().Unsubscribe(traces)
 	} else {
 		t.Fatalf("failed to instantiate the process: %s", err)
 	}

@@ -46,11 +46,11 @@ func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...ev
 	var testDoc schema.Definitions
 	LoadTestFile("testdata/event_based_gateway.bpmn", &testDoc)
 
-	processElement := (*testDoc.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testDoc)
-	if instance, err := proc.Instantiate(); err == nil {
-		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+	engine := bpmn.NewEngine()
+	proc, err := engine.NewProcess(&testDoc)
+	if err == nil {
+		traces := proc.Tracer().Subscribe()
+		err := proc.StartAll()
 		if err != nil {
 			t.Errorf("failed to run the instance: %s", err)
 			return
@@ -122,7 +122,7 @@ func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...ev
 		}()
 
 		for _, evt := range events {
-			_, err := instance.ConsumeEvent(evt)
+			_, err := proc.ConsumeEvent(evt)
 			if err != nil {
 				t.Error(err)
 				return
@@ -131,7 +131,7 @@ func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...ev
 
 		test(<-ch)
 
-		instance.Tracer().Unsubscribe(traces)
+		proc.Tracer().Unsubscribe(traces)
 	} else {
 		t.Errorf("failed to instantiate the process: %s", err)
 		return

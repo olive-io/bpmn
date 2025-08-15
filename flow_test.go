@@ -33,9 +33,8 @@ func TestTrueFormalExpression(t *testing.T) {
 	var testCondExpr schema.Definitions
 	LoadTestFile("testdata/condexpr.bpmn", &testCondExpr)
 
-	processElement := (*testCondExpr.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testCondExpr)
-	if instance, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testCondExpr); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {
@@ -70,9 +69,8 @@ func TestFalseFormalExpression(t *testing.T) {
 
 	LoadTestFile("testdata/condexpr_false.bpmn", &testCondExprFalse)
 
-	processElement := (*testCondExprFalse.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testCondExprFalse)
-	if instance, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testCondExprFalse); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {
@@ -110,9 +108,8 @@ func TestCondDataObject(t *testing.T) {
 
 	test := func(cond, expected string) func(t *testing.T) {
 		return func(t *testing.T) {
-			processElement := (*testCondDataObject.Processes())[0]
-			proc := bpmn.NewProcess(&processElement, &testCondDataObject)
-			if instance, err := proc.Instantiate(); err == nil {
+			engine := bpmn.NewEngine()
+			if instance, err := engine.NewProcess(&testCondDataObject); err == nil {
 				traces := instance.Tracer().Subscribe()
 				// Set all data objects to false by default, except for `cond`
 				for _, k := range []string{"cond1o", "cond2o"} {

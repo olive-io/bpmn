@@ -85,6 +85,8 @@ func NewExclusiveGateway(ctx context.Context, wiring *Wiring, exclusiveGateway *
 		defaultSequenceFlow:     defaultSequenceFlow,
 		probing:                 make(map[id.Id]*chan IAction),
 	}
+	sender := gw.Tracer.RegisterSender()
+	go gw.run(gw.ctx, sender)
 
 	return
 }
@@ -176,9 +178,6 @@ func (gw *ExclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 }
 
 func (gw *ExclusiveGateway) NextAction(flow Flow) chan IAction {
-	sender := gw.Tracer.RegisterSender()
-	go gw.run(gw.ctx, sender)
-
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response

@@ -29,12 +29,11 @@ func TestScriptTask(t *testing.T) {
 
 	LoadTestFile("testdata/script_task.bpmn", &testTask)
 
-	processElement := (*testTask.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testTask)
+	engine := bpmn.NewEngine()
 	option := bpmn.WithVariables(map[string]any{
 		"c": map[string]string{"name": "cc"},
 	})
-	if instance, err := proc.Instantiate(option); err == nil {
+	if instance, err := engine.NewProcess(&testTask, option); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err = instance.StartAll()
 		if err != nil {

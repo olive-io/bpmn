@@ -442,7 +442,7 @@ func (p *SubProcess) startWith(ctx context.Context, startEvent schema.StartEvent
 	if !ok {
 		err = errors.RequirementExpectationError{
 			Expected: fmt.Sprintf("start event %s flow node in process %s to be of type start.Node", elementId, processId),
-			Actual:   fmt.Sprintf("%Flow", flowNode),
+			Actual:   fmt.Sprintf("%sFlow", flowNode),
 		}
 		return
 	}

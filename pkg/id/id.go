@@ -36,5 +36,3 @@ type Id interface {
 	Bytes() []byte
 	String() string
 }
-
-var DefaultIdGeneratorBuilder IGeneratorBuilder

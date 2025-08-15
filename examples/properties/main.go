@@ -41,8 +41,6 @@ func main() {
 		log.Fatalf("XML unmarshalling error: %v", err)
 	}
 
-	processElement := (*definitions.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, definitions)
 	options := []bpmn.Option{
 		bpmn.WithVariables(map[string]any{
 			"c": map[string]string{"name": "cc"},
@@ -51,12 +49,13 @@ func main() {
 			"a": struct{}{},
 		}),
 	}
-	ctx := context.Background()
-	ins, err := proc.Instantiate(options...)
+	engine := bpmn.NewEngine()
+	ins, err := engine.NewProcess(definitions, options...)
 	if err != nil {
-		log.Fatalf("failed to instantiate the process: %s", err)
-		return
+		log.Fatalf("Can't create process: %v", err)
 	}
+
+	ctx := context.Background()
 	traces := ins.Tracer().Subscribe()
 	err = ins.StartAll()
 	if err != nil {

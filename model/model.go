@@ -30,7 +30,7 @@ import (
 
 type Model struct {
 	Element                        *schema.Definitions
-	processes                      []bpmn.Process
+	processes                      []*bpmn.Process
 	eventConsumersLock             sync.RWMutex
 	eventConsumers                 []event.IConsumer
 	idGeneratorBuilder             id.IGeneratorBuilder
@@ -70,7 +70,7 @@ func WithTracer(tracer tracing.ITracer) Option {
 	}
 }
 
-func New(element *schema.Definitions, options ...Option) *Model {
+func New(element *schema.Definitions, options ...Option) (*Model, error) {
 	procs := element.Processes()
 	model := &Model{
 		Element: element,
@@ -83,11 +83,16 @@ func New(element *schema.Definitions, options ...Option) *Model {
 	}
 
 	if model.idGeneratorBuilder == nil {
-		model.idGeneratorBuilder = id.DefaultIdGeneratorBuilder
+		model.idGeneratorBuilder = id.GetSno()
 	}
 
 	if model.tracer == nil {
 		model.tracer = tracing.NewTracer(ctx)
+	}
+
+	idGenerator, err := model.idGeneratorBuilder.NewIdGenerator(ctx, model.tracer)
+	if err != nil {
+		return nil, err
 	}
 
 	if model.eventDefinitionInstanceBuilder == nil {
@@ -97,18 +102,21 @@ func New(element *schema.Definitions, options ...Option) *Model {
 		)
 	}
 
-	model.processes = make([]bpmn.Process, len(*procs))
+	model.processes = make([]*bpmn.Process, len(*procs))
 
 	for i := range *procs {
-		model.processes[i] = bpmn.MakeProcess(&(*procs)[i], element,
-			bpmn.WithIdGenerator(model.idGeneratorBuilder),
+		model.processes[i], err = bpmn.NewProcess(&(*procs)[i], element,
+			bpmn.WithIdGenerator(idGenerator),
 			bpmn.WithEventIngress(model), bpmn.WithEventEgress(model),
-			bpmn.WithEventDefinitionInstanceBuilder(model),
+			bpmn.WithProcessEventDefinitionInstanceBuilder(model),
 			bpmn.WithContext(ctx),
 			bpmn.WithTracer(model.tracer),
 		)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return model
+	return model, nil
 }
 
 func (model *Model) Run(ctx context.Context) (err error) {
@@ -122,7 +130,7 @@ func (model *Model) Run(ctx context.Context) (err error) {
 			case *schema.StartEvent:
 				err = model.RegisterEventConsumer(newStartEventConsumer(ctx,
 					model.tracer,
-					&model.processes[i],
+					model.processes[i],
 					node, model.eventDefinitionInstanceBuilder))
 				if err != nil {
 					return
@@ -137,8 +145,8 @@ func (model *Model) Run(ctx context.Context) (err error) {
 
 func (model *Model) FindProcessBy(f func(*bpmn.Process) bool) (result *bpmn.Process, found bool) {
 	for i := range model.processes {
-		if f(&model.processes[i]) {
-			result = &model.processes[i]
+		if f(model.processes[i]) {
+			result = model.processes[i]
 			found = true
 			return
 		}

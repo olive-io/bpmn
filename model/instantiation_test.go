@@ -39,8 +39,9 @@ func TestStartEventInstantiation(t *testing.T) {
 	ctx := context.Background()
 	tracer := tracing.NewTracer(ctx)
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))
-	m := model.New(&testStartEventInstantiation, model.WithContext(ctx), model.WithTracer(tracer))
-	err := m.Run(ctx)
+	m, err := model.New(&testStartEventInstantiation, model.WithContext(ctx), model.WithTracer(tracer))
+	require.Nil(t, err)
+	err = m.Run(ctx)
 	require.Nil(t, err)
 loop:
 	for {
@@ -78,8 +79,9 @@ func TestMultipleStartEventInstantiation(t *testing.T) {
 	ctx := context.Background()
 	tracer := tracing.NewTracer(ctx)
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))
-	m := model.New(&testStartEventInstantiation, model.WithContext(ctx), model.WithTracer(tracer))
-	err := m.Run(ctx)
+	m, err := model.New(&testStartEventInstantiation, model.WithContext(ctx), model.WithTracer(tracer))
+	require.Nil(t, err)
+	err = m.Run(ctx)
 	require.Nil(t, err)
 loop:
 	for {
@@ -117,8 +119,9 @@ func TestParallelMultipleStartEventInstantiation(t *testing.T) {
 	ctx := context.Background()
 	tracer := tracing.NewTracer(ctx)
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))
-	m := model.New(&testStartEventInstantiation, model.WithContext(ctx), model.WithTracer(tracer))
-	err := m.Run(ctx)
+	m, err := model.New(&testStartEventInstantiation, model.WithContext(ctx), model.WithTracer(tracer))
+	require.Nil(t, err)
+	err = m.Run(ctx)
 	require.Nil(t, err)
 loop:
 	for {

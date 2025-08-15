@@ -81,21 +81,21 @@ func (s *startEventConsumer) ConsumeEvent(ev event.IEvent) (result event.Consump
 		if chain > len(s.events)-1 {
 			s.events = append(s.events, []event.IEvent{ev})
 		}
-		var inst *bpmn.Instance
-		inst, err = s.process.Instantiate(
-			bpmn.WithContext(s.ctx),
-			bpmn.WithTracer(s.tracer),
-			bpmn.WithEventDefinitionInstanceBuilder(event.DefinitionInstanceBuildingChain(
-				s, // this will pass-through already existing event definition instance from this execution
-				s.eventInstanceBuilder,
-			)),
-		)
-		if err != nil {
-			result = event.ConsumptionError
-			return
-		}
+		//var inst *bpmn.Process
+		//inst, err = s.process.Instantiate(
+		//	bpmn.WithContext(s.ctx),
+		//	bpmn.WithTracer(s.tracer),
+		//	bpmn.WithEventDefinitionInstanceBuilder(event.DefinitionInstanceBuildingChain(
+		//		s, // this will pass-through already existing event definition instance from this execution
+		//		s.eventInstanceBuilder,
+		//	)),
+		//)
+		//if err != nil {
+		//	result = event.ConsumptionError
+		//	return
+		//}
 		for _, ev := range s.events[chain] {
-			result, err = inst.ConsumeEvent(ev)
+			result, err = s.process.ConsumeEvent(ev)
 			if err != nil {
 				result = event.ConsumptionError
 				return

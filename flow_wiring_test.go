@@ -49,7 +49,8 @@ func TestNewWiring(t *testing.T) {
 				event.VoidSource{},
 				tracing.NewTracer(context.Background()), bpmn.NewLockedFlowNodeMapping(),
 				&waitGroup,
-				event.WrappingDefinitionInstanceBuilder, locator,
+				event.WrappingDefinitionInstanceBuilder,
+				locator,
 			)
 			assert.Nil(t, err)
 			assert.Equal(t, 1, len(node.Incoming))

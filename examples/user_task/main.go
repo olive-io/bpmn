@@ -46,70 +46,71 @@ func main() {
 	cache := map[string]struct{}{}
 	users := map[string]string{}
 
-	processElement := (*definitions.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &definitions)
+	engine := bpmn.NewEngine()
+
 	options := []bpmn.Option{
 		bpmn.WithVariables(map[string]any{}),
 		bpmn.WithDataObjects(map[string]any{}),
 	}
-	ctx := context.Background()
-	if ins, err := proc.Instantiate(options...); err == nil {
-		traces := ins.Tracer().Subscribe()
-		err = ins.StartAll()
-		if err != nil {
-			log.Fatalf("failed to run the instance: %s", err)
-		}
-		done := make(chan struct{}, 1)
-		go func() {
-			defer close(done)
-			for {
-				var trace tracing.ITrace
-				select {
-				case trace = <-traces:
-				}
 
-				trace = tracing.Unwrap(trace)
-				switch trace := trace.(type) {
-				case bpmn.FlowTrace:
-				case bpmn.TaskTrace:
-					id, _ := trace.GetActivity().Element().Id()
-					if _, ok := cache[*id]; ok {
-						// already executed, skip it
-						break
-					}
-
-					cache[*id] = struct{}{}
-
-					uid := trace.GetProperties()["uid"]
-					users[uid.(string)] = "waiting"
-
-					//TODO: waiting for client requesting
-
-					// executes user task
-					trace.Do()
-					log.Printf("%#v", trace)
-				case bpmn.ErrorTrace:
-					log.Fatalf("%#v", trace)
-					return
-				case bpmn.CeaseFlowTrace:
-					return
-				default:
-					log.Printf("%#v", trace)
-				}
-			}
-		}()
-
-		select {
-		case <-done:
-		case <-ctx.Done():
-		}
-
-		ins.WaitUntilComplete(ctx)
-
-		//pros := ins.Locator().CloneVariables()
-		log.Printf("%#v", users)
-		ins.Tracer().Unsubscribe(traces)
-	} else {
-		log.Fatalf("failed to instantiate the process: %s", err)
+	proc, err := engine.NewProcess(&definitions, options...)
+	if err != nil {
+		log.Fatalf("Can't create process: %v", err)
 	}
+	ctx := context.Background()
+	traces := proc.Tracer().Subscribe()
+	defer proc.Tracer().Unsubscribe(traces)
+	err = proc.StartAll()
+	if err != nil {
+		log.Fatalf("failed to run the instance: %s", err)
+	}
+	done := make(chan struct{}, 1)
+	go func() {
+		defer close(done)
+		for {
+			var trace tracing.ITrace
+			select {
+			case trace = <-traces:
+			}
+
+			trace = tracing.Unwrap(trace)
+			switch trace := trace.(type) {
+			case bpmn.FlowTrace:
+			case bpmn.TaskTrace:
+				id, _ := trace.GetActivity().Element().Id()
+				if _, ok := cache[*id]; ok {
+					// already executed, skip it
+					break
+				}
+
+				cache[*id] = struct{}{}
+
+				uid := trace.GetProperties()["uid"]
+				users[uid.(string)] = "waiting"
+
+				//TODO: waiting for client requesting
+
+				// executes user task
+				trace.Do()
+				log.Printf("%#v", trace)
+			case bpmn.ErrorTrace:
+				log.Fatalf("%#v", trace)
+				return
+			case bpmn.CeaseFlowTrace:
+				return
+			default:
+				log.Printf("%#v", trace)
+			}
+		}
+	}()
+
+	select {
+	case <-done:
+	case <-ctx.Done():
+	}
+
+	proc.WaitUntilComplete(ctx)
+
+	//pros := ins.Locator().CloneVariables()
+	log.Printf("%#v", users)
 }

@@ -91,91 +91,88 @@ func TestConditionalEvent(t *testing.T) {
 func testEvent(t *testing.T, filename string, nodeId string, eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder, eventObservationOnly bool, events ...event.IEvent) {
 	var testDoc schema.Definitions
 	LoadTestFile(filename, &testDoc)
-	processElement := (*testDoc.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testDoc, bpmn.WithEventDefinitionInstanceBuilder(eventDefinitionInstanceBuilder))
+	engine := bpmn.NewEngine()
 
 	tracer := tracing.NewTracer(context.Background())
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 64))
 
-	if inst, err := proc.Instantiate(bpmn.WithTracer(tracer)); err == nil {
-		err := inst.StartAll()
-		if err != nil {
-			t.Fatalf("failed to run the instance: %s", err)
-		}
-		resultChan := make(chan bool)
-		go func() {
-			for {
-				trace := tracing.Unwrap(<-traces)
-				switch trace := trace.(type) {
-				case bpmn.ActiveListeningTrace:
-					if id, present := trace.Node.Id(); present {
-						if *id == nodeId {
-							// listening
-							resultChan <- true
-							return
-						}
+	inst, err := engine.NewProcess(&testDoc, bpmn.WithProcessEventDefinitionInstanceBuilder(eventDefinitionInstanceBuilder), bpmn.WithTracer(tracer))
+	assert.Nil(t, err)
 
-					}
-				case bpmn.ErrorTrace:
-					t.Errorf("%#v", trace)
-					resultChan <- false
-					return
-				default:
-					//t.Logf("%#v", trace)
-				}
-			}
-		}()
-
-		assert.True(t, <-resultChan)
-
-		go func() {
-			defer inst.Tracer().Unsubscribe(traces)
-			eventsToObserve := events
-			for {
-				trace := tracing.Unwrap(<-traces)
-				switch trace := trace.(type) {
-				case bpmn.EventObservedTrace:
-					if eventObservationOnly {
-						for i := range eventsToObserve {
-							if eventsToObserve[i] == trace.Event {
-								eventsToObserve[i] = eventsToObserve[len(eventsToObserve)-1]
-								eventsToObserve = eventsToObserve[:len(eventsToObserve)-1]
-								break
-							}
-						}
-						if len(eventsToObserve) == 0 {
-							resultChan <- true
-							return
-						}
-					}
-				case bpmn.FlowTrace:
-					if id, present := trace.Source.Id(); present {
-						if *id == nodeId {
-							// success!
-							resultChan <- true
-							return
-						}
-
-					}
-				case bpmn.ErrorTrace:
-					t.Errorf("%#v", trace)
-					resultChan <- false
-					return
-				default:
-					//t.Logf("%#v", trace)
-				}
-			}
-		}()
-
-		for _, evt := range events {
-			_, err = inst.ConsumeEvent(evt)
-			assert.Nil(t, err)
-		}
-
-		assert.True(t, <-resultChan)
-
-	} else {
-		t.Fatalf("failed to instantiate the process: %s", err)
+	err = inst.StartAll()
+	if err != nil {
+		t.Fatalf("failed to run the instance: %s", err)
 	}
+	resultChan := make(chan bool)
+	go func() {
+		for {
+			trace := tracing.Unwrap(<-traces)
+			switch trace := trace.(type) {
+			case bpmn.ActiveListeningTrace:
+				if id, present := trace.Node.Id(); present {
+					if *id == nodeId {
+						// listening
+						resultChan <- true
+						return
+					}
+
+				}
+			case bpmn.ErrorTrace:
+				t.Errorf("%#v", trace)
+				resultChan <- false
+				return
+			default:
+				//t.Logf("%#v", trace)
+			}
+		}
+	}()
+
+	assert.True(t, <-resultChan)
+
+	go func() {
+		defer inst.Tracer().Unsubscribe(traces)
+		eventsToObserve := events
+		for {
+			trace := tracing.Unwrap(<-traces)
+			switch trace := trace.(type) {
+			case bpmn.EventObservedTrace:
+				if eventObservationOnly {
+					for i := range eventsToObserve {
+						if eventsToObserve[i] == trace.Event {
+							eventsToObserve[i] = eventsToObserve[len(eventsToObserve)-1]
+							eventsToObserve = eventsToObserve[:len(eventsToObserve)-1]
+							break
+						}
+					}
+					if len(eventsToObserve) == 0 {
+						resultChan <- true
+						return
+					}
+				}
+			case bpmn.FlowTrace:
+				if id, present := trace.Source.Id(); present {
+					if *id == nodeId {
+						// success!
+						resultChan <- true
+						return
+					}
+
+				}
+			case bpmn.ErrorTrace:
+				t.Errorf("%#v", trace)
+				resultChan <- false
+				return
+			default:
+				//t.Logf("%#v", trace)
+			}
+		}
+	}()
+
+	for _, evt := range events {
+		_, err = inst.ConsumeEvent(evt)
+		assert.Nil(t, err)
+	}
+
+	assert.True(t, <-resultChan)
 
 }

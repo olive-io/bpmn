@@ -29,36 +29,36 @@ func TestEndEvent(t *testing.T) {
 
 	LoadTestFile("testdata/start.bpmn", &testDoc)
 
-	processElement := (*testDoc.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testDoc)
-	if instance, err := proc.Instantiate(); err == nil {
-		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
-		if err != nil {
-			t.Fatalf("failed to run the instance: %s", err)
-		}
-	loop:
-		for {
-			trace := tracing.Unwrap(<-traces)
-			switch trace := trace.(type) {
-			case bpmn.CompletionTrace:
-				if id, present := trace.Node.Id(); present {
-					if *id == "end" {
-						// success!
-						t.Logf("do end event")
-					}
-
-				}
-			case bpmn.ErrorTrace:
-				t.Fatalf("%#v", trace)
-			case bpmn.CeaseFlowTrace:
-				break loop
-			default:
-				//t.Logf("%#v", trace)
-			}
-		}
-		instance.Tracer().Unsubscribe(traces)
-	} else {
-		t.Fatalf("failed to instantiate the process: %s", err)
+	engine := bpmn.NewEngine()
+	proc, err := engine.NewProcess(&testDoc)
+	if err != nil {
+		t.Fatal(err)
 	}
+
+	traces := proc.Tracer().Subscribe()
+	err = proc.StartAll()
+	if err != nil {
+		t.Fatalf("failed to run the instance: %s", err)
+	}
+loop:
+	for {
+		trace := tracing.Unwrap(<-traces)
+		switch trace := trace.(type) {
+		case bpmn.CompletionTrace:
+			if id, present := trace.Node.Id(); present {
+				if *id == "end" {
+					// success!
+					t.Logf("do end event")
+				}
+
+			}
+		case bpmn.ErrorTrace:
+			t.Fatalf("%#v", trace)
+		case bpmn.CeaseFlowTrace:
+			break loop
+		default:
+			//t.Logf("%#v", trace)
+		}
+	}
+	proc.Tracer().Unsubscribe(traces)
 }

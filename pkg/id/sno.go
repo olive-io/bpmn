@@ -50,7 +50,7 @@ func (g *Sno) RestoreIdGenerator(ctx context.Context, bytes []byte, tracer traci
 			return
 		}
 	}
-	sequenceOverflowNotificationChannel := make(chan *sno.SequenceOverflowNotification)
+	sequenceOverflowNotificationChannel := make(chan *sno.SequenceOverflowNotification, 1)
 	go func(ctx context.Context) {
 		for {
 			select {
@@ -90,8 +90,4 @@ func (id *SnoId) String() string {
 
 func (id *SnoId) Bytes() []byte {
 	return id.ID.Bytes()
-}
-
-func init() {
-	DefaultIdGeneratorBuilder = GetSno()
 }

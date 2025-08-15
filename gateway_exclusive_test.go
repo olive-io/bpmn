@@ -33,9 +33,8 @@ func TestExclusiveGateway(t *testing.T) {
 	var testExclusiveGateway schema.Definitions
 	LoadTestFile("testdata/exclusive_gateway.bpmn", &testExclusiveGateway)
 
-	processElement := (*testExclusiveGateway.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testExclusiveGateway)
-	if instance, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testExclusiveGateway); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {
@@ -79,9 +78,8 @@ func TestExclusiveGatewayWithDefault(t *testing.T) {
 	var testExclusiveGatewayWithDefault schema.Definitions
 	LoadTestFile("testdata/exclusive_gateway_default.bpmn", &testExclusiveGatewayWithDefault)
 
-	processElement := (*testExclusiveGatewayWithDefault.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testExclusiveGatewayWithDefault)
-	if instance, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testExclusiveGatewayWithDefault); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {
@@ -128,9 +126,8 @@ func TestExclusiveGatewayWithNoDefault(t *testing.T) {
 	var testExclusiveGatewayWithNoDefault schema.Definitions
 	LoadTestFile("testdata/exclusive_gateway_no_default.bpmn", &testExclusiveGatewayWithNoDefault)
 
-	processElement := (*testExclusiveGatewayWithNoDefault.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testExclusiveGatewayWithNoDefault)
-	if instance, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testExclusiveGatewayWithNoDefault); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {
@@ -180,9 +177,8 @@ func TestExclusiveGatewayIncompleteJoin(t *testing.T) {
 
 	LoadTestFile("testdata/exclusive_gateway_multiple_incoming.bpmn", &testExclusiveGatewayIncompleteJoin)
 
-	processElement := (*testExclusiveGatewayIncompleteJoin.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testExclusiveGatewayIncompleteJoin)
-	if instance, err := proc.Instantiate(bpmn.WithVariables(map[string]any{"a": 1})); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testExclusiveGatewayIncompleteJoin, bpmn.WithVariables(map[string]any{"a": 1})); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {

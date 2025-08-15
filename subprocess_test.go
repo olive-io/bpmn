@@ -28,9 +28,8 @@ func TestSubprocess(t *testing.T) {
 	var testTask schema.Definitions
 
 	LoadTestFile("testdata/subprocess.bpmn", &testTask)
-	processElement := (*testTask.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testTask)
-	if instance, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testTask); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {
@@ -66,9 +65,8 @@ func TestEmbedSubprocess(t *testing.T) {
 
 	LoadTestFile("testdata/embed-subprocess.bpmn", &testTask)
 
-	processElement := (*testTask.Processes())[0]
-	proc := bpmn.NewProcess(&processElement, &testTask)
-	if instance, err := proc.Instantiate(); err == nil {
+	engine := bpmn.NewEngine()
+	if instance, err := engine.NewProcess(&testTask); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll()
 		if err != nil {

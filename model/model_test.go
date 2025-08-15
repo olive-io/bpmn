@@ -46,7 +46,7 @@ func LoadTestFile(filename string, definitions any) {
 
 func exactId(s string) func(p *bpmn.Process) bool {
 	return func(p *bpmn.Process) bool {
-		if id, present := p.Element.Id(); present {
+		if id, present := p.Element().Id(); present {
 			return *id == s
 		} else {
 			return false
@@ -61,9 +61,10 @@ func init() {
 }
 
 func TestFindProcess(t *testing.T) {
-	model := model.New(&sampleDoc)
+	model, err := model.New(&sampleDoc)
+	assert.NoError(t, err)
 	if proc, found := model.FindProcessBy(exactId("sample")); found {
-		if id, present := proc.Element.Id(); present {
+		if id, present := proc.Element().Id(); present {
 			assert.Equal(t, *id, "sample")
 		} else {
 			t.Fatalf("found a process but it has no FlowNodeId")
