@@ -19,7 +19,6 @@ package main
 import (
 	"context"
 	"embed"
-	"encoding/xml"
 	"log"
 
 	"github.com/olive-io/bpmn/schema"
@@ -41,8 +40,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("XML unmarshalling error: %v", err)
 	}
-
-	xml.Marshal(definitions)
 
 	processElement := (*definitions.Processes())[0]
 	proc := bpmn.NewProcess(&processElement, definitions)
