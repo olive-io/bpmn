@@ -32,7 +32,7 @@ type nextTaskActionMessage struct {
 
 func (m nextTaskActionMessage) message() {}
 
-type Task struct {
+type genericTask struct {
 	*Wiring
 	ctx          context.Context
 	cancel       context.CancelFunc
@@ -45,7 +45,7 @@ func NewTask(ctx context.Context, element schema.FlowNodeInterface, activityType
 	return func(wiring *Wiring) (activity Activity, err error) {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithCancel(ctx)
-		taskNode := &Task{
+		taskNode := &genericTask{
 			Wiring:       wiring,
 			ctx:          ctx,
 			cancel:       cancel,
@@ -58,7 +58,7 @@ func NewTask(ctx context.Context, element schema.FlowNodeInterface, activityType
 	}
 }
 
-func (task *Task) run(ctx context.Context) {
+func (task *genericTask) run(ctx context.Context) {
 	for {
 		select {
 		case msg := <-task.mch:
@@ -114,7 +114,7 @@ func (task *Task) run(ctx context.Context) {
 	}
 }
 
-func (task *Task) NextAction(Flow) chan IAction {
+func (task *genericTask) NextAction(Flow) chan IAction {
 	go task.run(task.ctx)
 
 	response := make(chan IAction, 1)
@@ -131,15 +131,15 @@ func (task *Task) NextAction(Flow) chan IAction {
 	return response
 }
 
-func (task *Task) Element() schema.FlowNodeInterface {
+func (task *genericTask) Element() schema.FlowNodeInterface {
 	return task.element
 }
 
-func (task *Task) Type() ActivityType {
+func (task *genericTask) Type() ActivityType {
 	return task.activityType
 }
 
-func (task *Task) Cancel() <-chan bool {
+func (task *genericTask) Cancel() <-chan bool {
 	response := make(chan bool)
 	task.mch <- cancelMessage{response: response}
 	return response

@@ -205,7 +205,8 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, TaskActivity))
+		task := NewTask(ctx, element, TaskActivity)
+		harness, err = NewHarness(ctx, wiring, idGenerator, task)
 		if err != nil {
 			return
 		}
@@ -222,7 +223,8 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, BusinessRuleActivity))
+		businessRule := NewTask(ctx, element, BusinessRuleActivity)
+		harness, err = NewHarness(ctx, wiring, idGenerator, businessRule)
 		if err != nil {
 			return
 		}
@@ -239,7 +241,8 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, CallActivity))
+		callAct := NewTask(ctx, element, CallActivity)
+		harness, err = NewHarness(ctx, wiring, idGenerator, callAct)
 		if err != nil {
 			return
 		}
@@ -256,7 +259,8 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, ManualTaskActivity))
+		manualTask := NewTask(ctx, element, ManualTaskActivity)
+		harness, err = NewHarness(ctx, wiring, idGenerator, manualTask)
 		if err != nil {
 			return
 		}
@@ -309,8 +313,8 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		scriptTask := NewTask(ctx, element, ScriptTaskActivity)
-		harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
+		receiveTask := NewTask(ctx, element, ReceiveTaskActivity)
+		harness, err = NewHarness(ctx, wiring, idGenerator, receiveTask)
 		if err != nil {
 			return
 		}
@@ -345,8 +349,8 @@ func NewInstance(process *schema.Process, definitions *schema.Definitions, optio
 			return
 		}
 		var harness *Harness
-		scriptTask := NewTask(ctx, element, ScriptTaskActivity)
-		harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
+		sendTask := NewTask(ctx, element, SendTaskActivity)
+		harness, err = NewHarness(ctx, wiring, idGenerator, sendTask)
 		if err != nil {
 			return
 		}
