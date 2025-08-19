@@ -25,7 +25,6 @@ import (
 
 type ParallelGateway struct {
 	*Wiring
-	ctx                   context.Context
 	element               *schema.ParallelGateway
 	mch                   chan imessage
 	reportedIncomingFlows int
@@ -33,10 +32,9 @@ type ParallelGateway struct {
 	noOfIncomingFlows     int
 }
 
-func NewParallelGateway(ctx context.Context, wiring *Wiring, parallelGateway *schema.ParallelGateway) (gateway *ParallelGateway, err error) {
+func NewParallelGateway(wiring *Wiring, parallelGateway *schema.ParallelGateway) (gateway *ParallelGateway, err error) {
 	gateway = &ParallelGateway{
 		Wiring:                wiring,
-		ctx:                   ctx,
 		element:               parallelGateway,
 		mch:                   make(chan imessage, len(wiring.Incoming)*2+1),
 		reportedIncomingFlows: 0,
@@ -78,9 +76,9 @@ func (gw *ParallelGateway) run(ctx context.Context, sender tracing.ISenderHandle
 	}
 }
 
-func (gw *ParallelGateway) NextAction(flow Flow) chan IAction {
+func (gw *ParallelGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
 	sender := gw.Tracer.RegisterSender()
-	go gw.run(gw.ctx, sender)
+	go gw.run(ctx, sender)
 
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}

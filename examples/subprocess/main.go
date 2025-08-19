@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"embed"
 	"encoding/xml"
 	"log"
@@ -51,9 +52,10 @@ func main() {
 			"a": struct{}{},
 		}),
 	}
+	ctx := context.TODO()
 	if ins, err := engine.NewProcess(&definitions, options...); err == nil {
 		traces := ins.Tracer().Subscribe()
-		err = ins.StartAll()
+		err = ins.StartAll(ctx)
 		if err != nil {
 			log.Fatalf("failed to run the instance: %s", err)
 		}

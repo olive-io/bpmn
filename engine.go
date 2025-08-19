@@ -94,6 +94,9 @@ func (p *Engine) NewProcess(definitions *schema.Definitions, opts ...Option) (pr
 	}
 
 	options := NewOptions(opts...)
+	if options.ctx == nil {
+		options.ctx = p.ctx
+	}
 
 	tracer := options.tracer
 	if tracer == nil {

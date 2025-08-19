@@ -17,6 +17,7 @@ limitations under the License.
 package bpmn_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -34,9 +35,10 @@ func TestExclusiveGateway(t *testing.T) {
 	LoadTestFile("testdata/exclusive_gateway.bpmn", &testExclusiveGateway)
 
 	engine := bpmn.NewEngine()
+	ctx := context.TODO()
 	if instance, err := engine.NewProcess(&testExclusiveGateway); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -79,9 +81,10 @@ func TestExclusiveGatewayWithDefault(t *testing.T) {
 	LoadTestFile("testdata/exclusive_gateway_default.bpmn", &testExclusiveGatewayWithDefault)
 
 	engine := bpmn.NewEngine()
+	ctx := context.TODO()
 	if instance, err := engine.NewProcess(&testExclusiveGatewayWithDefault); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -127,9 +130,10 @@ func TestExclusiveGatewayWithNoDefault(t *testing.T) {
 	LoadTestFile("testdata/exclusive_gateway_no_default.bpmn", &testExclusiveGatewayWithNoDefault)
 
 	engine := bpmn.NewEngine()
+	ctx := context.TODO()
 	if instance, err := engine.NewProcess(&testExclusiveGatewayWithNoDefault); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -178,9 +182,10 @@ func TestExclusiveGatewayIncompleteJoin(t *testing.T) {
 	LoadTestFile("testdata/exclusive_gateway_multiple_incoming.bpmn", &testExclusiveGatewayIncompleteJoin)
 
 	engine := bpmn.NewEngine()
+	ctx := context.TODO()
 	if instance, err := engine.NewProcess(&testExclusiveGatewayIncompleteJoin, bpmn.WithVariables(map[string]any{"a": 1})); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

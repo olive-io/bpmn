@@ -64,3 +64,23 @@ func TestNewTracer(t *testing.T) {
 
 	assert.Equal(t, <-out, 1)
 }
+
+func TestNewRelay(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	in := NewTracer(ctx)
+	out := NewTracer(ctx)
+
+	NewRelay(ctx, in, out, func(trace ITrace) []ITrace {
+		return []ITrace{trace}
+	})
+
+	sender := out.Subscribe()
+
+	mt := &myTrace{}
+	in.Send(mt)
+
+	recv := <-sender
+
+	assert.Equal(t, mt, recv)
+}

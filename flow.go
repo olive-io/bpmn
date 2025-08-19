@@ -302,7 +302,7 @@ func (f *flow) Start(ctx context.Context) {
 				} else {
 					goto await
 				}
-			case action := <-f.current.NextAction(f):
+			case action := <-f.current.NextAction(ctx, f):
 				if f.actionTransformer != nil {
 					action = f.actionTransformer(f.sequenceFlowId, action)
 				}

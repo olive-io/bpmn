@@ -33,7 +33,6 @@ func (m processEventMessage) message() {}
 
 type CatchEvent struct {
 	*Wiring
-	ctx             context.Context
 	element         *schema.CatchEvent
 	mch             chan imessage
 	activated       bool
@@ -41,10 +40,9 @@ type CatchEvent struct {
 	satisfier       *logic.CatchEventSatisfier
 }
 
-func NewCatchEvent(ctx context.Context, wiring *Wiring, catchEvent *schema.CatchEvent) (evt *CatchEvent, err error) {
+func NewCatchEvent(wiring *Wiring, catchEvent *schema.CatchEvent) (evt *CatchEvent, err error) {
 	evt = &CatchEvent{
 		Wiring:          wiring,
-		ctx:             ctx,
 		element:         catchEvent,
 		mch:             make(chan imessage, len(wiring.Incoming)*2+1),
 		activated:       false,
@@ -99,9 +97,9 @@ func (evt *CatchEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionRe
 	return
 }
 
-func (evt *CatchEvent) NextAction(flow Flow) chan IAction {
+func (evt *CatchEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
 	sender := evt.Tracer.RegisterSender()
-	go evt.run(evt.ctx, sender)
+	go evt.run(ctx, sender)
 
 	response := make(chan IAction)
 	evt.mch <- nextActionMessage{response: response, flow: flow}

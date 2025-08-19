@@ -17,6 +17,7 @@ limitations under the License.
 package bpmn_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/olive-io/bpmn/schema"
@@ -33,7 +34,7 @@ func TestStartEvent(t *testing.T) {
 	proc, err := engine.NewProcess(&testDoc)
 	if err == nil {
 		traces := proc.Tracer().Subscribe()
-		err := proc.StartAll()
+		err := proc.StartAll(context.TODO())
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

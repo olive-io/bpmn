@@ -34,21 +34,15 @@ func (m nextTaskActionMessage) message() {}
 
 type genericTask struct {
 	*Wiring
-	ctx          context.Context
-	cancel       context.CancelFunc
 	element      schema.FlowNodeInterface
 	activityType ActivityType
 	mch          chan imessage
 }
 
-func NewTask(ctx context.Context, element schema.FlowNodeInterface, activityType ActivityType) Constructor {
+func NewTask(element schema.FlowNodeInterface, activityType ActivityType) Constructor {
 	return func(wiring *Wiring) (activity Activity, err error) {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithCancel(ctx)
 		taskNode := &genericTask{
 			Wiring:       wiring,
-			ctx:          ctx,
-			cancel:       cancel,
 			element:      element,
 			activityType: activityType,
 			mch:          make(chan imessage, len(wiring.Incoming)*2+1),
@@ -64,7 +58,6 @@ func (task *genericTask) run(ctx context.Context) {
 		case msg := <-task.mch:
 			switch m := msg.(type) {
 			case cancelMessage:
-				task.cancel()
 				m.response <- true
 			case nextTaskActionMessage:
 				go func() {
@@ -83,7 +76,7 @@ func (task *genericTask) run(ctx context.Context) {
 					timeout := FetchTaskTimeout(task.element)
 
 					at := newTaskTraceBuilder().
-						Context(task.ctx).
+						Context(ctx).
 						Activity(task).
 						Timeout(timeout).
 						Headers(headers).
@@ -114,8 +107,8 @@ func (task *genericTask) run(ctx context.Context) {
 	}
 }
 
-func (task *genericTask) NextAction(Flow) chan IAction {
-	go task.run(task.ctx)
+func (task *genericTask) NextAction(ctx context.Context, flow Flow) chan IAction {
+	go task.run(ctx)
 
 	response := make(chan IAction, 1)
 

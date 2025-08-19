@@ -17,6 +17,7 @@ limitations under the License.
 package bpmn_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,9 +34,10 @@ func TestParallelGateway(t *testing.T) {
 	LoadTestFile("testdata/parallel_gateway_fork_join.bpmn", &testParallelGateway)
 
 	engine := bpmn.NewEngine()
+	ctx := context.TODO()
 	if instance, err := engine.NewProcess(&testParallelGateway); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -81,9 +83,10 @@ func TestParallelGatewayMtoN(t *testing.T) {
 	LoadTestFile("testdata/parallel_gateway_m_n.bpmn", &testParallelGatewayMtoN)
 
 	engine := bpmn.NewEngine()
+	ctx := context.Background()
 	if instance, err := engine.NewProcess(&testParallelGatewayMtoN); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -128,9 +131,10 @@ func TestParallelGatewayNtoM(t *testing.T) {
 	LoadTestFile("testdata/parallel_gateway_n_m.bpmn", &testParallelGatewayNtoM)
 
 	engine := bpmn.NewEngine()
+	ctx := context.Background()
 	if instance, err := engine.NewProcess(&testParallelGatewayNtoM); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -176,9 +180,10 @@ func TestParallelGatewayIncompleteJoin(t *testing.T) {
 	LoadTestFile("testdata/parallel_gateway_fork_incomplete_join.bpmn", &testParallelGatewayIncompleteJoin)
 
 	engine := bpmn.NewEngine()
+	ctx := context.Background()
 	if instance, err := engine.NewProcess(&testParallelGatewayIncompleteJoin); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

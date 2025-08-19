@@ -17,6 +17,7 @@ limitations under the License.
 package bpmn_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/olive-io/bpmn/schema"
@@ -29,9 +30,10 @@ func TestSubprocess(t *testing.T) {
 
 	LoadTestFile("testdata/subprocess.bpmn", &testTask)
 	engine := bpmn.NewEngine()
+	ctx := context.Background()
 	if instance, err := engine.NewProcess(&testTask); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -66,9 +68,10 @@ func TestEmbedSubprocess(t *testing.T) {
 	LoadTestFile("testdata/embed-subprocess.bpmn", &testTask)
 
 	engine := bpmn.NewEngine()
+	ctx := context.Background()
 	if instance, err := engine.NewProcess(&testTask); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

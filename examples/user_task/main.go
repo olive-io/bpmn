@@ -60,7 +60,7 @@ func main() {
 	ctx := context.Background()
 	traces := proc.Tracer().Subscribe()
 	defer proc.Tracer().Unsubscribe(traces)
-	err = proc.StartAll()
+	err = proc.StartAll(ctx)
 	if err != nil {
 		log.Fatalf("failed to run the instance: %s", err)
 	}

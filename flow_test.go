@@ -17,6 +17,7 @@ limitations under the License.
 package bpmn_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -34,9 +35,10 @@ func TestTrueFormalExpression(t *testing.T) {
 	LoadTestFile("testdata/condexpr.bpmn", &testCondExpr)
 
 	engine := bpmn.NewEngine()
+	ctx := context.TODO()
 	if instance, err := engine.NewProcess(&testCondExpr); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -70,9 +72,10 @@ func TestFalseFormalExpression(t *testing.T) {
 	LoadTestFile("testdata/condexpr_false.bpmn", &testCondExprFalse)
 
 	engine := bpmn.NewEngine()
+	ctx := context.TODO()
 	if instance, err := engine.NewProcess(&testCondExprFalse); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll()
+		err := instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -106,6 +109,7 @@ func TestCondDataObject(t *testing.T) {
 
 	LoadTestFile("testdata/condexpr_dataobject.bpmn", &testCondDataObject)
 
+	ctx := context.TODO()
 	test := func(cond, expected string) func(t *testing.T) {
 		return func(t *testing.T) {
 			engine := bpmn.NewEngine()
@@ -118,7 +122,7 @@ func TestCondDataObject(t *testing.T) {
 					require.True(t, found)
 					aware.Put(k == cond)
 				}
-				err = instance.StartAll()
+				err = instance.StartAll(ctx)
 				if err != nil {
 					t.Fatalf("failed to run the instance: %s", err)
 				}

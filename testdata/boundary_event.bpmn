@@ -4,7 +4,7 @@
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:olive="http://olive.io/spec/BPMN/MODEL"
                   xmlns:modeler="http://camunda.org/schema/modeler/1.0" xmlns:olive="http://olive.io/spec/BPMN/MODEL" id="Definitions_19bb10c"
                   targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.7.0"
-                  modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.14.0">
+                  modeler:executionPlatform="Camunda Platform">
   <bpmn:process id="Process_0r565a0" isExecutable="true">
     <bpmn:startEvent id="start">
       <bpmn:outgoing>Flow_02vwd78</bpmn:outgoing>

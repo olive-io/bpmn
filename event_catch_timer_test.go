@@ -51,7 +51,7 @@ func TestCatchEvent_Timer(t *testing.T) {
 		bpmn.WithEventEgress(fanOut),
 		bpmn.WithEventIngress(fanOut))
 
-	err = proc.StartAll()
+	err = proc.StartAll(ctx)
 	if err != nil {
 		t.Fatalf("failed to run the instance: %s", err)
 	}

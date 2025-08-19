@@ -39,12 +39,12 @@ func (e InclusiveNoEffectiveSequenceFlows) Error() string {
 	return fmt.Sprintf("No effective sequence flows found in exclusive gateway `%v`", ownId)
 }
 
-type probingReport struct {
+type gatewayProbingReport struct {
 	result []int
 	flowId id.Id
 }
 
-func (m probingReport) message() {}
+func (m gatewayProbingReport) message() {}
 
 type flowSync struct {
 	response chan IAction
@@ -53,7 +53,6 @@ type flowSync struct {
 
 type InclusiveGateway struct {
 	*Wiring
-	ctx                     context.Context
 	element                 *schema.InclusiveGateway
 	mch                     chan imessage
 	defaultSequenceFlow     *SequenceFlow
@@ -63,11 +62,11 @@ type InclusiveGateway struct {
 	awaiting                []id.Id
 	arrived                 []id.Id
 	sync                    []chan IAction
-	*flowTracker
-	synchronized bool
+	flowTracker             *flowTracker
+	synchronized            bool
 }
 
-func NewInclusiveGateway(ctx context.Context, wiring *Wiring, inclusiveGateway *schema.InclusiveGateway) (gw *InclusiveGateway, err error) {
+func NewInclusiveGateway(wiring *Wiring, inclusiveGateway *schema.InclusiveGateway) (gw *InclusiveGateway, err error) {
 	var defaultSequenceFlow *SequenceFlow
 
 	if seqFlow, present := inclusiveGateway.Default(); present {
@@ -97,12 +96,11 @@ func NewInclusiveGateway(ctx context.Context, wiring *Wiring, inclusiveGateway *
 
 	gw = &InclusiveGateway{
 		Wiring:                  wiring,
-		ctx:                     ctx,
 		element:                 inclusiveGateway,
 		mch:                     make(chan imessage, len(wiring.Incoming)*2+1),
 		nonDefaultSequenceFlows: nonDefaultSequenceFlows,
 		defaultSequenceFlow:     defaultSequenceFlow,
-		flowTracker:             newFlowTracker(ctx, wiring.Tracer, inclusiveGateway),
+		flowTracker:             newFlowTracker(wiring.Tracer, inclusiveGateway),
 	}
 	return
 }
@@ -117,7 +115,7 @@ func (gw *InclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 		select {
 		case msg := <-gw.mch:
 			switch m := msg.(type) {
-			case probingReport:
+			case gatewayProbingReport:
 				response := gw.probing
 				if response == nil {
 					// Reschedule, there's no next action yet
@@ -204,7 +202,7 @@ func (gw *InclusiveGateway) trySync() {
 			gw.activated.response <- ProbeAction{
 				SequenceFlows: gw.nonDefaultSequenceFlows,
 				ProbeReport: func(indices []int) {
-					gw.mch <- probingReport{
+					gw.mch <- gatewayProbingReport{
 						result: indices,
 						flowId: anId,
 					}
@@ -216,9 +214,9 @@ func (gw *InclusiveGateway) trySync() {
 	}
 }
 
-func (gw *InclusiveGateway) NextAction(flow Flow) chan IAction {
+func (gw *InclusiveGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
 	sender := gw.Tracer.RegisterSender()
-	go gw.run(gw.ctx, sender)
+	go gw.run(ctx, sender)
 
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}
@@ -242,7 +240,7 @@ func (tracker *flowTracker) activity() <-chan struct{} {
 	return tracker.activityCh
 }
 
-func newFlowTracker(ctx context.Context, tracer tracing.ITracer, element *schema.InclusiveGateway) *flowTracker {
+func newFlowTracker(tracer tracing.ITracer, element *schema.InclusiveGateway) *flowTracker {
 	tracker := flowTracker{
 		traces:     tracer.Subscribe(),
 		shutdownCh: make(chan bool),
@@ -253,11 +251,11 @@ func newFlowTracker(ctx context.Context, tracer tracing.ITracer, element *schema
 	// Lock the tracker until it has caught up enough
 	// to see the incoming flow for the node
 	tracker.lock.Lock()
-	go tracker.run(ctx)
+	go tracker.run()
 	return &tracker
 }
 
-func (tracker *flowTracker) run(ctx context.Context) {
+func (tracker *flowTracker) run() {
 	// As per note in the constructor, we're starting in a locked mode
 	locked := true
 	// Flag for notifying the node about activity
@@ -281,11 +279,6 @@ func (tracker *flowTracker) run(ctx context.Context) {
 				tracker.lock.Unlock()
 			}
 			return
-		case <-ctx.Done():
-			if locked {
-				tracker.lock.Unlock()
-			}
-			return
 		default:
 			// Nothing else is coming in, unlock if locked
 			if locked && reachedNode {
@@ -303,11 +296,6 @@ func (tracker *flowTracker) run(ctx context.Context) {
 		case trace := <-tracker.traces:
 			locked, notify, reachedNode = tracker.handleTrace(locked, trace, notify, reachedNode)
 		case <-tracker.shutdownCh:
-			if locked {
-				tracker.lock.Unlock()
-			}
-			return
-		case <-ctx.Done():
 			if locked {
 				tracker.lock.Unlock()
 			}
