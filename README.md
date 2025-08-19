@@ -79,7 +79,7 @@ func main() {
 	}
 	traces := ins.Tracer().Subscribe()
 	defer ins.Tracer().Unsubscribe(traces)
-	err = ins.StartAll()
+	err = ins.StartAll(ctx)
 	if err != nil {
 		log.Fatalf("failed to run the instance: %s", err)
 	}
