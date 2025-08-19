@@ -37,18 +37,17 @@ jobs:
           export PATH=$PATH:$(go env GOPATH)/bin
           go install github.com/lack-io/changelog@latest
 
-      - name: Build
+      - name: Generate Changelog
         run: |
           mkdir -p _output
-          changelog --last --output _output/CHANGELOG.md
+          changelog --last --output ${{ github.workspace }}-CHANGELOG.txt
 
       - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          body_path: ./_output/CHANGELOG.md
+          body_path: ${{ github.workspace }}-CHANGELOG.txt
           draft: false
           prerelease: false
         env:
