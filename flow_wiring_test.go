@@ -32,7 +32,7 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
-//go:embed testdata
+//go:embed testdata/sample.bpmn
 var testdata embed.FS
 
 func LoadTestFile(filename string, definitions any) {
