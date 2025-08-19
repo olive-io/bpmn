@@ -39,7 +39,6 @@ jobs:
 
       - name: Generate Changelog
         run: |
-          mkdir -p _output
           changelog --last --output ${{ github.workspace }}-CHANGELOG.txt
 
       - name: Release
