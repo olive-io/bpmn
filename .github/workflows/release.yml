@@ -25,7 +25,7 @@ jobs:
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
           go install golang.org/x/lint/golint@latest
-          make lint
+          golint -set_exit_status ./..
 
       - name: Get Tag Version
         run: |
@@ -38,7 +38,9 @@ jobs:
           go install github.com/lack-io/changelog@latest
 
       - name: Build
-        run: make build
+        run: |
+          mkdir -p _output
+          changelog --last --output _output/CHANGELOG.md
 
       - name: Release
         uses: softprops/action-gh-release@v1
