@@ -31,8 +31,8 @@ type processEventMessage struct {
 
 func (m processEventMessage) message() {}
 
-type CatchEvent struct {
-	*Wiring
+type catchEvent struct {
+	*wiring
 	element         *schema.CatchEvent
 	mch             chan imessage
 	activated       bool
@@ -40,24 +40,24 @@ type CatchEvent struct {
 	satisfier       *logic.CatchEventSatisfier
 }
 
-func NewCatchEvent(wiring *Wiring, catchEvent *schema.CatchEvent) (evt *CatchEvent, err error) {
-	evt = &CatchEvent{
-		Wiring:          wiring,
-		element:         catchEvent,
-		mch:             make(chan imessage, len(wiring.Incoming)*2+1),
+func newCatchEvent(wiring *wiring, element *schema.CatchEvent) (evt *catchEvent, err error) {
+	evt = &catchEvent{
+		wiring:          wiring,
+		element:         element,
+		mch:             make(chan imessage, len(wiring.incoming)*2+1),
 		activated:       false,
 		awaitingActions: make([]chan IAction, 0),
-		satisfier:       logic.NewCatchEventSatisfier(catchEvent, wiring.EventDefinitionInstanceBuilder),
+		satisfier:       logic.NewCatchEventSatisfier(element, wiring.eventDefinitionInstanceBuilder),
 	}
 
-	err = evt.EventEgress.RegisterEventConsumer(evt)
+	err = evt.eventEgress.RegisterEventConsumer(evt)
 	if err != nil {
 		return
 	}
 	return
 }
 
-func (evt *CatchEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
+func (evt *catchEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -66,11 +66,11 @@ func (evt *CatchEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 			switch m := msg.(type) {
 			case processEventMessage:
 				if evt.activated {
-					evt.Tracer.Send(EventObservedTrace{Node: evt.element, Event: m.event})
+					evt.tracer.Send(EventObservedTrace{Node: evt.element, Event: m.event})
 					if satisfied, _ := evt.satisfier.Satisfy(m.event); satisfied {
 						awaitingActions := evt.awaitingActions
 						for _, actionChan := range awaitingActions {
-							actionChan <- FlowAction{SequenceFlows: AllSequenceFlows(&evt.Outgoing)}
+							actionChan <- FlowAction{SequenceFlows: allSequenceFlows(&evt.outgoing)}
 						}
 						evt.awaitingActions = make([]chan IAction, 0)
 						evt.activated = false
@@ -79,26 +79,26 @@ func (evt *CatchEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 			case nextActionMessage:
 				if !evt.activated {
 					evt.activated = true
-					evt.Tracer.Send(ActiveListeningTrace{Node: evt.element})
+					evt.tracer.Send(ActiveListeningTrace{Node: evt.element})
 				}
 				evt.awaitingActions = append(evt.awaitingActions, m.response)
 			default:
 			}
 		case <-ctx.Done():
-			evt.Tracer.Send(CancellationFlowNodeTrace{Node: evt.element})
+			evt.tracer.Send(CancellationFlowNodeTrace{Node: evt.element})
 			return
 		}
 	}
 }
 
-func (evt *CatchEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
+func (evt *catchEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	evt.mch <- processEventMessage{event: ev}
 	result = event.Consumed
 	return
 }
 
-func (evt *CatchEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := evt.Tracer.RegisterSender()
+func (evt *catchEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
+	sender := evt.tracer.RegisterSender()
 	go evt.run(ctx, sender)
 
 	response := make(chan IAction)
@@ -106,7 +106,7 @@ func (evt *CatchEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
 	return response
 }
 
-func (evt *CatchEvent) Element() schema.FlowNodeInterface {
+func (evt *catchEvent) Element() schema.FlowNodeInterface {
 	return evt.element
 }
 

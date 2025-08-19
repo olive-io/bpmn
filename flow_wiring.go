@@ -28,23 +28,23 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
-// Wiring holds all necessary "wiring" for functioning of
+// wiring holds all necessary "wiring" for functioning of
 // flow nodes: definitions, process, sequence flow, event management,
 // tracer, flow node mapping and a flow wait group
-type Wiring struct {
-	ProcessInstanceId              id.Id
-	FlowNodeId                     schema.Id
-	Definitions                    *schema.Definitions
-	Incoming                       []SequenceFlow
-	Outgoing                       []SequenceFlow
-	EventIngress                   event.IConsumer
-	EventEgress                    event.ISource
-	Tracer                         tracing.ITracer
-	Process                        schema.Element
-	FlowNodeMapping                *FlowNodeMapping
-	FlowWaitGroup                  *sync.WaitGroup
-	EventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder
-	Locator                        data.IFlowDataLocator
+type wiring struct {
+	processInstanceId              id.Id
+	flowNodeId                     schema.Id
+	definitions                    *schema.Definitions
+	incoming                       []SequenceFlow
+	outgoing                       []SequenceFlow
+	eventIngress                   event.IConsumer
+	eventEgress                    event.ISource
+	tracer                         tracing.ITracer
+	process                        schema.Element
+	flowNodeMapping                *FlowNodeMapping
+	flowWaitGroup                  *sync.WaitGroup
+	eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder
+	locator                        data.IFlowDataLocator
 }
 
 func sequenceFlows(process schema.Element, flows *[]schema.QName) (result []SequenceFlow, err error) {
@@ -66,7 +66,7 @@ func sequenceFlows(process schema.Element, flows *[]schema.QName) (result []Sequ
 	return
 }
 
-func NewWiring(
+func newWiring(
 	processInstanceId id.Id,
 	process schema.Element,
 	definitions *schema.Definitions,
@@ -78,7 +78,7 @@ func NewWiring(
 	flowWaitGroup *sync.WaitGroup,
 	eventDefinitionInstanceBuilder event.IDefinitionInstanceBuilder,
 	locator data.IFlowDataLocator,
-) (node *Wiring, err error) {
+) (node *wiring, err error) {
 
 	incoming, err := sequenceFlows(process, flowNode.Incomings())
 	if err != nil {
@@ -97,31 +97,31 @@ func NewWiring(
 	}
 
 	ownId := *ownIdPtr
-	node = &Wiring{
-		ProcessInstanceId:              processInstanceId,
-		FlowNodeId:                     ownId,
-		Definitions:                    definitions,
-		Incoming:                       incoming,
-		Outgoing:                       outgoing,
-		EventIngress:                   eventIngress,
-		EventEgress:                    eventEgress,
-		Tracer:                         tracer,
-		Process:                        process,
-		FlowNodeMapping:                flowNodeMapping,
-		FlowWaitGroup:                  flowWaitGroup,
-		EventDefinitionInstanceBuilder: eventDefinitionInstanceBuilder,
-		Locator:                        locator,
+	node = &wiring{
+		processInstanceId:              processInstanceId,
+		flowNodeId:                     ownId,
+		definitions:                    definitions,
+		incoming:                       incoming,
+		outgoing:                       outgoing,
+		eventIngress:                   eventIngress,
+		eventEgress:                    eventEgress,
+		tracer:                         tracer,
+		process:                        process,
+		flowNodeMapping:                flowNodeMapping,
+		flowWaitGroup:                  flowWaitGroup,
+		eventDefinitionInstanceBuilder: eventDefinitionInstanceBuilder,
+		locator:                        locator,
 	}
 	return
 }
 
 // CloneFor copies receiver, overriding FlowNodeId, Incoming, Outgoing for a given flowNode
-func (wr *Wiring) CloneFor(node *schema.FlowNode) (result *Wiring, err error) {
-	incoming, err := sequenceFlows(wr.Process, node.Incomings())
+func (wr *wiring) CloneFor(node *schema.FlowNode) (result *wiring, err error) {
+	incoming, err := sequenceFlows(wr.process, node.Incomings())
 	if err != nil {
 		return
 	}
-	outgoing, err := sequenceFlows(wr.Process, node.Outgoings())
+	outgoing, err := sequenceFlows(wr.process, node.Outgoings())
 	if err != nil {
 		return
 	}
@@ -135,19 +135,19 @@ func (wr *Wiring) CloneFor(node *schema.FlowNode) (result *Wiring, err error) {
 	}
 
 	ownId := *ownIdPtr
-	result = &Wiring{
-		ProcessInstanceId:              wr.ProcessInstanceId,
-		FlowNodeId:                     ownId,
-		Definitions:                    wr.Definitions,
-		Incoming:                       incoming,
-		Outgoing:                       outgoing,
-		EventIngress:                   wr.EventIngress,
-		EventEgress:                    wr.EventEgress,
-		Tracer:                         wr.Tracer,
-		Process:                        wr.Process,
-		FlowNodeMapping:                wr.FlowNodeMapping,
-		FlowWaitGroup:                  wr.FlowWaitGroup,
-		EventDefinitionInstanceBuilder: wr.EventDefinitionInstanceBuilder,
+	result = &wiring{
+		processInstanceId:              wr.processInstanceId,
+		flowNodeId:                     ownId,
+		definitions:                    wr.definitions,
+		incoming:                       incoming,
+		outgoing:                       outgoing,
+		eventIngress:                   wr.eventIngress,
+		eventEgress:                    wr.eventEgress,
+		tracer:                         wr.tracer,
+		process:                        wr.process,
+		flowNodeMapping:                wr.flowNodeMapping,
+		flowWaitGroup:                  wr.flowWaitGroup,
+		eventDefinitionInstanceBuilder: wr.eventDefinitionInstanceBuilder,
 	}
 	return
 }

@@ -182,14 +182,14 @@ func TestParallelGatewayIncompleteJoin(t *testing.T) {
 	engine := bpmn.NewEngine()
 	ctx := context.Background()
 	if instance, err := engine.NewProcess(&testParallelGatewayIncompleteJoin); err == nil {
-		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll(ctx)
+		traceCh := instance.Tracer().Subscribe()
+		err = instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
 		reached := make(map[string]int)
 	loop:
-		for trace := range traces {
+		for trace := range traceCh {
 			trace = tracing.Unwrap(trace)
 			switch trace := trace.(type) {
 			case bpmn.IncomingFlowProcessedTrace:
@@ -232,7 +232,7 @@ func TestParallelGatewayIncompleteJoin(t *testing.T) {
 				//t.Logf("%#v", trace)
 			}
 		}
-		instance.Tracer().Unsubscribe(traces)
+		instance.Tracer().Unsubscribe(traceCh)
 
 		assert.Equal(t, 1, reached["task1"])
 		assert.Equal(t, 0, reached["task2"])

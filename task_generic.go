@@ -33,19 +33,19 @@ type nextTaskActionMessage struct {
 func (m nextTaskActionMessage) message() {}
 
 type genericTask struct {
-	*Wiring
+	*wiring
 	element      schema.FlowNodeInterface
 	activityType ActivityType
 	mch          chan imessage
 }
 
-func NewTask(element schema.FlowNodeInterface, activityType ActivityType) Constructor {
-	return func(wiring *Wiring) (activity Activity, err error) {
+func newTask(element schema.FlowNodeInterface, activityType ActivityType) constructor {
+	return func(wr *wiring) (activity Activity, err error) {
 		taskNode := &genericTask{
-			Wiring:       wiring,
+			wiring:       wr,
 			element:      element,
 			activityType: activityType,
-			mch:          make(chan imessage, len(wiring.Incoming)*2+1),
+			mch:          make(chan imessage, len(wr.incoming)*2+1),
 		}
 		activity = taskNode
 		return
@@ -66,7 +66,7 @@ func (task *genericTask) run(ctx context.Context) {
 					}
 					action := FlowAction{
 						Response:      aResponse,
-						SequenceFlows: AllSequenceFlows(&task.Outgoing),
+						SequenceFlows: allSequenceFlows(&task.outgoing),
 					}
 
 					headers := m.headers
@@ -84,10 +84,10 @@ func (task *genericTask) run(ctx context.Context) {
 						DataObjects(dataObjects).
 						Build()
 
-					task.Tracer.Send(at)
+					task.tracer.Send(at)
 					select {
 					case <-ctx.Done():
-						task.Tracer.Send(CancellationFlowNodeTrace{Node: task.element})
+						task.tracer.Send(CancellationFlowNodeTrace{Node: task.element})
 						return
 					case out := <-at.out():
 						aResponse.Err = out.Err
@@ -101,7 +101,7 @@ func (task *genericTask) run(ctx context.Context) {
 			default:
 			}
 		case <-ctx.Done():
-			task.Tracer.Send(CancellationFlowNodeTrace{Node: task.element})
+			task.tracer.Send(CancellationFlowNodeTrace{Node: task.element})
 			return
 		}
 	}
@@ -112,7 +112,7 @@ func (task *genericTask) NextAction(ctx context.Context, flow Flow) chan IAction
 
 	response := make(chan IAction, 1)
 
-	headers, properties, dataObjects := FetchTaskDataInput(task.Locator, task.element)
+	headers, properties, dataObjects := FetchTaskDataInput(task.locator, task.element)
 	msg := nextTaskActionMessage{
 		headers:     headers,
 		properties:  properties,

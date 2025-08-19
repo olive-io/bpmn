@@ -232,8 +232,8 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 		}}
 	})
 
-	wiringMaker := func(element *schema.FlowNode) (*Wiring, error) {
-		return NewWiring(
+	wiringMaker := func(element *schema.FlowNode) (*wiring, error) {
+		return newWiring(
 			process.id,
 			processElem,
 			definitions,
@@ -256,20 +256,20 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			process.locator)
 	}
 
-	var wiring *Wiring
+	var wr *wiring
 
 	for i := range *processElem.StartEvents() {
 		element := &(*processElem.StartEvents())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var startEvent *StartEvent
-		startEvent, err = NewStartEvent(wiring, element, idGenerator)
+		var node *startEvent
+		node, err = newStartEvent(wr, element, idGenerator)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, startEvent)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -277,16 +277,16 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.EndEvents() {
 		element := &(*processElem.EndEvents())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var endEvent *EndEvent
-		endEvent, err = NewEndEvent(wiring, element)
+		var node *endEvent
+		node, err = newEndEvent(wr, element)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, endEvent)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -294,12 +294,12 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.IntermediateCatchEvents() {
 		element := &(*processElem.IntermediateCatchEvents())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var intermediateCatchEvent *CatchEvent
-		intermediateCatchEvent, err = NewCatchEvent(wiring, &element.CatchEvent)
+		var intermediateCatchEvent *catchEvent
+		intermediateCatchEvent, err = newCatchEvent(wr, &element.CatchEvent)
 		if err != nil {
 			return
 		}
@@ -311,17 +311,17 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.Tasks() {
 		element := &(*processElem.Tasks())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var harness *Harness
-		task := NewTask(element, TaskActivity)
-		harness, err = NewHarness(wiring, idGenerator, task)
+		var node *harness
+		task := newTask(element, TaskActivity)
+		node, err = newHarness(wr, idGenerator, task)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, harness)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -329,17 +329,17 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.BusinessRuleTasks() {
 		element := &(*processElem.BusinessRuleTasks())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var harness *Harness
-		businessRule := NewTask(element, BusinessRuleActivity)
-		harness, err = NewHarness(wiring, idGenerator, businessRule)
+		var node *harness
+		businessRule := newTask(element, BusinessRuleActivity)
+		node, err = newHarness(wr, idGenerator, businessRule)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, harness)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -347,17 +347,17 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.CallActivities() {
 		element := &(*processElem.CallActivities())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var harness *Harness
-		callAct := NewTask(element, CallActivity)
-		harness, err = NewHarness(wiring, idGenerator, callAct)
+		var node *harness
+		callAct := newTask(element, CallActivity)
+		node, err = newHarness(wr, idGenerator, callAct)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, harness)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -365,17 +365,17 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.ManualTasks() {
 		element := &(*processElem.ManualTasks())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var harness *Harness
-		manualTask := NewTask(element, ManualTaskActivity)
-		harness, err = NewHarness(wiring, idGenerator, manualTask)
+		var node *harness
+		manualTask := newTask(element, ManualTaskActivity)
+		node, err = newHarness(wr, idGenerator, manualTask)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, harness)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -383,17 +383,17 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.ServiceTasks() {
 		element := &(*processElem.ServiceTasks())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var harness *Harness
-		serviceTask := NewTask(element, ServiceTaskActivity)
-		harness, err = NewHarness(wiring, idGenerator, serviceTask)
+		var node *harness
+		serviceTask := newTask(element, ServiceTaskActivity)
+		node, err = newHarness(wr, idGenerator, serviceTask)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, harness)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -401,17 +401,17 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.UserTasks() {
 		element := &(*processElem.UserTasks())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var harness *Harness
-		userTask := NewTask(element, UserTaskActivity)
-		harness, err = NewHarness(wiring, idGenerator, userTask)
+		var node *harness
+		userTask := newTask(element, UserTaskActivity)
+		node, err = newHarness(wr, idGenerator, userTask)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, harness)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -419,17 +419,17 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.ReceiveTasks() {
 		element := &(*processElem.ReceiveTasks())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var harness *Harness
-		receiveTask := NewTask(element, ReceiveTaskActivity)
-		harness, err = NewHarness(wiring, idGenerator, receiveTask)
+		var node *harness
+		receiveTask := newTask(element, ReceiveTaskActivity)
+		node, err = newHarness(wr, idGenerator, receiveTask)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, harness)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -437,17 +437,17 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.ScriptTasks() {
 		element := &(*processElem.ScriptTasks())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var harness *Harness
-		scriptTask := NewTask(element, ScriptTaskActivity)
-		harness, err = NewHarness(wiring, idGenerator, scriptTask)
+		var node *harness
+		scriptTask := newTask(element, ScriptTaskActivity)
+		node, err = newHarness(wr, idGenerator, scriptTask)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, harness)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -455,17 +455,17 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.SendTasks() {
 		element := &(*processElem.SendTasks())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var harness *Harness
-		sendTask := NewTask(element, SendTaskActivity)
-		harness, err = NewHarness(wiring, idGenerator, sendTask)
+		var node *harness
+		sendTask := newTask(element, SendTaskActivity)
+		node, err = newHarness(wr, idGenerator, sendTask)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, harness)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -473,17 +473,17 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.SubProcesses() {
 		element := &(*processElem.SubProcesses())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var harness *Harness
-		subProcess := NewSubProcess(process.eventDefinitionInstanceBuilder, idGenerator, element)
-		harness, err = NewHarness(wiring, idGenerator, subProcess)
+		var node *harness
+		subProcess := newSubProcess(process.eventDefinitionInstanceBuilder, idGenerator, element)
+		node, err = newHarness(wr, idGenerator, subProcess)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, harness)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -491,16 +491,16 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.ExclusiveGateways() {
 		element := &(*processElem.ExclusiveGateways())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var exclusiveGateway *ExclusiveGateway
-		exclusiveGateway, err = NewExclusiveGateway(wiring, element)
+		var node *exclusiveGateway
+		node, err = newExclusiveGateway(wr, element)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, exclusiveGateway)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -508,16 +508,16 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.InclusiveGateways() {
 		element := &(*processElem.InclusiveGateways())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var inclusiveGateway *InclusiveGateway
-		inclusiveGateway, err = NewInclusiveGateway(wiring, element)
+		var node *inclusiveGateway
+		node, err = newInclusiveGateway(wr, element)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, inclusiveGateway)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -525,16 +525,16 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.ParallelGateways() {
 		element := &(*processElem.ParallelGateways())[i]
-		var parallelGateway *ParallelGateway
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		parallelGateway, err = NewParallelGateway(wiring, element)
+		var node *parallelGateway
+		node, err = newParallelGateway(wr, element)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, parallelGateway)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -542,16 +542,16 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 
 	for i := range *processElem.EventBasedGateways() {
 		element := &(*processElem.EventBasedGateways())[i]
-		wiring, err = wiringMaker(&element.FlowNode)
+		wr, err = wiringMaker(&element.FlowNode)
 		if err != nil {
 			return
 		}
-		var eventBasedGateway *EventBasedGateway
-		eventBasedGateway, err = NewEventBasedGateway(wiring, element)
+		var node *eventBasedGateway
+		node, err = newEventBasedGateway(wr, element)
 		if err != nil {
 			return
 		}
-		err = process.flowNodeMapping.RegisterElementToFlowNode(element, eventBasedGateway)
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, node)
 		if err != nil {
 			return
 		}
@@ -568,10 +568,10 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 }
 
 // StartWith explicitly starts the instance by triggering a given start event
-func (p *Process) StartWith(ctx context.Context, startEvent schema.StartEventInterface) (err error) {
-	flowNode, found := p.flowNodeMapping.ResolveElementToFlowNode(startEvent)
+func (p *Process) StartWith(ctx context.Context, element schema.StartEventInterface) (err error) {
+	flowNode, found := p.flowNodeMapping.ResolveElementToFlowNode(element)
 	elementId := "<unnamed>"
-	if idPtr, present := startEvent.Id(); present {
+	if idPtr, present := element.Id(); present {
 		elementId = *idPtr
 	}
 	processId := "<unnamed>"
@@ -582,7 +582,7 @@ func (p *Process) StartWith(ctx context.Context, startEvent schema.StartEventInt
 		err = errors.NotFoundError{Expected: fmt.Sprintf("start event %s in process %s", elementId, processId)}
 		return
 	}
-	startEventNode, ok := flowNode.(*StartEvent)
+	startEventNode, ok := flowNode.(*startEvent)
 	if !ok {
 		err = errors.RequirementExpectationError{
 			Expected: fmt.Sprintf("start event %s flow node in process %s to be of type start.Node", elementId, processId),

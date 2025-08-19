@@ -14,21 +14,38 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package bpmn_test
+package bpmn
 
 import (
 	"context"
+	"embed"
+	"encoding/xml"
+	"log"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/v2"
 	"github.com/olive-io/bpmn/v2/pkg/data"
 	"github.com/olive-io/bpmn/v2/pkg/event"
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
+
+//go:embed testdata
+var testdata embed.FS
+
+func LoadTestFile(filename string, definitions any) {
+	var err error
+	src, err := testdata.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Can't read file %s: %v", filename, err)
+	}
+	err = xml.Unmarshal(src, definitions)
+	if err != nil {
+		log.Fatalf("XML unmarshalling error in %s: %v", filename, err)
+	}
+}
 
 func TestNewWiring(t *testing.T) {
 	var defaultDefinitions = schema.DefaultDefinitions()
@@ -40,33 +57,33 @@ func TestNewWiring(t *testing.T) {
 	locator := data.NewFlowDataLocator()
 	if proc, found := sampleDoc.FindBy(schema.ExactId("sample")); found {
 		if flowNode, found := sampleDoc.FindBy(schema.ExactId("either")); found {
-			node, err := bpmn.NewWiring(
+			node, err := newWiring(
 				nil,
 				proc.(*schema.Process),
 				&defaultDefinitions,
 				&flowNode.(*schema.ParallelGateway).FlowNode,
 				event.VoidConsumer{},
 				event.VoidSource{},
-				tracing.NewTracer(context.Background()), bpmn.NewLockedFlowNodeMapping(),
+				tracing.NewTracer(context.Background()), NewLockedFlowNodeMapping(),
 				&waitGroup,
 				event.WrappingDefinitionInstanceBuilder,
 				locator,
 			)
 			assert.Nil(t, err)
-			assert.Equal(t, 1, len(node.Incoming))
+			assert.Equal(t, 1, len(node.incoming))
 			//t.Logf("%+v", node.Incoming[0])
-			if incomingSeqFlowId, present := node.Incoming[0].Id(); present {
+			if incomingSeqFlowId, present := node.incoming[0].Id(); present {
 				assert.Equal(t, *incomingSeqFlowId, "x1")
 			} else {
 				t.Fatalf("Sequence flow x1 has no matching ID")
 			}
-			assert.Equal(t, 2, len(node.Outgoing))
-			if outgoingSeqFlowId, present := node.Outgoing[0].Id(); present {
+			assert.Equal(t, 2, len(node.outgoing))
+			if outgoingSeqFlowId, present := node.outgoing[0].Id(); present {
 				assert.Equal(t, *outgoingSeqFlowId, "x2")
 			} else {
 				t.Fatalf("Sequence flow x2 has no matching ID")
 			}
-			if outgoingSeqFlowId, present := node.Outgoing[1].Id(); present {
+			if outgoingSeqFlowId, present := node.outgoing[1].Id(); present {
 				assert.Equal(t, *outgoingSeqFlowId, "x3")
 			} else {
 				t.Fatalf("Sequence flow x3 has no matching ID")

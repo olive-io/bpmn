@@ -36,8 +36,8 @@ type eventMessage struct {
 
 func (m eventMessage) message() {}
 
-type StartEvent struct {
-	*Wiring
+type startEvent struct {
+	*wiring
 	element     *schema.StartEvent
 	mch         chan imessage
 	activated   bool
@@ -45,37 +45,35 @@ type StartEvent struct {
 	satisfier   *logic.CatchEventSatisfier
 }
 
-func NewStartEvent(wiring *Wiring,
-	startEvent *schema.StartEvent, idGenerator id.IGenerator,
-) (evt *StartEvent, err error) {
-	eventDefinitions := startEvent.EventDefinitions()
+func newStartEvent(wr *wiring, element *schema.StartEvent, idGenerator id.IGenerator) (evt *startEvent, err error) {
+	eventDefinitions := element.EventDefinitions()
 	eventInstances := make([]event.IDefinitionInstance, len(eventDefinitions))
 
 	for i, eventDefinition := range eventDefinitions {
 		var instance event.IDefinitionInstance
-		instance, err = wiring.EventDefinitionInstanceBuilder.NewEventDefinitionInstance(eventDefinition)
+		instance, err = wr.eventDefinitionInstanceBuilder.NewEventDefinitionInstance(eventDefinition)
 		if err != nil {
 			return
 		}
 		eventInstances[i] = instance
 	}
 
-	evt = &StartEvent{
-		Wiring:      wiring,
-		element:     startEvent,
-		mch:         make(chan imessage, len(wiring.Incoming)*2+1),
+	evt = &startEvent{
+		wiring:      wr,
+		element:     element,
+		mch:         make(chan imessage, len(wr.incoming)*2+1),
 		activated:   false,
 		idGenerator: idGenerator,
-		satisfier:   logic.NewCatchEventSatisfier(startEvent, wiring.EventDefinitionInstanceBuilder),
+		satisfier:   logic.NewCatchEventSatisfier(element, wr.eventDefinitionInstanceBuilder),
 	}
-	err = evt.EventEgress.RegisterEventConsumer(evt)
+	err = evt.eventEgress.RegisterEventConsumer(evt)
 	if err != nil {
 		return
 	}
 	return
 }
 
-func (evt *StartEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
+func (evt *startEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -85,7 +83,7 @@ func (evt *StartEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 			case nextActionMessage:
 				if !evt.activated {
 					evt.activated = true
-					m.response <- FlowAction{SequenceFlows: AllSequenceFlows(&evt.Outgoing)}
+					m.response <- FlowAction{SequenceFlows: allSequenceFlows(&evt.outgoing)}
 				} else {
 					m.response <- CompleteAction{}
 				}
@@ -100,37 +98,37 @@ func (evt *StartEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 			default:
 			}
 		case <-ctx.Done():
-			evt.Tracer.Send(CancellationFlowNodeTrace{Node: evt.element})
+			evt.tracer.Send(CancellationFlowNodeTrace{Node: evt.element})
 			return
 		}
 	}
 }
 
-func (evt *StartEvent) flow(ctx context.Context) {
-	flowable := newFlow(evt.Wiring.Definitions, evt, evt.Wiring.Tracer,
-		evt.Wiring.FlowNodeMapping, evt.Wiring.FlowWaitGroup, evt.idGenerator, nil, evt.Locator)
+func (evt *startEvent) flow(ctx context.Context) {
+	flowable := newFlow(evt.wiring.definitions, evt, evt.wiring.tracer,
+		evt.wiring.flowNodeMapping, evt.wiring.flowWaitGroup, evt.idGenerator, nil, evt.locator)
 	flowable.Start(ctx)
 }
 
-func (evt *StartEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
+func (evt *startEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	evt.mch <- eventMessage{event: ev}
 	result = event.Consumed
 	return
 }
 
-func (evt *StartEvent) Trigger(ctx context.Context) {
-	sender := evt.Tracer.RegisterSender()
+func (evt *startEvent) Trigger(ctx context.Context) {
+	sender := evt.tracer.RegisterSender()
 	go evt.run(ctx, sender)
 
 	evt.mch <- startMessage{}
 }
 
-func (evt *StartEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
+func (evt *startEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
 	response := make(chan IAction)
 	evt.mch <- nextActionMessage{response: response, flow: flow}
 	return response
 }
 
-func (evt *StartEvent) Element() schema.FlowNodeInterface {
+func (evt *startEvent) Element() schema.FlowNodeInterface {
 	return evt.element
 }

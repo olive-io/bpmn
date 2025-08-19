@@ -86,11 +86,10 @@ func (f *flow) SetTerminate(terminate Terminate) { f.terminate = terminate }
 // newFlow creates a new flow from a flow node
 //
 // The flow does nothing until it is explicitly started.
-func newFlow(definitions *schema.Definitions,
-	current IFlowNode, tracer tracing.ITracer,
-	flowNodeMapping *FlowNodeMapping, flowWaitGroup *sync.WaitGroup,
-	idGenerator id.IGenerator, actionTransformer ActionTransformer,
-	locator data.IFlowDataLocator,
+func newFlow(definitions *schema.Definitions, current IFlowNode,
+	tracer tracing.ITracer, flowNodeMapping *FlowNodeMapping,
+	flowWaitGroup *sync.WaitGroup, idGenerator id.IGenerator,
+	actionTransformer ActionTransformer, locator data.IFlowDataLocator,
 ) *flow {
 	return &flow{
 		id:                idGenerator.New(),

@@ -26,24 +26,24 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
-type EventBasedGateway struct {
-	*Wiring
+type eventBasedGateway struct {
+	*wiring
 	element   *schema.EventBasedGateway
 	mch       chan imessage
 	activated bool
 }
 
-func NewEventBasedGateway(wiring *Wiring, eventBasedGateway *schema.EventBasedGateway) (gw *EventBasedGateway, err error) {
-	gw = &EventBasedGateway{
-		Wiring:    wiring,
-		element:   eventBasedGateway,
-		mch:       make(chan imessage, len(wiring.Incoming)*2+1),
+func newEventBasedGateway(wr *wiring, element *schema.EventBasedGateway) (gw *eventBasedGateway, err error) {
+	gw = &eventBasedGateway{
+		wiring:    wr,
+		element:   element,
+		mch:       make(chan imessage, len(wr.incoming)*2+1),
 		activated: false,
 	}
 	return
 }
 
-func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHandle) {
+func (gw *eventBasedGateway) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -52,7 +52,7 @@ func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 			switch m := msg.(type) {
 			case nextActionMessage:
 				var first int32 = 0
-				sequences := AllSequenceFlows(&gw.Outgoing)
+				sequences := allSequenceFlows(&gw.outgoing)
 				terminationChannels := make(map[schema.IdRef]chan bool)
 				for _, sequenceFlow := range sequences {
 					if idPtr, present := sequenceFlow.Id(); present {
@@ -61,7 +61,7 @@ func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 						err := errors.NotFoundError{
 							Expected: fmt.Sprintf("id for %#v", sequenceFlow),
 						}
-						gw.Tracer.Send(ErrorTrace{Error: err})
+						gw.tracer.Send(ErrorTrace{Error: err})
 					}
 				}
 
@@ -73,7 +73,7 @@ func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 					ActionTransformer: func(sequenceFlowId *schema.IdRef, action IAction) IAction {
 						// only the first one is to flow
 						if atomic.CompareAndSwapInt32(&first, 0, 1) {
-							gw.Tracer.Send(DeterminationMadeTrace{Node: gw.element})
+							gw.tracer.Send(DeterminationMadeTrace{Node: gw.element})
 							for terminationCandidateId, ch := range terminationChannels {
 								if sequenceFlowId != nil && terminationCandidateId != *sequenceFlowId {
 									ch <- true
@@ -92,14 +92,14 @@ func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 			default:
 			}
 		case <-ctx.Done():
-			gw.Tracer.Send(CancellationFlowNodeTrace{Node: gw.element})
+			gw.tracer.Send(CancellationFlowNodeTrace{Node: gw.element})
 			return
 		}
 	}
 }
 
-func (gw *EventBasedGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := gw.Tracer.RegisterSender()
+func (gw *eventBasedGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
+	sender := gw.tracer.RegisterSender()
 	go gw.run(ctx, sender)
 
 	response := make(chan IAction)
@@ -107,7 +107,7 @@ func (gw *EventBasedGateway) NextAction(ctx context.Context, flow Flow) chan IAc
 	return response
 }
 
-func (gw *EventBasedGateway) Element() schema.FlowNodeInterface {
+func (gw *eventBasedGateway) Element() schema.FlowNodeInterface {
 	return gw.element
 }
 

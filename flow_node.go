@@ -48,7 +48,7 @@ type cancelMessage struct {
 
 func (m cancelMessage) message() {}
 
-func AllSequenceFlows(sequenceFlows *[]SequenceFlow, exclusion ...func(*SequenceFlow) bool) (result []*SequenceFlow) {
+func allSequenceFlows(sequenceFlows *[]SequenceFlow, exclusion ...func(*SequenceFlow) bool) (result []*SequenceFlow) {
 	result = make([]*SequenceFlow, 0)
 sequenceFlowsLoop:
 	for i := range *sequenceFlows {

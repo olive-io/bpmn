@@ -67,8 +67,8 @@ type nextHarnessActionMessage struct {
 
 func (m nextHarnessActionMessage) message() {}
 
-type Harness struct {
-	*Wiring
+type harness struct {
+	*wiring
 	mch                chan imessage
 	activity           Activity
 	active             int32
@@ -79,7 +79,7 @@ type Harness struct {
 	flows []*flow
 }
 
-func (node *Harness) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
+func (node *harness) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	node.eventConsumersLock.RLock()
 	defer node.eventConsumersLock.RUnlock()
 	if atomic.LoadInt32(&node.active) == 1 {
@@ -88,67 +88,67 @@ func (node *Harness) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResu
 	return
 }
 
-func (node *Harness) RegisterEventConsumer(consumer event.IConsumer) (err error) {
+func (node *harness) RegisterEventConsumer(consumer event.IConsumer) (err error) {
 	node.eventConsumersLock.Lock()
 	defer node.eventConsumersLock.Unlock()
 	node.eventConsumers = append(node.eventConsumers, consumer)
 	return
 }
 
-func (node *Harness) Activity() Activity { return node.activity }
+func (node *harness) Activity() Activity { return node.activity }
 
-type Constructor = func(*Wiring) (node Activity, err error)
+type constructor = func(*wiring) (node Activity, err error)
 
-func NewHarness(wiring *Wiring, idGenerator id.IGenerator, constructor Constructor) (node *Harness, err error) {
+func newHarness(wr *wiring, idGenerator id.IGenerator, constructor constructor) (node *harness, err error) {
 	var activity Activity
-	activity, err = constructor(wiring)
+	activity, err = constructor(wr)
 	if err != nil {
 		return
 	}
 
 	boundaryEvents := make([]*schema.BoundaryEvent, 0)
 
-	switch process := wiring.Process.(type) {
+	switch process := wr.process.(type) {
 	case *schema.Process:
 		for i := range *process.BoundaryEvents() {
 			boundaryEvent := &(*process.BoundaryEvents())[i]
-			if string(*boundaryEvent.AttachedToRef()) == wiring.FlowNodeId {
+			if string(*boundaryEvent.AttachedToRef()) == wr.flowNodeId {
 				boundaryEvents = append(boundaryEvents, boundaryEvent)
 			}
 		}
 	case *schema.SubProcess:
 		for i := range *process.BoundaryEvents() {
 			boundaryEvent := &(*process.BoundaryEvents())[i]
-			if string(*boundaryEvent.AttachedToRef()) == wiring.FlowNodeId {
+			if string(*boundaryEvent.AttachedToRef()) == wr.flowNodeId {
 				boundaryEvents = append(boundaryEvents, boundaryEvent)
 			}
 		}
 	}
 
-	node = &Harness{
-		Wiring:   wiring,
-		mch:      make(chan imessage, len(wiring.Incoming)*2+1),
+	node = &harness{
+		wiring:   wr,
+		mch:      make(chan imessage, len(wr.incoming)*2+1),
 		activity: activity,
 		flows:    make([]*flow, 0),
 	}
 
-	err = node.EventEgress.RegisterEventConsumer(node)
+	err = node.eventEgress.RegisterEventConsumer(node)
 	if err != nil {
 		return
 	}
 
 	for i := range boundaryEvents {
 		boundaryEvent := boundaryEvents[i]
-		var catchEventFlowNode *Wiring
-		catchEventFlowNode, err = wiring.CloneFor(&boundaryEvent.FlowNode)
+		var catchEventFlowNode *wiring
+		catchEventFlowNode, err = wr.CloneFor(&boundaryEvent.FlowNode)
 		if err != nil {
 			return
 		}
 		// this node becomes event egress
-		catchEventFlowNode.EventEgress = node
+		catchEventFlowNode.eventEgress = node
 
-		var catchEvent *CatchEvent
-		catchEvent, err = NewCatchEvent(catchEventFlowNode, &boundaryEvent.CatchEvent)
+		var catchEventNode *catchEvent
+		catchEventNode, err = newCatchEvent(catchEventFlowNode, &boundaryEvent.CatchEvent)
 		if err != nil {
 			return
 		}
@@ -162,13 +162,13 @@ func NewHarness(wiring *Wiring, idGenerator id.IGenerator, constructor Construct
 				return action
 			}
 		}
-		flowable := newFlow(node.Definitions, catchEvent, node.Tracer, node.FlowNodeMapping, node.FlowWaitGroup, idGenerator, actionTransformer, node.Locator)
+		flowable := newFlow(node.definitions, catchEventNode, node.tracer, node.flowNodeMapping, node.flowWaitGroup, idGenerator, actionTransformer, node.locator)
 		node.flows = append(node.flows, flowable)
 	}
 	return
 }
 
-func (node *Harness) run(ctx context.Context, sender tracing.ISenderHandle) {
+func (node *harness) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -177,14 +177,14 @@ func (node *Harness) run(ctx context.Context, sender tracing.ISenderHandle) {
 			switch m := msg.(type) {
 			case nextHarnessActionMessage:
 				atomic.StoreInt32(&node.active, 1)
-				node.Tracer.Send(ActiveBoundaryTrace{Start: true, Node: node.activity.Element()})
+				node.tracer.Send(ActiveBoundaryTrace{Start: true, Node: node.activity.Element()})
 				in := node.activity.NextAction(ctx, m.flow)
 				out := make(chan IAction, 1)
 				go func(ctx context.Context) {
 					select {
 					case out <- <-in:
 						atomic.StoreInt32(&node.active, 0)
-						node.Tracer.Send(ActiveBoundaryTrace{Start: false, Node: node.activity.Element()})
+						node.tracer.Send(ActiveBoundaryTrace{Start: false, Node: node.activity.Element()})
 					case <-ctx.Done():
 						return
 					}
@@ -193,14 +193,14 @@ func (node *Harness) run(ctx context.Context, sender tracing.ISenderHandle) {
 			default:
 			}
 		case <-ctx.Done():
-			node.Tracer.Send(CancellationFlowNodeTrace{Node: node.activity.Element()})
+			node.tracer.Send(CancellationFlowNodeTrace{Node: node.activity.Element()})
 			return
 		}
 	}
 }
 
-func (node *Harness) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := node.Tracer.RegisterSender()
+func (node *harness) NextAction(ctx context.Context, flow Flow) chan IAction {
+	sender := node.tracer.RegisterSender()
 	go node.run(ctx, sender)
 	for i := range node.flows {
 		flowable := node.flows[i]
@@ -212,7 +212,7 @@ func (node *Harness) NextAction(ctx context.Context, flow Flow) chan IAction {
 	return <-response
 }
 
-func (node *Harness) Element() schema.FlowNodeInterface { return node.activity.Element() }
+func (node *harness) Element() schema.FlowNodeInterface { return node.activity.Element() }
 
 type ActiveBoundaryTrace struct {
 	Start bool

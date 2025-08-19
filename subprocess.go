@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/data"
@@ -36,17 +37,17 @@ type ProcessLandMarkTrace struct {
 
 func (t ProcessLandMarkTrace) Unpack() any { return t.Node }
 
-type SubProcess struct {
-	*Wiring
-
-	id id.Id
+type subProcess struct {
+	wr *wiring
 
 	ctx                    context.Context
 	cancel                 context.CancelFunc
+	id                     id.Id
 	element                *schema.SubProcess
-	tracer                 tracing.ITracer
+	subTracer              tracing.ITracer
 	flowNodeMapping        *FlowNodeMapping
 	flowWaitGroup          sync.WaitGroup
+	active                 atomic.Bool
 	complete               sync.RWMutex
 	idGenerator            id.IGenerator
 	eventDefinitionBuilder event.IDefinitionInstanceBuilder
@@ -55,93 +56,90 @@ type SubProcess struct {
 	mch                    chan imessage
 }
 
-func NewSubProcess(
-	eventDefinitionBuilder event.IDefinitionInstanceBuilder,
-	idGenerator id.IGenerator,
-	subProcess *schema.SubProcess) Constructor {
-	return func(parentWiring *Wiring) (node Activity, err error) {
+func newSubProcess(eventBuilder event.IDefinitionInstanceBuilder, idGenerator id.IGenerator, subProcessElement *schema.SubProcess) constructor {
+	return func(parentWiring *wiring) (act Activity, err error) {
 
 		flowNodeMapping := NewLockedFlowNodeMapping()
 		defer flowNodeMapping.Finalize()
 
 		ctx, cancel := context.WithCancel(context.Background())
 		subTracer := tracing.NewTracer(ctx)
-		process := &SubProcess{
-			Wiring:                 parentWiring,
-			id:                     idGenerator.New(),
+		process := &subProcess{
+			wr:                     parentWiring,
 			ctx:                    ctx,
 			cancel:                 cancel,
-			element:                subProcess,
-			tracer:                 subTracer,
-			flowNodeMapping:        flowNodeMapping,
-			eventDefinitionBuilder: eventDefinitionBuilder,
+			id:                     idGenerator.New(),
+			element:                subProcessElement,
+			subTracer:              subTracer,
+			eventDefinitionBuilder: eventBuilder,
 			idGenerator:            idGenerator,
-			mch:                    make(chan imessage, len(parentWiring.Incoming)*2+1),
+			flowNodeMapping:        flowNodeMapping,
+			mch:                    make(chan imessage, len(parentWiring.incoming)*2+1),
 		}
 
-		locator := parentWiring.Locator
-		err = data.ElementToLocator(locator, idGenerator, subProcess)
+		locator := parentWiring.locator
+		err = data.ElementToLocator(locator, idGenerator, subProcessElement)
 		if err != nil {
 			return
 		}
 
-		wiringMaker := func(element *schema.FlowNode) (*Wiring, error) {
-			return NewWiring(
-				parentWiring.ProcessInstanceId,
-				subProcess,
-				parentWiring.Definitions,
+		wiringMaker := func(element *schema.FlowNode) (*wiring, error) {
+			return newWiring(
+				parentWiring.processInstanceId,
+				subProcessElement,
+				parentWiring.definitions,
 				element,
-				parentWiring.EventIngress, process,
+				parentWiring.eventIngress, process,
 				subTracer,
 				process.flowNodeMapping,
 				&process.flowWaitGroup, process.eventDefinitionBuilder,
 				locator)
 		}
 
-		var wiring *Wiring
+		var wr *wiring
 
-		for i := range *subProcess.StartEvents() {
-			element := &(*subProcess.StartEvents())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
+		for i := range *subProcessElement.StartEvents() {
+			element := &(*subProcessElement.StartEvents())[i]
+			wr, err = wiringMaker(&element.FlowNode)
 			if err != nil {
 				return
 			}
-			var startEvent *StartEvent
-			startEvent, err = NewStartEvent(wiring, element, idGenerator)
+			var startEventNode *startEvent
+			startEventNode, err = newStartEvent(wr, element, idGenerator)
 			if err != nil {
 				return
 			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, startEvent)
+			err = flowNodeMapping.RegisterElementToFlowNode(element, startEventNode)
 			if err != nil {
 				return
 			}
 		}
 
-		for i := range *subProcess.EndEvents() {
-			element := &(*subProcess.EndEvents())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
+		for i := range *subProcessElement.EndEvents() {
+			element := &(*subProcessElement.EndEvents())[i]
+			wr, err = wiringMaker(&element.FlowNode)
 			if err != nil {
 				return
 			}
-			var endEvent *EndEvent
-			endEvent, err = NewEndEvent(wiring, element)
+			var endEventNode *endEvent
+			endEventNode, err = newEndEvent(wr, element)
 			if err != nil {
 				return
 			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, endEvent)
+			err = flowNodeMapping.RegisterElementToFlowNode(element, endEventNode)
 			if err != nil {
 				return
 			}
 		}
 
-		for i := range *subProcess.IntermediateCatchEvents() {
-			element := &(*subProcess.IntermediateCatchEvents())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
+		for i := range *subProcessElement.IntermediateCatchEvents() {
+			element := &(*subProcessElement.IntermediateCatchEvents())[i]
+			wr, err = wiringMaker(&element.FlowNode)
 			if err != nil {
 				return
 			}
-			var intermediateCatchEvent *CatchEvent
-			intermediateCatchEvent, err = NewCatchEvent(wiring, &element.CatchEvent)
+			var intermediateCatchEvent *catchEvent
+			intermediateCatchEvent, err = newCatchEvent(wr, &element.CatchEvent)
 			if err != nil {
 				return
 			}
@@ -151,256 +149,256 @@ func NewSubProcess(
 			}
 		}
 
-		for i := range *subProcess.BusinessRuleTasks() {
-			element := &(*subProcess.BusinessRuleTasks())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
+		for i := range *subProcessElement.BusinessRuleTasks() {
+			element := &(*subProcessElement.BusinessRuleTasks())[i]
+			wr, err = wiringMaker(&element.FlowNode)
 			if err != nil {
 				return
 			}
-			var harness *Harness
-			harness, err = NewHarness(wiring, idGenerator, NewTask(element, BusinessRuleActivity))
+			var node *harness
+			node, err = newHarness(wr, idGenerator, newTask(element, BusinessRuleActivity))
 			if err != nil {
 				return
 			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
-			if err != nil {
-				return
-			}
-		}
-
-		for i := range *subProcess.CallActivities() {
-			element := &(*subProcess.CallActivities())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
-			if err != nil {
-				return
-			}
-			var harness *Harness
-			harness, err = NewHarness(wiring, idGenerator, NewTask(element, CallActivity))
-			if err != nil {
-				return
-			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
 			if err != nil {
 				return
 			}
 		}
 
-		for i := range *subProcess.Tasks() {
-			element := &(*subProcess.Tasks())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
+		for i := range *subProcessElement.CallActivities() {
+			element := &(*subProcessElement.CallActivities())[i]
+			wr, err = wiringMaker(&element.FlowNode)
 			if err != nil {
 				return
 			}
-			var harness *Harness
-			harness, err = NewHarness(wiring, idGenerator, NewTask(element, TaskActivity))
+			var node *harness
+			node, err = newHarness(wr, idGenerator, newTask(element, CallActivity))
 			if err != nil {
 				return
 			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
-			if err != nil {
-				return
-			}
-		}
-
-		for i := range *subProcess.ManualTasks() {
-			element := &(*subProcess.ManualTasks())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
-			if err != nil {
-				return
-			}
-			var harness *Harness
-			harness, err = NewHarness(wiring, idGenerator, NewTask(element, ManualTaskActivity))
-			if err != nil {
-				return
-			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
 			if err != nil {
 				return
 			}
 		}
 
-		for i := range *subProcess.ServiceTasks() {
-			element := &(*subProcess.ServiceTasks())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
+		for i := range *subProcessElement.Tasks() {
+			element := &(*subProcessElement.Tasks())[i]
+			wr, err = wiringMaker(&element.FlowNode)
 			if err != nil {
 				return
 			}
-			var harness *Harness
-			serviceTask := NewTask(element, ServiceTaskActivity)
-			harness, err = NewHarness(wiring, idGenerator, serviceTask)
+			var node *harness
+			node, err = newHarness(wr, idGenerator, newTask(element, TaskActivity))
 			if err != nil {
 				return
 			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
-			if err != nil {
-				return
-			}
-		}
-
-		for i := range *subProcess.UserTasks() {
-			element := &(*subProcess.UserTasks())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
-			if err != nil {
-				return
-			}
-			var harness *Harness
-			userTask := NewTask(element, UserTaskActivity)
-			harness, err = NewHarness(wiring, idGenerator, userTask)
-			if err != nil {
-				return
-			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
 			if err != nil {
 				return
 			}
 		}
 
-		for i := range *subProcess.ReceiveTasks() {
-			element := &(*subProcess.ReceiveTasks())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
+		for i := range *subProcessElement.ManualTasks() {
+			element := &(*subProcessElement.ManualTasks())[i]
+			wr, err = wiringMaker(&element.FlowNode)
 			if err != nil {
 				return
 			}
-			var harness *Harness
-			scriptTask := NewTask(element, ReceiveTaskActivity)
-			harness, err = NewHarness(wiring, idGenerator, scriptTask)
+			var node *harness
+			node, err = newHarness(wr, idGenerator, newTask(element, ManualTaskActivity))
 			if err != nil {
 				return
 			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
-			if err != nil {
-				return
-			}
-		}
-
-		for i := range *subProcess.ScriptTasks() {
-			element := &(*subProcess.ScriptTasks())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
-			if err != nil {
-				return
-			}
-			var harness *Harness
-			scriptTask := NewTask(element, ScriptTaskActivity)
-			harness, err = NewHarness(wiring, idGenerator, scriptTask)
-			if err != nil {
-				return
-			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
 			if err != nil {
 				return
 			}
 		}
 
-		for i := range *subProcess.SendTasks() {
-			element := &(*subProcess.SendTasks())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
+		for i := range *subProcessElement.ServiceTasks() {
+			element := &(*subProcessElement.ServiceTasks())[i]
+			wr, err = wiringMaker(&element.FlowNode)
 			if err != nil {
 				return
 			}
-			var harness *Harness
-			scriptTask := NewTask(element, SendTaskActivity)
-			harness, err = NewHarness(wiring, idGenerator, scriptTask)
+			var node *harness
+			serviceTask := newTask(element, ServiceTaskActivity)
+			node, err = newHarness(wr, idGenerator, serviceTask)
 			if err != nil {
 				return
 			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
-			if err != nil {
-				return
-			}
-		}
-
-		for i := range *subProcess.SubProcesses() {
-			element := &(*subProcess.SubProcesses())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
-			if err != nil {
-				return
-			}
-			var harness *Harness
-			sp := NewSubProcess(eventDefinitionBuilder, idGenerator, element)
-			harness, err = NewHarness(wiring, idGenerator, sp)
-			if err != nil {
-				return
-			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, harness)
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
 			if err != nil {
 				return
 			}
 		}
 
-		for i := range *subProcess.ExclusiveGateways() {
-			element := &(*subProcess.ExclusiveGateways())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
+		for i := range *subProcessElement.UserTasks() {
+			element := &(*subProcessElement.UserTasks())[i]
+			wr, err = wiringMaker(&element.FlowNode)
 			if err != nil {
 				return
 			}
-			var exclusiveGateway *ExclusiveGateway
-			exclusiveGateway, err = NewExclusiveGateway(wiring, element)
+			var node *harness
+			userTask := newTask(element, UserTaskActivity)
+			node, err = newHarness(wr, idGenerator, userTask)
 			if err != nil {
 				return
 			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, exclusiveGateway)
-			if err != nil {
-				return
-			}
-		}
-
-		for i := range *subProcess.InclusiveGateways() {
-			element := &(*subProcess.InclusiveGateways())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
-			if err != nil {
-				return
-			}
-			var inclusiveGateway *InclusiveGateway
-			inclusiveGateway, err = NewInclusiveGateway(wiring, element)
-			if err != nil {
-				return
-			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, inclusiveGateway)
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
 			if err != nil {
 				return
 			}
 		}
 
-		for i := range *subProcess.ParallelGateways() {
-			element := &(*subProcess.ParallelGateways())[i]
-			var parallelGateway *ParallelGateway
-			wiring, err = wiringMaker(&element.FlowNode)
+		for i := range *subProcessElement.ReceiveTasks() {
+			element := &(*subProcessElement.ReceiveTasks())[i]
+			wr, err = wiringMaker(&element.FlowNode)
 			if err != nil {
 				return
 			}
-			parallelGateway, err = NewParallelGateway(wiring, element)
+			var node *harness
+			scriptTask := newTask(element, ReceiveTaskActivity)
+			node, err = newHarness(wr, idGenerator, scriptTask)
 			if err != nil {
 				return
 			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, parallelGateway)
-			if err != nil {
-				return
-			}
-		}
-
-		for i := range *subProcess.EventBasedGateways() {
-			element := &(*subProcess.EventBasedGateways())[i]
-			wiring, err = wiringMaker(&element.FlowNode)
-			if err != nil {
-				return
-			}
-			var eventBasedGateway *EventBasedGateway
-			eventBasedGateway, err = NewEventBasedGateway(wiring, element)
-			if err != nil {
-				return
-			}
-			err = flowNodeMapping.RegisterElementToFlowNode(element, eventBasedGateway)
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
 			if err != nil {
 				return
 			}
 		}
 
-		node = process
+		for i := range *subProcessElement.ScriptTasks() {
+			element := &(*subProcessElement.ScriptTasks())[i]
+			wr, err = wiringMaker(&element.FlowNode)
+			if err != nil {
+				return
+			}
+			var node *harness
+			scriptTask := newTask(element, ScriptTaskActivity)
+			node, err = newHarness(wr, idGenerator, scriptTask)
+			if err != nil {
+				return
+			}
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
+			if err != nil {
+				return
+			}
+		}
+
+		for i := range *subProcessElement.SendTasks() {
+			element := &(*subProcessElement.SendTasks())[i]
+			wr, err = wiringMaker(&element.FlowNode)
+			if err != nil {
+				return
+			}
+			var node *harness
+			scriptTask := newTask(element, SendTaskActivity)
+			node, err = newHarness(wr, idGenerator, scriptTask)
+			if err != nil {
+				return
+			}
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
+			if err != nil {
+				return
+			}
+		}
+
+		for i := range *subProcessElement.SubProcesses() {
+			element := &(*subProcessElement.SubProcesses())[i]
+			wr, err = wiringMaker(&element.FlowNode)
+			if err != nil {
+				return
+			}
+			var node *harness
+			sp := newSubProcess(eventBuilder, idGenerator, element)
+			node, err = newHarness(wr, idGenerator, sp)
+			if err != nil {
+				return
+			}
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
+			if err != nil {
+				return
+			}
+		}
+
+		for i := range *subProcessElement.ExclusiveGateways() {
+			element := &(*subProcessElement.ExclusiveGateways())[i]
+			wr, err = wiringMaker(&element.FlowNode)
+			if err != nil {
+				return
+			}
+			var node *exclusiveGateway
+			node, err = newExclusiveGateway(wr, element)
+			if err != nil {
+				return
+			}
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
+			if err != nil {
+				return
+			}
+		}
+
+		for i := range *subProcessElement.InclusiveGateways() {
+			element := &(*subProcessElement.InclusiveGateways())[i]
+			wr, err = wiringMaker(&element.FlowNode)
+			if err != nil {
+				return
+			}
+			var node *inclusiveGateway
+			node, err = newInclusiveGateway(wr, element)
+			if err != nil {
+				return
+			}
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
+			if err != nil {
+				return
+			}
+		}
+
+		for i := range *subProcessElement.ParallelGateways() {
+			element := &(*subProcessElement.ParallelGateways())[i]
+			wr, err = wiringMaker(&element.FlowNode)
+			if err != nil {
+				return
+			}
+			var node *parallelGateway
+			node, err = newParallelGateway(wr, element)
+			if err != nil {
+				return
+			}
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
+			if err != nil {
+				return
+			}
+		}
+
+		for i := range *subProcessElement.EventBasedGateways() {
+			element := &(*subProcessElement.EventBasedGateways())[i]
+			wr, err = wiringMaker(&element.FlowNode)
+			if err != nil {
+				return
+			}
+			var node *eventBasedGateway
+			node, err = newEventBasedGateway(wr, element)
+			if err != nil {
+				return
+			}
+			err = flowNodeMapping.RegisterElementToFlowNode(element, node)
+			if err != nil {
+				return
+			}
+		}
+
+		act = process
 		return
 	}
 }
 
-func (p *SubProcess) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
+func (p *subProcess) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	p.eventConsumersLock.RLock()
 	// We're copying the list of consumers here to ensure that
 	// new consumers can subscribe during event forwarding
@@ -410,7 +408,7 @@ func (p *SubProcess) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResu
 	return
 }
 
-func (p *SubProcess) RegisterEventConsumer(ev event.IConsumer) (err error) {
+func (p *subProcess) RegisterEventConsumer(ev event.IConsumer) (err error) {
 	p.eventConsumersLock.Lock()
 	defer p.eventConsumersLock.Unlock()
 	p.eventConsumers = append(p.eventConsumers, ev)
@@ -418,10 +416,10 @@ func (p *SubProcess) RegisterEventConsumer(ev event.IConsumer) (err error) {
 }
 
 // startWith explicitly starts the subprocess by triggering a given start event
-func (p *SubProcess) startWith(ctx context.Context, startEvent schema.StartEventInterface) (err error) {
-	flowNode, found := p.flowNodeMapping.ResolveElementToFlowNode(startEvent)
+func (p *subProcess) startWith(ctx context.Context, element schema.StartEventInterface) (err error) {
+	flowNode, found := p.flowNodeMapping.ResolveElementToFlowNode(element)
 	elementId := "<unnamed>"
-	if idPtr, present := startEvent.Id(); present {
+	if idPtr, present := element.Id(); present {
 		elementId = *idPtr
 	}
 	processId := "<unnamed>"
@@ -432,7 +430,7 @@ func (p *SubProcess) startWith(ctx context.Context, startEvent schema.StartEvent
 		err = errors.NotFoundError{Expected: fmt.Sprintf("start event %s in process %s", elementId, processId)}
 		return
 	}
-	startEventNode, ok := flowNode.(*StartEvent)
+	startEventNode, ok := flowNode.(*startEvent)
 	if !ok {
 		err = errors.RequirementExpectationError{
 			Expected: fmt.Sprintf("start event %s flow node in process %s to be of type start.Node", elementId, processId),
@@ -445,7 +443,7 @@ func (p *SubProcess) startWith(ctx context.Context, startEvent schema.StartEvent
 }
 
 // startAll explicitly starts the subprocess by triggering all start events, if any
-func (p *SubProcess) startAll(ctx context.Context) (err error) {
+func (p *subProcess) startAll(ctx context.Context) (err error) {
 	for i := range *p.element.StartEvents() {
 		err = p.startWith(ctx, &(*p.element.StartEvents())[i])
 		if err != nil {
@@ -455,7 +453,7 @@ func (p *SubProcess) startAll(ctx context.Context) (err error) {
 	return
 }
 
-func (p *SubProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.Context, sender tracing.ISenderHandle) {
+func (p *subProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.Context, sender tracing.ISenderHandle) {
 	// Subscribing to traces early as otherwise events produced
 	// after the goroutine below is started are not going to be
 	// sent to it.
@@ -515,16 +513,24 @@ func (p *SubProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.C
 	}
 }
 
-func (p *SubProcess) run(ctx context.Context, out tracing.ITracer) {
+func (p *subProcess) run(ctx context.Context, out tracing.ITracer) {
+	defer p.cancel()
 	for {
 		select {
 		case msg := <-p.mch:
 			switch m := msg.(type) {
 			case cancelMessage:
-				p.cancel()
 				m.response <- true
+				return
 			case nextActionMessage:
+				if p.active.Load() {
+					continue
+				}
+
+				p.active.Store(true)
 				go func() {
+					defer p.active.Store(false)
+
 					if err := p.startAll(ctx); err != nil {
 						subProcessId := ""
 						if pid, present := p.element.Id(); present {
@@ -537,14 +543,15 @@ func (p *SubProcess) run(ctx context.Context, out tracing.ITracer) {
 						return
 					}
 
-					traces := p.tracer.Subscribe()
+					traces := p.subTracer.Subscribe()
+					defer p.subTracer.Unsubscribe(traces)
 				loop:
 					for {
 						var trace tracing.ITrace
 						select {
 						case trace = <-traces:
 						case <-ctx.Done():
-							p.Tracer.Send(CancellationFlowNodeTrace{Node: p.element})
+							p.wr.tracer.Send(CancellationFlowNodeTrace{Node: p.element})
 							return
 						}
 
@@ -561,42 +568,41 @@ func (p *SubProcess) run(ctx context.Context, out tracing.ITracer) {
 							out.Send(tr)
 						}
 					}
-					p.tracer.Unsubscribe(traces)
 
-					action := FlowAction{SequenceFlows: AllSequenceFlows(&p.Wiring.Outgoing)}
+					action := FlowAction{SequenceFlows: allSequenceFlows(&p.wr.outgoing)}
 					m.response <- action
 				}()
 			default:
 			}
 		case <-ctx.Done():
-			p.Tracer.Send(CancellationFlowNodeTrace{Node: p.element})
+			p.wr.tracer.Send(CancellationFlowNodeTrace{Node: p.element})
 			return
 		}
 	}
 }
 
-func (p *SubProcess) NextAction(ctx context.Context, flow Flow) chan IAction {
+func (p *subProcess) NextAction(ctx context.Context, flow Flow) chan IAction {
 	// flow nodes
 	// StartAll cease flow monitor
-	sender := p.tracer.RegisterSender()
-	go p.ceaseFlowMonitor(p.Tracer)(ctx, sender)
+	sender := p.subTracer.RegisterSender()
+	go p.ceaseFlowMonitor(p.wr.tracer)(ctx, sender)
 
-	go p.run(ctx, p.Tracer)
+	go p.run(ctx, p.wr.tracer)
 
 	response := make(chan IAction, 1)
 	p.mch <- nextActionMessage{response: response}
 	return response
 }
 
-func (p *SubProcess) Element() schema.FlowNodeInterface {
+func (p *subProcess) Element() schema.FlowNodeInterface {
 	return p.element
 }
 
-func (p *SubProcess) Type() ActivityType {
+func (p *subProcess) Type() ActivityType {
 	return SubprocessActivity
 }
 
-func (p *SubProcess) Cancel() <-chan bool {
+func (p *subProcess) Cancel() <-chan bool {
 	response := make(chan bool)
 	p.mch <- cancelMessage{response: response}
 	return response

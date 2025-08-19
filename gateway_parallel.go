@@ -23,8 +23,8 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
-type ParallelGateway struct {
-	*Wiring
+type parallelGateway struct {
+	*wiring
 	element               *schema.ParallelGateway
 	mch                   chan imessage
 	reportedIncomingFlows int
@@ -32,30 +32,30 @@ type ParallelGateway struct {
 	noOfIncomingFlows     int
 }
 
-func NewParallelGateway(wiring *Wiring, parallelGateway *schema.ParallelGateway) (gateway *ParallelGateway, err error) {
-	gateway = &ParallelGateway{
-		Wiring:                wiring,
-		element:               parallelGateway,
-		mch:                   make(chan imessage, len(wiring.Incoming)*2+1),
+func newParallelGateway(wr *wiring, element *schema.ParallelGateway) (gw *parallelGateway, err error) {
+	gw = &parallelGateway{
+		wiring:                wr,
+		element:               element,
+		mch:                   make(chan imessage, len(wr.incoming)*2+1),
 		reportedIncomingFlows: 0,
 		awaitingActions:       make([]chan IAction, 0),
-		noOfIncomingFlows:     len(wiring.Incoming),
+		noOfIncomingFlows:     len(wr.incoming),
 	}
 
 	return
 }
 
-func (gw *ParallelGateway) flowWhenReady() {
+func (gw *parallelGateway) flowWhenReady() {
 	if gw.reportedIncomingFlows == gw.noOfIncomingFlows {
 		gw.reportedIncomingFlows = 0
 		awaitingActions := gw.awaitingActions
 		gw.awaitingActions = make([]chan IAction, 0)
-		sequences := AllSequenceFlows(&gw.Outgoing)
+		sequences := allSequenceFlows(&gw.outgoing)
 		distributeFlows(awaitingActions, sequences)
 	}
 }
 
-func (gw *ParallelGateway) run(ctx context.Context, sender tracing.ISenderHandle) {
+func (gw *parallelGateway) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -66,18 +66,18 @@ func (gw *ParallelGateway) run(ctx context.Context, sender tracing.ISenderHandle
 				gw.reportedIncomingFlows++
 				gw.awaitingActions = append(gw.awaitingActions, m.response)
 				gw.flowWhenReady()
-				gw.Tracer.Send(IncomingFlowProcessedTrace{Node: gw.element, Flow: m.flow})
+				gw.tracer.Send(IncomingFlowProcessedTrace{Node: gw.element, Flow: m.flow})
 			default:
 			}
 		case <-ctx.Done():
-			gw.Tracer.Send(CancellationFlowNodeTrace{Node: gw.element})
+			gw.tracer.Send(CancellationFlowNodeTrace{Node: gw.element})
 			return
 		}
 	}
 }
 
-func (gw *ParallelGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := gw.Tracer.RegisterSender()
+func (gw *parallelGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
+	sender := gw.tracer.RegisterSender()
 	go gw.run(ctx, sender)
 
 	response := make(chan IAction)
@@ -85,7 +85,7 @@ func (gw *ParallelGateway) NextAction(ctx context.Context, flow Flow) chan IActi
 	return response
 }
 
-func (gw *ParallelGateway) Element() schema.FlowNodeInterface {
+func (gw *parallelGateway) Element() schema.FlowNodeInterface {
 	return gw.element
 }
 

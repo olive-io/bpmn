@@ -24,8 +24,8 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
-type EndEvent struct {
-	*Wiring
+type endEvent struct {
+	*wiring
 	element              *schema.EndEvent
 	activated            bool
 	completed            bool
@@ -33,19 +33,19 @@ type EndEvent struct {
 	startEventsActivated []*schema.StartEvent
 }
 
-func NewEndEvent(wiring *Wiring, endEvent *schema.EndEvent) (evt *EndEvent, err error) {
-	evt = &EndEvent{
-		Wiring:               wiring,
-		element:              endEvent,
+func newEndEvent(wr *wiring, element *schema.EndEvent) (evt *endEvent, err error) {
+	evt = &endEvent{
+		wiring:               wr,
+		element:              element,
 		activated:            false,
 		completed:            false,
-		mch:                  make(chan imessage, len(wiring.Incoming)*2+1),
+		mch:                  make(chan imessage, len(wr.incoming)*2+1),
 		startEventsActivated: make([]*schema.StartEvent, 0),
 	}
 	return
 }
 
-func (evt *EndEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
+func (evt *endEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -62,23 +62,23 @@ func (evt *EndEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 					continue
 				}
 
-				if _, err := evt.EventIngress.ConsumeEvent(event.MakeEndEvent(evt.element)); err == nil {
+				if _, err := evt.eventIngress.ConsumeEvent(event.MakeEndEvent(evt.element)); err == nil {
 					evt.completed = true
 					m.response <- CompleteAction{}
 				} else {
-					evt.Wiring.Tracer.Send(ErrorTrace{Error: err})
+					evt.wiring.tracer.Send(ErrorTrace{Error: err})
 				}
 			default:
 			}
 		case <-ctx.Done():
-			evt.Tracer.Send(CancellationFlowNodeTrace{Node: evt.element})
+			evt.tracer.Send(CancellationFlowNodeTrace{Node: evt.element})
 			return
 		}
 	}
 }
 
-func (evt *EndEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := evt.Tracer.RegisterSender()
+func (evt *endEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
+	sender := evt.tracer.RegisterSender()
 	go evt.run(ctx, sender)
 
 	response := make(chan IAction, 1)
@@ -86,6 +86,6 @@ func (evt *EndEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
 	return response
 }
 
-func (evt *EndEvent) Element() schema.FlowNodeInterface {
+func (evt *endEvent) Element() schema.FlowNodeInterface {
 	return evt.element
 }

@@ -51,8 +51,8 @@ type flowSync struct {
 	flow     Flow
 }
 
-type InclusiveGateway struct {
-	*Wiring
+type inclusiveGateway struct {
+	*wiring
 	element                 *schema.InclusiveGateway
 	mch                     chan imessage
 	defaultSequenceFlow     *SequenceFlow
@@ -66,16 +66,16 @@ type InclusiveGateway struct {
 	synchronized            bool
 }
 
-func NewInclusiveGateway(wiring *Wiring, inclusiveGateway *schema.InclusiveGateway) (gw *InclusiveGateway, err error) {
+func newInclusiveGateway(wr *wiring, element *schema.InclusiveGateway) (gw *inclusiveGateway, err error) {
 	var defaultSequenceFlow *SequenceFlow
 
-	if seqFlow, present := inclusiveGateway.Default(); present {
-		if node, found := wiring.Process.FindBy(schema.ExactId(*seqFlow).
+	if seqFlow, present := element.Default(); present {
+		if node, found := wr.process.FindBy(schema.ExactId(*seqFlow).
 			And(schema.ElementType((*schema.SequenceFlow)(nil)))); found {
 			defaultSequenceFlow = new(SequenceFlow)
 			*defaultSequenceFlow = MakeSequenceFlow(
 				node.(*schema.SequenceFlow),
-				wiring.Process,
+				wr.process,
 			)
 		} else {
 			err = errors.NotFoundError{
@@ -85,7 +85,7 @@ func NewInclusiveGateway(wiring *Wiring, inclusiveGateway *schema.InclusiveGatew
 		}
 	}
 
-	nonDefaultSequenceFlows := AllSequenceFlows(&wiring.Outgoing,
+	nonDefaultSequenceFlows := allSequenceFlows(&wr.outgoing,
 		func(sequenceFlow *SequenceFlow) bool {
 			if defaultSequenceFlow == nil {
 				return false
@@ -94,18 +94,18 @@ func NewInclusiveGateway(wiring *Wiring, inclusiveGateway *schema.InclusiveGatew
 		},
 	)
 
-	gw = &InclusiveGateway{
-		Wiring:                  wiring,
-		element:                 inclusiveGateway,
-		mch:                     make(chan imessage, len(wiring.Incoming)*2+1),
+	gw = &inclusiveGateway{
+		wiring:                  wr,
+		element:                 element,
+		mch:                     make(chan imessage, len(wr.incoming)*2+1),
 		nonDefaultSequenceFlows: nonDefaultSequenceFlows,
 		defaultSequenceFlow:     defaultSequenceFlow,
-		flowTracker:             newFlowTracker(wiring.Tracer, inclusiveGateway),
+		flowTracker:             newFlowTracker(wr.tracer, element),
 	}
 	return
 }
 
-func (gw *InclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandle) {
+func (gw *inclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer gw.flowTracker.shutdown()
 	activity := gw.flowTracker.activity()
 
@@ -135,7 +135,7 @@ func (gw *InclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 					// no successful non-default sequence flows
 					if gw.defaultSequenceFlow == nil {
 						// exception (Table 13.2)
-						gw.Wiring.Tracer.Send(ErrorTrace{
+						gw.wiring.tracer.Send(ErrorTrace{
 							Error: InclusiveNoEffectiveSequenceFlows{
 								InclusiveGateway: gw.element,
 							},
@@ -179,13 +179,13 @@ func (gw *InclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 				gw.trySync()
 			}
 		case <-ctx.Done():
-			gw.Tracer.Send(CancellationFlowNodeTrace{Node: gw.element})
+			gw.tracer.Send(CancellationFlowNodeTrace{Node: gw.element})
 			return
 		}
 	}
 }
 
-func (gw *InclusiveGateway) trySync() {
+func (gw *inclusiveGateway) trySync() {
 	if !gw.synchronized && len(gw.arrived) >= len(gw.awaiting) {
 		// Have we got everybody?
 		matches := 0
@@ -214,8 +214,8 @@ func (gw *InclusiveGateway) trySync() {
 	}
 }
 
-func (gw *InclusiveGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := gw.Tracer.RegisterSender()
+func (gw *inclusiveGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
+	sender := gw.tracer.RegisterSender()
 	go gw.run(ctx, sender)
 
 	response := make(chan IAction)
@@ -223,7 +223,7 @@ func (gw *InclusiveGateway) NextAction(ctx context.Context, flow Flow) chan IAct
 	return response
 }
 
-func (gw *InclusiveGateway) Element() schema.FlowNodeInterface {
+func (gw *inclusiveGateway) Element() schema.FlowNodeInterface {
 	return gw.element
 }
 
