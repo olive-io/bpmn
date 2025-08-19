@@ -47,10 +47,11 @@ func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...ev
 	LoadTestFile("testdata/event_based_gateway.bpmn", &testDoc)
 
 	engine := bpmn.NewEngine()
+	ctx := context.Background()
 	proc, err := engine.NewProcess(&testDoc)
 	if err == nil {
 		traces := proc.Tracer().Subscribe()
-		err := proc.StartAll()
+		err := proc.StartAll(ctx)
 		if err != nil {
 			t.Errorf("failed to run the instance: %s", err)
 			return

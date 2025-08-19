@@ -99,7 +99,8 @@ func testEvent(t *testing.T, filename string, nodeId string, eventDefinitionInst
 	inst, err := engine.NewProcess(&testDoc, bpmn.WithProcessEventDefinitionInstanceBuilder(eventDefinitionInstanceBuilder), bpmn.WithTracer(tracer))
 	assert.Nil(t, err)
 
-	err = inst.StartAll()
+	ctx := context.Background()
+	err = inst.StartAll(ctx)
 	if err != nil {
 		t.Fatalf("failed to run the instance: %s", err)
 	}

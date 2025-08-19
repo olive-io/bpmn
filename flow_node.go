@@ -17,11 +17,13 @@ limitations under the License.
 package bpmn
 
 import (
+	"context"
+
 	"github.com/olive-io/bpmn/schema"
 )
 
 type IOutgoing interface {
-	NextAction(flow Flow) chan IAction
+	NextAction(ctx context.Context, flow Flow) chan IAction
 }
 
 type IFlowNode interface {

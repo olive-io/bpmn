@@ -35,10 +35,11 @@ func TestInclusiveGateway(t *testing.T) {
 	LoadTestFile("testdata/inclusive_gateway.bpmn", &testInclusiveGateway)
 
 	engine := bpmn.NewEngine()
-	tracer := tracing.NewTracer(context.Background())
+	ctx := context.Background()
+	tracer := tracing.NewTracer(ctx)
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 32))
 	if inst, err := engine.NewProcess(&testInclusiveGateway, bpmn.WithTracer(tracer)); err == nil {
-		err := inst.StartAll()
+		err := inst.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -74,7 +75,6 @@ func TestInclusiveGateway(t *testing.T) {
 			case bpmn.ErrorTrace:
 				t.Fatalf("%#v", trace)
 			default:
-				//t.Logf("%#v", trace)
 			}
 		}
 		inst.Tracer().Unsubscribe(traces)
@@ -88,10 +88,11 @@ func TestInclusiveGatewayDefault(t *testing.T) {
 	LoadTestFile("testdata/inclusive_gateway_default.bpmn", &testInclusiveGatewayDefault)
 
 	engine := bpmn.NewEngine()
-	tracer := tracing.NewTracer(context.Background())
+	ctx := context.Background()
+	tracer := tracing.NewTracer(ctx)
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 32))
 	if inst, err := engine.NewProcess(&testInclusiveGatewayDefault, bpmn.WithTracer(tracer)); err == nil {
-		err := inst.StartAll()
+		err := inst.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -143,9 +144,10 @@ func TestInclusiveGatewayNoDefault(t *testing.T) {
 	LoadTestFile("testdata/inclusive_gateway_no_default.bpmn", &testInclusiveGatewayNoDefault)
 
 	engine := bpmn.NewEngine()
+	ctx := context.Background()
 	if inst, err := engine.NewProcess(&testInclusiveGatewayNoDefault); err == nil {
 		traces := inst.Tracer().Subscribe()
-		err := inst.StartAll()
+		err := inst.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

@@ -75,13 +75,15 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 	engine := bpmn.NewEngine()
 	ready := make(chan bool, 1)
 
+	ctx := context.Background()
 	// explicit tracer
-	tracer := tracing.NewTracer(context.Background())
+	tracer := tracing.NewTracer(ctx)
 	// this gives us some room when instance starts up
 	traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 32))
+	defer tracer.Unsubscribe(traces)
 
 	if inst, err := engine.NewProcess(&testDoc, bpmn.WithTracer(tracer)); err == nil {
-		err = inst.StartAll()
+		err = inst.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -159,7 +161,6 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 				//t.Logf("%#v", trace)
 			}
 		}
-		inst.Tracer().Unsubscribe(traces)
 
 		test(visited)
 

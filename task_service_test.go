@@ -36,6 +36,7 @@ func TestServiceTask(t *testing.T) {
 	LoadTestFile("testdata/service_task.bpmn", &testTask)
 
 	engine := bpmn.NewEngine()
+	ctx := context.TODO()
 	options := []bpmn.Option{
 		bpmn.WithVariables(map[string]any{
 			"c": map[string]string{"name": "cc"},
@@ -47,7 +48,7 @@ func TestServiceTask(t *testing.T) {
 	}
 	if ins, err := engine.NewProcess(&testTask, options...); err == nil {
 		traces := ins.Tracer().Subscribe()
-		err = ins.StartAll()
+		err = ins.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -98,10 +99,11 @@ func TestServiceTaskWithError(t *testing.T) {
 	LoadTestFile("testdata/service_task.bpmn", &testTask)
 
 	engine := bpmn.NewEngine()
+	ctx := context.TODO()
 	var te error
 	if ins, err := engine.NewProcess(&testTask); err == nil {
 		traces := ins.Tracer().Subscribe()
-		err := ins.StartAll()
+		err := ins.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -150,11 +152,11 @@ func TestServiceTaskWithRetry(t *testing.T) {
 	engine := bpmn.NewEngine()
 	var te error
 	runnum := 0
-	_, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	if ins, err := engine.NewProcess(&testTask); err == nil {
 		traces := ins.Tracer().Subscribe()
-		err = ins.StartAll()
+		err = ins.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -213,9 +215,10 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 		bpmn.WithDataObjects(map[string]any{"DataObject_0yhrl3s": map[string]any{"a": "ac"}}),
 	}
 	engine := bpmn.NewEngine()
+	ctx := context.TODO()
 	if ins, err := engine.NewProcess(task, options...); err == nil {
 		traces := ins.Tracer().Subscribe()
-		err := ins.StartAll()
+		err := ins.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}

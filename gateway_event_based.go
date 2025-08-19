@@ -28,16 +28,14 @@ import (
 
 type EventBasedGateway struct {
 	*Wiring
-	ctx       context.Context
 	element   *schema.EventBasedGateway
 	mch       chan imessage
 	activated bool
 }
 
-func NewEventBasedGateway(ctx context.Context, wiring *Wiring, eventBasedGateway *schema.EventBasedGateway) (gw *EventBasedGateway, err error) {
+func NewEventBasedGateway(wiring *Wiring, eventBasedGateway *schema.EventBasedGateway) (gw *EventBasedGateway, err error) {
 	gw = &EventBasedGateway{
 		Wiring:    wiring,
-		ctx:       ctx,
 		element:   eventBasedGateway,
 		mch:       make(chan imessage, len(wiring.Incoming)*2+1),
 		activated: false,
@@ -100,9 +98,9 @@ func (gw *EventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 	}
 }
 
-func (gw *EventBasedGateway) NextAction(flow Flow) chan IAction {
+func (gw *EventBasedGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
 	sender := gw.Tracer.RegisterSender()
-	go gw.run(gw.ctx, sender)
+	go gw.run(ctx, sender)
 
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}

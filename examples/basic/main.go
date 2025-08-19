@@ -103,7 +103,7 @@ func (w *Workflow) Run(handle Handle) error {
 	defer w.cancel()
 
 	for _, instance := range w.processes {
-		if err := instance.StartAll(); err != nil {
+		if err := instance.StartAll(ctx); err != nil {
 			return err
 		}
 

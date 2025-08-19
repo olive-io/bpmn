@@ -265,7 +265,7 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var startEvent *StartEvent
-		startEvent, err = NewStartEvent(ctx, wiring, element, idGenerator)
+		startEvent, err = NewStartEvent(wiring, element, idGenerator)
 		if err != nil {
 			return
 		}
@@ -282,7 +282,7 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var endEvent *EndEvent
-		endEvent, err = NewEndEvent(ctx, wiring, element)
+		endEvent, err = NewEndEvent(wiring, element)
 		if err != nil {
 			return
 		}
@@ -299,7 +299,7 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var intermediateCatchEvent *CatchEvent
-		intermediateCatchEvent, err = NewCatchEvent(ctx, wiring, &element.CatchEvent)
+		intermediateCatchEvent, err = NewCatchEvent(wiring, &element.CatchEvent)
 		if err != nil {
 			return
 		}
@@ -316,8 +316,8 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var harness *Harness
-		task := NewTask(ctx, element, TaskActivity)
-		harness, err = NewHarness(ctx, wiring, idGenerator, task)
+		task := NewTask(element, TaskActivity)
+		harness, err = NewHarness(wiring, idGenerator, task)
 		if err != nil {
 			return
 		}
@@ -334,8 +334,8 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var harness *Harness
-		businessRule := NewTask(ctx, element, BusinessRuleActivity)
-		harness, err = NewHarness(ctx, wiring, idGenerator, businessRule)
+		businessRule := NewTask(element, BusinessRuleActivity)
+		harness, err = NewHarness(wiring, idGenerator, businessRule)
 		if err != nil {
 			return
 		}
@@ -352,8 +352,8 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var harness *Harness
-		callAct := NewTask(ctx, element, CallActivity)
-		harness, err = NewHarness(ctx, wiring, idGenerator, callAct)
+		callAct := NewTask(element, CallActivity)
+		harness, err = NewHarness(wiring, idGenerator, callAct)
 		if err != nil {
 			return
 		}
@@ -370,8 +370,8 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var harness *Harness
-		manualTask := NewTask(ctx, element, ManualTaskActivity)
-		harness, err = NewHarness(ctx, wiring, idGenerator, manualTask)
+		manualTask := NewTask(element, ManualTaskActivity)
+		harness, err = NewHarness(wiring, idGenerator, manualTask)
 		if err != nil {
 			return
 		}
@@ -388,8 +388,8 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var harness *Harness
-		serviceTask := NewTask(ctx, element, ServiceTaskActivity)
-		harness, err = NewHarness(ctx, wiring, idGenerator, serviceTask)
+		serviceTask := NewTask(element, ServiceTaskActivity)
+		harness, err = NewHarness(wiring, idGenerator, serviceTask)
 		if err != nil {
 			return
 		}
@@ -406,8 +406,8 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var harness *Harness
-		userTask := NewTask(ctx, element, UserTaskActivity)
-		harness, err = NewHarness(ctx, wiring, idGenerator, userTask)
+		userTask := NewTask(element, UserTaskActivity)
+		harness, err = NewHarness(wiring, idGenerator, userTask)
 		if err != nil {
 			return
 		}
@@ -424,8 +424,8 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var harness *Harness
-		receiveTask := NewTask(ctx, element, ReceiveTaskActivity)
-		harness, err = NewHarness(ctx, wiring, idGenerator, receiveTask)
+		receiveTask := NewTask(element, ReceiveTaskActivity)
+		harness, err = NewHarness(wiring, idGenerator, receiveTask)
 		if err != nil {
 			return
 		}
@@ -442,8 +442,8 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var harness *Harness
-		scriptTask := NewTask(ctx, element, ScriptTaskActivity)
-		harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
+		scriptTask := NewTask(element, ScriptTaskActivity)
+		harness, err = NewHarness(wiring, idGenerator, scriptTask)
 		if err != nil {
 			return
 		}
@@ -460,8 +460,8 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var harness *Harness
-		sendTask := NewTask(ctx, element, SendTaskActivity)
-		harness, err = NewHarness(ctx, wiring, idGenerator, sendTask)
+		sendTask := NewTask(element, SendTaskActivity)
+		harness, err = NewHarness(wiring, idGenerator, sendTask)
 		if err != nil {
 			return
 		}
@@ -478,8 +478,8 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var harness *Harness
-		subProcess := NewSubProcess(ctx, process.eventDefinitionInstanceBuilder, idGenerator, subTracer, element)
-		harness, err = NewHarness(ctx, wiring, idGenerator, subProcess)
+		subProcess := NewSubProcess(process.eventDefinitionInstanceBuilder, idGenerator, element)
+		harness, err = NewHarness(wiring, idGenerator, subProcess)
 		if err != nil {
 			return
 		}
@@ -496,7 +496,7 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var exclusiveGateway *ExclusiveGateway
-		exclusiveGateway, err = NewExclusiveGateway(ctx, wiring, element)
+		exclusiveGateway, err = NewExclusiveGateway(wiring, element)
 		if err != nil {
 			return
 		}
@@ -513,7 +513,7 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var inclusiveGateway *InclusiveGateway
-		inclusiveGateway, err = NewInclusiveGateway(ctx, wiring, element)
+		inclusiveGateway, err = NewInclusiveGateway(wiring, element)
 		if err != nil {
 			return
 		}
@@ -530,7 +530,7 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 		if err != nil {
 			return
 		}
-		parallelGateway, err = NewParallelGateway(ctx, wiring, element)
+		parallelGateway, err = NewParallelGateway(wiring, element)
 		if err != nil {
 			return
 		}
@@ -547,7 +547,7 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var eventBasedGateway *EventBasedGateway
-		eventBasedGateway, err = NewEventBasedGateway(ctx, wiring, element)
+		eventBasedGateway, err = NewEventBasedGateway(wiring, element)
 		if err != nil {
 			return
 		}
@@ -590,13 +590,12 @@ func (p *Process) StartWith(ctx context.Context, startEvent schema.StartEventInt
 		}
 		return
 	}
-	startEventNode.Trigger()
+	startEventNode.Trigger(ctx)
 	return
 }
 
 // StartAll explicitly starts the instance by triggering all start events, if any
-func (p *Process) StartAll() (err error) {
-	ctx := p.ctx
+func (p *Process) StartAll(ctx context.Context) (err error) {
 	for i := range *p.element.StartEvents() {
 		err = p.StartWith(ctx, &(*p.element.StartEvents())[i])
 		if err != nil {

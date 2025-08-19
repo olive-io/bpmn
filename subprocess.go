@@ -38,11 +38,12 @@ func (t ProcessLandMarkTrace) Unpack() any { return t.Node }
 
 type SubProcess struct {
 	*Wiring
-	ctx    context.Context
-	cancel context.CancelFunc
 
+	id id.Id
+
+	ctx                    context.Context
+	cancel                 context.CancelFunc
 	element                *schema.SubProcess
-	parentTracer           tracing.ITracer
 	tracer                 tracing.ITracer
 	flowNodeMapping        *FlowNodeMapping
 	flowWaitGroup          sync.WaitGroup
@@ -54,26 +55,23 @@ type SubProcess struct {
 	mch                    chan imessage
 }
 
-func NewSubProcess(ctx context.Context,
+func NewSubProcess(
 	eventDefinitionBuilder event.IDefinitionInstanceBuilder,
 	idGenerator id.IGenerator,
-	tracer tracing.ITracer,
 	subProcess *schema.SubProcess) Constructor {
 	return func(parentWiring *Wiring) (node Activity, err error) {
 
 		flowNodeMapping := NewLockedFlowNodeMapping()
+		defer flowNodeMapping.Finalize()
 
+		ctx, cancel := context.WithCancel(context.Background())
 		subTracer := tracing.NewTracer(ctx)
-
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithCancel(ctx)
-
 		process := &SubProcess{
 			Wiring:                 parentWiring,
+			id:                     idGenerator.New(),
 			ctx:                    ctx,
 			cancel:                 cancel,
 			element:                subProcess,
-			parentTracer:           tracer,
 			tracer:                 subTracer,
 			flowNodeMapping:        flowNodeMapping,
 			eventDefinitionBuilder: eventDefinitionBuilder,
@@ -109,7 +107,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var startEvent *StartEvent
-			startEvent, err = NewStartEvent(ctx, wiring, element, idGenerator)
+			startEvent, err = NewStartEvent(wiring, element, idGenerator)
 			if err != nil {
 				return
 			}
@@ -126,7 +124,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var endEvent *EndEvent
-			endEvent, err = NewEndEvent(ctx, wiring, element)
+			endEvent, err = NewEndEvent(wiring, element)
 			if err != nil {
 				return
 			}
@@ -143,7 +141,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var intermediateCatchEvent *CatchEvent
-			intermediateCatchEvent, err = NewCatchEvent(ctx, wiring, &element.CatchEvent)
+			intermediateCatchEvent, err = NewCatchEvent(wiring, &element.CatchEvent)
 			if err != nil {
 				return
 			}
@@ -160,7 +158,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, BusinessRuleActivity))
+			harness, err = NewHarness(wiring, idGenerator, NewTask(element, BusinessRuleActivity))
 			if err != nil {
 				return
 			}
@@ -177,7 +175,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, CallActivity))
+			harness, err = NewHarness(wiring, idGenerator, NewTask(element, CallActivity))
 			if err != nil {
 				return
 			}
@@ -194,7 +192,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, TaskActivity))
+			harness, err = NewHarness(wiring, idGenerator, NewTask(element, TaskActivity))
 			if err != nil {
 				return
 			}
@@ -211,7 +209,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			harness, err = NewHarness(ctx, wiring, idGenerator, NewTask(ctx, element, ManualTaskActivity))
+			harness, err = NewHarness(wiring, idGenerator, NewTask(element, ManualTaskActivity))
 			if err != nil {
 				return
 			}
@@ -228,8 +226,8 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			serviceTask := NewTask(ctx, element, ServiceTaskActivity)
-			harness, err = NewHarness(ctx, wiring, idGenerator, serviceTask)
+			serviceTask := NewTask(element, ServiceTaskActivity)
+			harness, err = NewHarness(wiring, idGenerator, serviceTask)
 			if err != nil {
 				return
 			}
@@ -246,8 +244,8 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			userTask := NewTask(ctx, element, UserTaskActivity)
-			harness, err = NewHarness(ctx, wiring, idGenerator, userTask)
+			userTask := NewTask(element, UserTaskActivity)
+			harness, err = NewHarness(wiring, idGenerator, userTask)
 			if err != nil {
 				return
 			}
@@ -264,8 +262,8 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			scriptTask := NewTask(ctx, element, ReceiveTaskActivity)
-			harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
+			scriptTask := NewTask(element, ReceiveTaskActivity)
+			harness, err = NewHarness(wiring, idGenerator, scriptTask)
 			if err != nil {
 				return
 			}
@@ -282,8 +280,8 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			scriptTask := NewTask(ctx, element, ScriptTaskActivity)
-			harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
+			scriptTask := NewTask(element, ScriptTaskActivity)
+			harness, err = NewHarness(wiring, idGenerator, scriptTask)
 			if err != nil {
 				return
 			}
@@ -300,8 +298,8 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			scriptTask := NewTask(ctx, element, SendTaskActivity)
-			harness, err = NewHarness(ctx, wiring, idGenerator, scriptTask)
+			scriptTask := NewTask(element, SendTaskActivity)
+			harness, err = NewHarness(wiring, idGenerator, scriptTask)
 			if err != nil {
 				return
 			}
@@ -318,8 +316,8 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var harness *Harness
-			sp := NewSubProcess(ctx, eventDefinitionBuilder, idGenerator, subTracer, element)
-			harness, err = NewHarness(ctx, wiring, idGenerator, sp)
+			sp := NewSubProcess(eventDefinitionBuilder, idGenerator, element)
+			harness, err = NewHarness(wiring, idGenerator, sp)
 			if err != nil {
 				return
 			}
@@ -336,7 +334,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var exclusiveGateway *ExclusiveGateway
-			exclusiveGateway, err = NewExclusiveGateway(ctx, wiring, element)
+			exclusiveGateway, err = NewExclusiveGateway(wiring, element)
 			if err != nil {
 				return
 			}
@@ -353,7 +351,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var inclusiveGateway *InclusiveGateway
-			inclusiveGateway, err = NewInclusiveGateway(ctx, wiring, element)
+			inclusiveGateway, err = NewInclusiveGateway(wiring, element)
 			if err != nil {
 				return
 			}
@@ -370,7 +368,7 @@ func NewSubProcess(ctx context.Context,
 			if err != nil {
 				return
 			}
-			parallelGateway, err = NewParallelGateway(ctx, wiring, element)
+			parallelGateway, err = NewParallelGateway(wiring, element)
 			if err != nil {
 				return
 			}
@@ -387,7 +385,7 @@ func NewSubProcess(ctx context.Context,
 				return
 			}
 			var eventBasedGateway *EventBasedGateway
-			eventBasedGateway, err = NewEventBasedGateway(ctx, wiring, element)
+			eventBasedGateway, err = NewEventBasedGateway(wiring, element)
 			if err != nil {
 				return
 			}
@@ -397,10 +395,6 @@ func NewSubProcess(ctx context.Context,
 			}
 		}
 
-		flowNodeMapping.Finalize()
-		// StartAll cease flow monitor
-		sender := process.Tracer.RegisterSender()
-		go process.ceaseFlowMonitor(subTracer)(ctx, sender)
 		node = process
 		return
 	}
@@ -446,7 +440,7 @@ func (p *SubProcess) startWith(ctx context.Context, startEvent schema.StartEvent
 		}
 		return
 	}
-	startEventNode.Trigger()
+	startEventNode.Trigger(ctx)
 	return
 }
 
@@ -581,8 +575,13 @@ func (p *SubProcess) run(ctx context.Context, out tracing.ITracer) {
 	}
 }
 
-func (p *SubProcess) NextAction(Flow) chan IAction {
-	go p.run(p.ctx, p.parentTracer)
+func (p *SubProcess) NextAction(ctx context.Context, flow Flow) chan IAction {
+	// flow nodes
+	// StartAll cease flow monitor
+	sender := p.tracer.RegisterSender()
+	go p.ceaseFlowMonitor(p.Tracer)(ctx, sender)
+
+	go p.run(ctx, p.Tracer)
 
 	response := make(chan IAction, 1)
 	p.mch <- nextActionMessage{response: response}

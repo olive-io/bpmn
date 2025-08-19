@@ -46,16 +46,16 @@ func TestCancellation(t *testing.T) {
 	var sampleDoc schema.Definitions
 	LoadTestFile("testdata/sample.bpmn", &sampleDoc)
 
-	if proc, found := sampleDoc.FindBy(schema.ExactId("sample")); found {
-		ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	if elem, found := sampleDoc.FindBy(schema.ExactId("sample")); found {
 
 		tracer := tracing.NewTracer(ctx)
 		traces := tracer.SubscribeChannel(make(chan tracing.ITrace, 128))
 
-		proc, err := bpmn.NewProcess(proc.(*schema.Process), &defaultDefinitions, bpmn.WithContext(ctx), bpmn.WithTracer(tracer))
+		proc, err := bpmn.NewProcess(elem.(*schema.Process), &defaultDefinitions, bpmn.WithContext(ctx), bpmn.WithTracer(tracer))
 		assert.Nil(t, err)
 
-		err = proc.StartAll()
+		err = proc.StartAll(ctx)
 		assert.Nil(t, err)
 
 		cancel()
