@@ -58,13 +58,13 @@ func (evt *endEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 				}
 				// If the node already completed, then we essentially fuse it
 				if evt.completed {
-					m.response <- CompleteAction{}
+					m.response <- completeAction{}
 					continue
 				}
 
 				if _, err := evt.eventIngress.ConsumeEvent(event.MakeEndEvent(evt.element)); err == nil {
 					evt.completed = true
-					m.response <- CompleteAction{}
+					m.response <- completeAction{}
 				} else {
 					evt.wiring.tracer.Send(ErrorTrace{Error: err})
 				}

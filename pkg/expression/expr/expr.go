@@ -28,6 +28,8 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/expression"
 )
 
+const exprKind = "https://github.com/expr-lang/expr"
+
 // Expr language engine
 //
 // https://github.com/expr-lang/expr
@@ -80,6 +82,12 @@ func (engine *Expr) CompileExpression(source string) (result expression.ICompile
 		expr.AllowUndefinedVariables(),
 	}
 	result, err = expr.Compile(source, opts...)
+	if err != nil {
+		err = errors.ExprError{
+			Kind: exprKind,
+			Err:  err,
+		}
+	}
 	return
 }
 
@@ -97,6 +105,12 @@ func (engine *Expr) EvaluateExpression(e expression.ICompiledExpression, data in
 
 	if exp, ok := e.(*vm.Program); ok {
 		result, err = expr.Run(exp, actualData)
+		if err != nil {
+			err = errors.ExprError{
+				Kind: exprKind,
+				Err:  err,
+			}
+		}
 	} else {
 		err = errors.InvalidArgumentError{
 			Expected: "CompiledExpression to be *github.com/expr-lang/expr/vm#Program",
@@ -107,7 +121,7 @@ func (engine *Expr) EvaluateExpression(e expression.ICompiledExpression, data in
 }
 
 func init() {
-	expression.RegisterEngine("https://github.com/expr-lang/expr", func(ctx context.Context) expression.IEngine {
+	expression.RegisterEngine(exprKind, func(ctx context.Context) expression.IEngine {
 		return New(ctx)
 	})
 }

@@ -62,11 +62,11 @@ func (task *genericTask) run(ctx context.Context) {
 			case nextTaskActionMessage:
 				go func() {
 					aResponse := &FlowActionResponse{
-						Variables: map[string]data.IItem{},
+						variables: map[string]data.IItem{},
 					}
-					action := FlowAction{
-						Response:      aResponse,
-						SequenceFlows: allSequenceFlows(&task.outgoing),
+					action := flowAction{
+						response:      aResponse,
+						sequenceFlows: allSequenceFlows(&task.outgoing),
 					}
 
 					headers := m.headers
@@ -90,10 +90,10 @@ func (task *genericTask) run(ctx context.Context) {
 						task.tracer.Send(CancellationFlowNodeTrace{Node: task.element})
 						return
 					case out := <-at.out():
-						aResponse.Err = out.Err
-						aResponse.DataObjects = ApplyTaskDataOutput(task.element, out.DataObjects)
-						aResponse.Variables = ApplyTaskResult(task.element, out.Results)
-						aResponse.Handler = out.HandlerCh
+						aResponse.err = out.Err
+						aResponse.dataObjects = ApplyTaskDataOutput(task.element, out.DataObjects)
+						aResponse.variables = ApplyTaskResult(task.element, out.Results)
+						aResponse.handler = out.HandlerCh
 					}
 
 					m.response <- action

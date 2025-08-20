@@ -32,6 +32,8 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/expression"
 )
 
+const xpathKind = "http://www.w3.org/1999/XPath"
+
 // XPath language engine
 //
 // Implementation details and limitations as per https://github.com/antchfx/xpath
@@ -55,9 +57,14 @@ func New(ctx context.Context) *XPath {
 
 func (engine *XPath) CompileExpression(source string) (result expression.ICompiledExpression, err error) {
 	compiled, err := grammar.Build(source)
-	if err == nil {
-		result = &compiled
+	if err != nil {
+		err = errors.ExprError{
+			Kind: xpathKind,
+			Err:  err,
+		}
+		return nil, err
 	}
+	result = &compiled
 	return
 }
 
@@ -73,6 +80,10 @@ func (engine *XPath) EvaluateExpression(e expression.ICompiledExpression, datum 
 		var serialized []byte
 		serialized, err = anyxml.Xml(datum)
 		if err != nil {
+			err = errors.ExprError{
+				Kind: xpathKind,
+				Err:  err,
+			}
 			result = nil
 			return
 		}
@@ -87,11 +98,19 @@ func (engine *XPath) EvaluateExpression(e expression.ICompiledExpression, datum 
 		var cursor store.Cursor
 		cursor, err = store.CreateInMemory(p)
 		if err != nil {
+			err = errors.ExprError{
+				Kind: xpathKind,
+				Err:  err,
+			}
 			return
 		}
 		var res exec.Result
 		res, err = exec.Exec(cursor, expr, contextSettings)
 		if err != nil {
+			err = errors.ExprError{
+				Kind: xpathKind,
+				Err:  err,
+			}
 			return
 		}
 		switch r := res.(type) {
@@ -174,7 +193,7 @@ func (engine *XPath) getDataObject() func(context exec.Context, args ...exec.Res
 }
 
 func init() {
-	expression.RegisterEngine("http://www.w3.org/1999/XPath", func(ctx context.Context) expression.IEngine {
+	expression.RegisterEngine(xpathKind, func(ctx context.Context) expression.IEngine {
 		return New(ctx)
 	})
 }

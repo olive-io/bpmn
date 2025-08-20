@@ -62,6 +62,15 @@ func (e NotSupportedError) Error() string {
 	return fmt.Sprintf("%s is not supported because %s", e.What, e.Reason)
 }
 
+type ExprError struct {
+	Kind string
+	Err  error
+}
+
+func (e ExprError) Error() string {
+	return fmt.Sprintf("%s expression execute: %v", e.Kind, e.Err.Error())
+}
+
 type TaskExecError struct {
 	Id     string
 	Reason string

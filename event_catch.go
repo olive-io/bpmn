@@ -70,7 +70,7 @@ func (evt *catchEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 					if satisfied, _ := evt.satisfier.Satisfy(m.event); satisfied {
 						awaitingActions := evt.awaitingActions
 						for _, actionChan := range awaitingActions {
-							actionChan <- FlowAction{SequenceFlows: allSequenceFlows(&evt.outgoing)}
+							actionChan <- flowAction{sequenceFlows: allSequenceFlows(&evt.outgoing)}
 						}
 						evt.awaitingActions = make([]chan IAction, 0)
 						evt.activated = false

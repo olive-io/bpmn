@@ -121,15 +121,15 @@ func (gw *exclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 							})
 						} else {
 							// default
-							*response <- FlowAction{
-								SequenceFlows:      []*SequenceFlow{gw.defaultSequenceFlow},
-								UnconditionalFlows: []int{0},
+							*response <- flowAction{
+								sequenceFlows:      []*SequenceFlow{gw.defaultSequenceFlow},
+								unconditionalFlows: []int{0},
 							}
 						}
 					case 1:
-						*response <- FlowAction{
-							SequenceFlows:      sfs,
-							UnconditionalFlows: []int{0},
+						*response <- flowAction{
+							sequenceFlows:      sfs,
+							unconditionalFlows: []int{0},
 						}
 					default:
 						gw.wiring.tracer.Send(ErrorTrace{
@@ -154,9 +154,9 @@ func (gw *exclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 					// and now we wait until the probe has returned
 				} else {
 					gw.probing[m.flow.Id()] = nil
-					m.response <- ProbeAction{
-						SequenceFlows: gw.nonDefaultSequenceFlows,
-						ProbeReport: func(indices []int) {
+					m.response <- probeAction{
+						sequenceFlows: gw.nonDefaultSequenceFlows,
+						probeReport: func(indices []int) {
 							gw.mch <- gatewayProbingReport{
 								result: indices,
 								flowId: m.flow.Id(),

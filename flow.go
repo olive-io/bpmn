@@ -140,15 +140,11 @@ func (f *flow) executeSequenceFlow(ctx context.Context, sequenceFlow *SequenceFl
 			var compiled expression.ICompiledExpression
 			compiled, err = engine.CompileExpression(source)
 			if err != nil {
-				result = false
-				f.tracer.Send(ErrorTrace{Error: err})
 				return
 			}
 			var abstractResult expression.IResult
 			abstractResult, err = engine.EvaluateExpression(compiled, properties)
 			if err != nil {
-				result = false
-				f.tracer.Send(ErrorTrace{Error: err})
 				return
 			}
 			switch actualResult := abstractResult.(type) {
@@ -159,8 +155,6 @@ func (f *flow) executeSequenceFlow(ctx context.Context, sequenceFlow *SequenceFl
 					Expected: fmt.Sprintf("boolean result in conditionExpression (%s)", source),
 					Actual:   actualResult,
 				}
-				result = false
-				f.tracer.Send(ErrorTrace{Error: err})
 				return
 			}
 		case *schema.Expression:
@@ -226,9 +220,10 @@ func (f *flow) handleSequenceFlow(ctx context.Context, sequenceFlow *SequenceFlo
 // Having this FlowTrace consistency is extremely important because otherwise there will be cases when
 // the FlowTrace will come through *after* traces created by newly started flows, completely messing up
 // the order of traces which is expected to be linear.
-func (f *flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow *SequenceFlow,
+func (f *flow) handleAdditionalSequenceFlow(
+	ctx context.Context, sequenceFlow *SequenceFlow,
 	unconditional bool, actionTransformer ActionTransformer,
-	terminate Terminate) (flowId id.Id, handle func(), flowed bool) {
+	terminate Terminate) (flowId id.Id, handle func(ctx context.Context), flowed bool) {
 	ok, err := f.executeSequenceFlow(ctx, sequenceFlow, unconditional)
 	if err != nil {
 		f.tracer.Send(ErrorTrace{Error: err})
@@ -244,7 +239,7 @@ func (f *flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow *S
 	}
 	if flowNode, found := f.flowNodeMapping.ResolveElementToFlowNode(target); found {
 		flowId = f.idGenerator.New()
-		handle = func() {
+		handle = func(handleCtx context.Context) {
 			flowable := newFlow(f.definitions, flowNode, f.tracer, f.flowNodeMapping,
 				f.flowWaitGroup, f.idGenerator, actionTransformer, f.locator)
 			flowable.id = flowId // important: override id with pre-generated one
@@ -256,7 +251,7 @@ func (f *flow) handleAdditionalSequenceFlow(ctx context.Context, sequenceFlow *S
 				})
 			}
 			flowable.terminate = terminate
-			flowable.Start(ctx)
+			flowable.Start(handleCtx)
 		}
 		flowed = true
 	} else {
@@ -306,9 +301,9 @@ func (f *flow) Start(ctx context.Context) {
 					action = f.actionTransformer(f.sequenceFlowId, action)
 				}
 				switch a := action.(type) {
-				case ProbeAction:
+				case probeAction:
 					results := make([]int, 0)
-					for i, seqFlow := range a.SequenceFlows {
+					for i, seqFlow := range a.sequenceFlows {
 						if result, err := f.executeSequenceFlow(ctx, seqFlow, false); err == nil {
 							if result {
 								results = append(results, i)
@@ -317,20 +312,20 @@ func (f *flow) Start(ctx context.Context) {
 							f.tracer.Send(ErrorTrace{Error: err})
 						}
 					}
-					a.ProbeReport(results)
-				case FlowAction:
-					if res := a.Response; res != nil {
-						if res.Err != nil {
+					a.probeReport(results)
+				case flowAction:
+					if res := a.response; res != nil {
+						if res.err != nil {
 							source := f.current.Element()
 							fid, _ := source.Id()
 							f.tracer.Send(ErrorTrace{Error: errors.TaskExecError{
 								Id:     *fid,
-								Reason: res.Err.Error(),
+								Reason: res.err.Error(),
 							}})
 
-							if res.Handler != nil {
+							if res.handler != nil {
 								select {
-								case handler := <-res.Handler:
+								case handler := <-res.handler:
 									switch handler.Mode {
 									case RetryMode:
 										if f.retry == nil {
@@ -359,13 +354,13 @@ func (f *flow) Start(ctx context.Context) {
 							}
 						}
 
-						if len(res.DataObjects) > 0 {
+						if len(res.dataObjects) > 0 {
 							locator, found := f.locator.FindIItemAwareLocator(data.LocatorObject)
 							if !found {
 								locator = data.NewDataObjectContainer()
 								f.locator.PutIItemAwareLocator(data.LocatorObject, locator)
 							}
-							for name, do := range res.DataObjects {
+							for name, do := range res.dataObjects {
 								aware, found1 := locator.FindItemAwareByName(name)
 								if !found1 {
 									aware = data.NewContainer(nil)
@@ -374,17 +369,17 @@ func (f *flow) Start(ctx context.Context) {
 								aware.Put(do)
 							}
 						}
-						if len(res.Variables) > 0 {
-							for key, value := range res.Variables {
+						if len(res.variables) > 0 {
+							for key, value := range res.variables {
 								f.locator.SetVariable(key, value)
 							}
 						}
 					}
 
-					sequences := a.SequenceFlows
+					sequences := a.sequenceFlows
 					if len(sequences) > 0 {
 						unconditional := make([]bool, len(sequences))
-						for _, index := range a.UnconditionalFlows {
+						for _, index := range a.unconditionalFlows {
 							unconditional[index] = true
 						}
 						source := f.current.Element()
@@ -392,20 +387,20 @@ func (f *flow) Start(ctx context.Context) {
 						current := sequences[0]
 						effectiveFlows := make([]Snapshot, 0)
 
-						flowed := f.handleSequenceFlow(ctx, current, unconditional[0], a.ActionTransformer, a.Terminate)
+						flowed := f.handleSequenceFlow(ctx, current, unconditional[0], a.actionTransformer, a.terminate)
 
 						if flowed {
 							effectiveFlows = append(effectiveFlows, Snapshot{sequenceFlow: current, flowId: f.Id()})
 						}
 
 						rest := sequences[1:]
-						flowFuncs := make([]func(), 0)
+						flowHandlers := make([]func(ctx context.Context), 0)
 						for i, sequenceFlow := range rest {
-							flowId, flowFunc, flowed := f.handleAdditionalSequenceFlow(ctx, sequenceFlow, unconditional[i+1],
-								a.ActionTransformer, a.Terminate)
+							flowId, flowHandler, flowed := f.handleAdditionalSequenceFlow(ctx, sequenceFlow, unconditional[i+1],
+								a.actionTransformer, a.terminate)
 							if flowed {
 								effectiveFlows = append(effectiveFlows, Snapshot{sequenceFlow: sequenceFlow, flowId: flowId})
-								flowFuncs = append(flowFuncs, flowFunc)
+								flowHandlers = append(flowHandlers, flowHandler)
 							}
 						}
 
@@ -414,8 +409,8 @@ func (f *flow) Start(ctx context.Context) {
 								Source: source,
 								Flows:  effectiveFlows,
 							})
-							for _, flowFunc := range flowFuncs {
-								flowFunc()
+							for _, handle := range flowHandlers {
+								handle(ctx)
 							}
 						} else {
 							// no flows to continue with, abort
@@ -430,7 +425,7 @@ func (f *flow) Start(ctx context.Context) {
 						// nowhere to flow, abort
 						return
 					}
-				case CompleteAction:
+				case completeAction:
 					f.tracer.Send(CompletionTrace{
 						Node: f.current.Element(),
 					})
@@ -439,7 +434,7 @@ func (f *flow) Start(ctx context.Context) {
 						Source: f.current.Element(),
 					})
 					return
-				case NoAction:
+				case noAction:
 					f.tracer.Send(TerminationTrace{
 						FlowId: f.Id(),
 						Source: f.current.Element(),

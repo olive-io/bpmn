@@ -199,9 +199,9 @@ func (gw *inclusiveGateway) trySync() {
 		if matches == len(gw.awaiting) {
 			anId := gw.activated.flow.Id()
 			// Probe outgoing sequence flow using the first flow
-			gw.activated.response <- ProbeAction{
-				SequenceFlows: gw.nonDefaultSequenceFlows,
-				ProbeReport: func(indices []int) {
+			gw.activated.response <- probeAction{
+				sequenceFlows: gw.nonDefaultSequenceFlows,
+				probeReport: func(indices []int) {
 					gw.mch <- gatewayProbingReport{
 						result: indices,
 						flowId: anId,

@@ -25,24 +25,24 @@ type IAction interface {
 	action()
 }
 
-type ProbeAction struct {
-	SequenceFlows []*SequenceFlow
-	// ProbeReport is a function that needs to be called
+type probeAction struct {
+	sequenceFlows []*SequenceFlow
+	// probeReport is a function that needs to be called
 	// wth sequence flow indices that have successful
 	// condition expressions (or none)
-	ProbeReport func([]int)
+	probeReport func([]int)
 }
 
-func (action ProbeAction) action() {}
+func (action probeAction) action() {}
 
 type ActionTransformer func(sequenceFlowId *schema.IdRef, action IAction) IAction
 type Terminate func(sequenceFlowId *schema.IdRef) chan bool
 
 type FlowActionResponse struct {
-	DataObjects map[string]data.IItem
-	Variables   map[string]data.IItem
-	Err         error
-	Handler     <-chan ErrHandler
+	dataObjects map[string]data.IItem
+	variables   map[string]data.IItem
+	err         error
+	handler     <-chan ErrHandler
 }
 
 type ErrHandleMode int
@@ -58,27 +58,27 @@ type ErrHandler struct {
 	Retries int32
 }
 
-type FlowAction struct {
-	Response *FlowActionResponse
+type flowAction struct {
+	response *FlowActionResponse
 
-	SequenceFlows []*SequenceFlow
+	sequenceFlows []*SequenceFlow
 	// Index of sequence flows that should flow without
 	// conditionExpression being evaluated
-	UnconditionalFlows []int
+	unconditionalFlows []int
 	// The actions produced by the targets should be produced by
 	// this function
-	ActionTransformer ActionTransformer
+	actionTransformer ActionTransformer
 	// If a supplied channel sends a function that returns true, the flow action
 	// is to be terminated if it wasn't already
-	Terminate Terminate
+	terminate Terminate
 }
 
-func (action FlowAction) action() {}
+func (action flowAction) action() {}
 
-type CompleteAction struct{}
+type completeAction struct{}
 
-func (action CompleteAction) action() {}
+func (action completeAction) action() {}
 
-type NoAction struct{}
+type noAction struct{}
 
-func (action NoAction) action() {}
+func (action noAction) action() {}

@@ -83,9 +83,9 @@ func (evt *startEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 			case nextActionMessage:
 				if !evt.activated {
 					evt.activated = true
-					m.response <- FlowAction{SequenceFlows: allSequenceFlows(&evt.outgoing)}
+					m.response <- flowAction{sequenceFlows: allSequenceFlows(&evt.outgoing)}
 				} else {
-					m.response <- CompleteAction{}
+					m.response <- completeAction{}
 				}
 			case startMessage:
 				evt.flow(ctx)

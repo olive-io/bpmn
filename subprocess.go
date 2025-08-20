@@ -569,7 +569,7 @@ func (p *subProcess) run(ctx context.Context, out tracing.ITracer) {
 						}
 					}
 
-					action := FlowAction{SequenceFlows: allSequenceFlows(&p.wr.outgoing)}
+					action := flowAction{sequenceFlows: allSequenceFlows(&p.wr.outgoing)}
 					m.response <- action
 				}()
 			default:

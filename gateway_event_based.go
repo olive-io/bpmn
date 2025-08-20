@@ -65,12 +65,12 @@ func (gw *eventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 					}
 				}
 
-				action := FlowAction{
-					Terminate: func(sequenceFlowId *schema.IdRef) chan bool {
+				action := flowAction{
+					terminate: func(sequenceFlowId *schema.IdRef) chan bool {
 						return terminationChannels[*sequenceFlowId]
 					},
-					SequenceFlows: sequences,
-					ActionTransformer: func(sequenceFlowId *schema.IdRef, action IAction) IAction {
+					sequenceFlows: sequences,
+					actionTransformer: func(sequenceFlowId *schema.IdRef, action IAction) IAction {
 						// only the first one is to flow
 						if atomic.CompareAndSwapInt32(&first, 0, 1) {
 							gw.tracer.Send(DeterminationMadeTrace{Node: gw.element})
@@ -83,7 +83,7 @@ func (gw *eventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 							terminationChannels = make(map[schema.IdRef]chan bool)
 							return action
 						} else {
-							return CompleteAction{}
+							return completeAction{}
 						}
 					},
 				}
