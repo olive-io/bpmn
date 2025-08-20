@@ -40,7 +40,6 @@ package main
 
 import (
 	"context"
-	"encoding/xml"
 	"log"
 	"os"
 
