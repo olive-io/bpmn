@@ -282,9 +282,7 @@ func (f *flow) Start(ctx context.Context) {
 		await:
 			select {
 			case <-ctx.Done():
-				f.tracer.Send(CancellationFlowTrace{
-					FlowId: f.Id(),
-				})
+				f.tracer.Send(CancellationFlowTrace{FlowId: f.id, Node: f.current.Element()})
 				return
 			case terminate := <-f.termination():
 				if terminate {

@@ -50,9 +50,10 @@ func (t TerminationTrace) Unpack() any { return t.Source }
 
 type CancellationFlowTrace struct {
 	FlowId id.Id
+	Node   schema.FlowNodeInterface
 }
 
-func (t CancellationFlowTrace) Unpack() any { return t.FlowId }
+func (t CancellationFlowTrace) Unpack() any { return t.Node }
 
 type CompletionTrace struct {
 	Node schema.FlowNodeInterface
