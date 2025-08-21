@@ -24,7 +24,6 @@ jobs:
           export PATH=$PATH:$(go env GOPATH)/bin
           go install golang.org/x/lint/golint@latest
           golint -set_exit_status ./..
-          golint -set_exit_status ./schema
 
   test:
     name: Test
@@ -40,7 +39,6 @@ jobs:
       - name: Go Get dependencies
         run: |
           go get -v -t -d ./...
-          go get -v -t -d ./schema
       - name: Go Test
         run: |
           go test -v ./...

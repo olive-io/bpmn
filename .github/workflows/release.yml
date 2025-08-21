@@ -26,7 +26,6 @@ jobs:
           export PATH=$PATH:$(go env GOPATH)/bin
           go install golang.org/x/lint/golint@latest
           golint -set_exit_status ./..
-          golint -set_exit_status ./schema
 
       - name: Get Tag Version
         run: |

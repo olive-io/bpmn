@@ -121,6 +121,7 @@ func main() {
 - [Basic Task](https://github.com/olive-io/bpmn/tree/main/examples/basic): Simplest task example
 - [User Task](https://github.com/olive-io/bpmn/tree/main/examples/user_task): Executing a user task
 - [Gateways](https://github.com/olive-io/bpmn/tree/main/examples/gateway): Gateway execution examples
+- [Gateways-expr](https://github.com/olive-io/bpmn/tree/main/examples/gateway_expr): Inclusive Gateway with Expr
 - [Custom Properties](https://github.com/olive-io/bpmn/tree/main/examples/properties): Support for custom task parameters
 - [Sub-process](https://github.com/olive-io/bpmn/tree/main/examples/subprocess): Executing a sub-process
 

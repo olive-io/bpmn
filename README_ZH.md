@@ -119,6 +119,7 @@ func main() {
 - [单任务](https://github.com/olive-io/bpmn/tree/main/examples/basic): 最简单的任务
 - [用户任务](https://github.com/olive-io/bpmn/tree/main/examples/user_task): 执行用户任务
 - [网关](https://github.com/olive-io/bpmn/tree/main/examples/gateway): 执行带网关实例
+- [排他网关](https://github.com/olive-io/bpmn/tree/main/examples/gateway_expr): 带条件的排他网关
 - [自定义参数](https://github.com/olive-io/bpmn/tree/main/examples/properties): 支持自定义任务参数
 - [子进程](https://github.com/olive-io/bpmn/tree/main/examples/subprocess): 执行子进程
 
