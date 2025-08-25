@@ -51,6 +51,12 @@ func NewEngineOptions(opts ...EngineOption) *EngineOptions {
 
 type EngineOption func(*EngineOptions)
 
+func WithEngineContext(ctx context.Context) EngineOption {
+	return func(options *EngineOptions) {
+		options.ctx = ctx
+	}
+}
+
 func WithIdGeneratorBuilder(idGeneratorBuilder id.IGeneratorBuilder) EngineOption {
 	return func(o *EngineOptions) {
 		o.idGeneratorBuilder = idGeneratorBuilder
@@ -77,7 +83,7 @@ func NewEngine(opts ...EngineOption) *Engine {
 	return engine
 }
 
-func (p *Engine) NewProcess(definitions *schema.Definitions, opts ...Option) (process *Process, err error) {
+func (engine *Engine) NewProcess(definitions *schema.Definitions, opts ...Option) (process *Process, err error) {
 
 	var processElement *schema.Process
 	for _, element := range *definitions.Processes() {
@@ -95,18 +101,18 @@ func (p *Engine) NewProcess(definitions *schema.Definitions, opts ...Option) (pr
 
 	options := NewOptions(opts...)
 	if options.ctx == nil {
-		options.ctx = p.ctx
+		options.ctx = engine.ctx
 	}
 
 	tracer := options.tracer
 	if tracer == nil {
-		tracer = tracing.NewTracer(p.ctx)
+		tracer = tracing.NewTracer(engine.ctx)
 		opts = append(opts, WithTracer(tracer))
 	}
 
 	idGenerator := options.idGenerator
 	if idGenerator == nil {
-		idGenerator, err = p.idGeneratorBuilder.NewIdGenerator(p.ctx, tracer)
+		idGenerator, err = engine.idGeneratorBuilder.NewIdGenerator(engine.ctx, tracer)
 		if err != nil {
 			return nil, fmt.Errorf("create id generator: %w", err)
 		}

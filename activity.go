@@ -180,12 +180,13 @@ func (node *harness) run(ctx context.Context, sender tracing.ISenderHandle) {
 				node.tracer.Send(ActiveBoundaryTrace{Start: true, Node: node.activity.Element()})
 				in := node.activity.NextAction(ctx, m.flow)
 				out := make(chan IAction, 1)
-				go func(ctx context.Context) {
+				go func(bctx context.Context) {
 					select {
-					case out <- <-in:
+					case rsp := <-in:
+						out <- rsp
 						atomic.StoreInt32(&node.active, 0)
 						node.tracer.Send(ActiveBoundaryTrace{Start: false, Node: node.activity.Element()})
-					case <-ctx.Done():
+					case <-bctx.Done():
 						return
 					}
 				}(ctx)
