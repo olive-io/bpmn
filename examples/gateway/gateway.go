@@ -65,7 +65,6 @@ func main() {
 
 			trace = tracing.Unwrap(trace)
 			switch trace := trace.(type) {
-			case bpmn.FlowTrace:
 			case bpmn.TaskTrace:
 				act := trace.GetActivity()
 				ele := act.Element()
@@ -78,7 +77,7 @@ func main() {
 			case bpmn.CeaseFlowTrace:
 				return
 			default:
-				//log.Printf("%#v", trace)
+				log.Printf("%#v", trace)
 			}
 		}
 	}()

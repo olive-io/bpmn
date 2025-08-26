@@ -357,6 +357,7 @@ type TaskDefinition struct {
 	Type    string `xml:"type,attr"`
 	Timeout string `xml:"timeout,attr"`
 	Retries int32  `xml:"retries,attr"`
+	Target  string `xml:"target,attr"`
 }
 
 func (t *TaskDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
