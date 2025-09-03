@@ -32,7 +32,7 @@ import (
 )
 
 var (
-	DefaultTaskExecTimeout = time.Second * 30
+	DefaultTaskExecTimeout = time.Second * 3
 )
 
 type ActivityType string

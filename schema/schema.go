@@ -43,29 +43,19 @@ var mapping = map[string]string{
 }
 
 // NewIntegerP converts int to *int
-func NewIntegerP[K int | int32 | int64 | uint | uint32 | uint64](i K) *K {
-	return &i
-}
+func NewIntegerP[K int | int32 | int64 | uint | uint32 | uint64](i K) *K { return &i }
 
 // NewFloatP converts float to *float
-func NewFloatP[F float32 | float64](f F) *F {
-	return &f
-}
+func NewFloatP[F float32 | float64](f F) *F { return &f }
 
 // NewStringP converts string to *string
-func NewStringP(s string) *string {
-	return &s
-}
+func NewStringP(s string) *string { return &s }
 
 // NewBoolP converts bool to *bool
-func NewBoolP(b bool) *bool {
-	return &b
-}
+func NewBoolP(b bool) *bool { return &b }
 
 // NewQName converts string to *QName
-func NewQName(s string) *QName {
-	return (*QName)(&s)
-}
+func NewQName(s string) *QName { return (*QName)(&s) }
 
 // Base types
 

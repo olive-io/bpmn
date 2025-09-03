@@ -58,11 +58,11 @@ type SignalEvent struct {
 }
 
 func MakeSignalEvent(signalRef string, items ...data.IItem) SignalEvent {
-	return SignalEvent{signalRef: signalRef, item: data.ItemOrCollection(items)}
+	return SignalEvent{signalRef: signalRef, item: data.ItemOrCollection(items...)}
 }
 
 func NewSignalEvent(signalRef string, items ...data.IItem) *SignalEvent {
-	event := MakeSignalEvent(signalRef, items)
+	event := MakeSignalEvent(signalRef, items...)
 	return &event
 }
 
@@ -135,7 +135,7 @@ func MakeMessageEvent(messageRef string, operationRef *string, items ...data.IIt
 	return MessageEvent{
 		messageRef:   messageRef,
 		operationRef: operationRef,
-		item:         data.ItemOrCollection(items),
+		item:         data.ItemOrCollection(items...),
 	}
 }
 
@@ -189,7 +189,7 @@ type EscalationEvent struct {
 }
 
 func MakeEscalationEvent(escalationRef string, items ...data.IItem) EscalationEvent {
-	return EscalationEvent{escalationRef: escalationRef, item: data.ItemOrCollection(items)}
+	return EscalationEvent{escalationRef: escalationRef, item: data.ItemOrCollection(items...)}
 }
 
 func (ev *EscalationEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
@@ -281,7 +281,7 @@ type ErrorEvent struct {
 }
 
 func MakeErrorEvent(errorRef string, items ...data.IItem) ErrorEvent {
-	return ErrorEvent{errorRef: errorRef, item: data.ItemOrCollection(items)}
+	return ErrorEvent{errorRef: errorRef, item: data.ItemOrCollection(items...)}
 }
 
 func (ev *ErrorEvent) MatchesEventInstance(instance IDefinitionInstance) bool {
