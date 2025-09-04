@@ -1,6 +1,6 @@
 # github.com/olive-io/bpmn
 
-**纯 Go 实现的轻量级 bpmn2.0 工作流引擎**
+**纯 Go 实现的轻量级业务流程建模与标记(BPMN) 2.0 工作流引擎**
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/olive-io/bpmn.svg)](https://pkg.go.dev/github.com/olive-io/bpmn)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache-blue.svg)](LICENSE.md)
@@ -11,17 +11,19 @@
 
 ## 简介
 
-`github.com/olive-io/bpmn` 是一个以 Go 语言实现、轻量级的 **BPMN 2.0** 工作流引擎，旨在简化在 Go 应用中嵌入业务流程的建模与执行。它支持包括任务类型（User Task、Service Task、Script Task）、事件（Start / End / Catch）、各种网关（Exclusive, Inclusive, Parallel, Event-based）、子流程、流程控制、以及可自定义属性等核心 BPMN 元素。
+`github.com/olive-io/bpmn` 是一个以 Go 语言实现的轻量级**业务流程建模与标记(BPMN) 2.0** 工作流引擎，专为在 Go 应用中建模和执行业务流程而设计。  
+它支持核心 BPMN 2.0 元素，包括活动(用户任务、服务任务、脚本任务)、事件(开始事件、结束事件、中间捕获事件)、网关(排他网关、包容网关、并行网关、基于事件网关)、子流程、顺序流以及可扩展的流程属性。
 
 ---
 
 ## 特性亮点
 
-- **原生 BPMN 2.0 支持**：直接以标准 BPMN 元素构建流程，符合建模规范。
-- **轻量与简洁**：核心依赖少，适合直接嵌入业务系统，无需额外服务部署。
-- **支持多任务类型**：包括用户任务、脚本任务、服务任务、自定义任务等。
-- **丰富的流程控制**：支持子流程、并行、排他和事件驱动决策等结构。
-- **可定制扩展**：支持流程属性扩展，满足业务场景多样性。
+- **标准 BPMN 2.0 合规性** – 使用标准化业务流程建模与标记元素构建流程模型，完全符合 OMG 规范。
+- **轻量级与可嵌入** – 最小化依赖；易于嵌入业务系统，零外部服务需求。
+- **完整活动支持** – 用户任务、服务任务、脚本任务、手动任务、业务规则任务以及自定义活动实现。
+- **全面流程控制** – 子流程、并行网关、排他网关、包容网关以及基于事件网关，实现复杂决策逻辑。
+- **事件驱动处理** – 开始事件、结束事件、中间捕获事件、定时器事件和边界事件。
+- **可扩展流程属性** – 自定义属性和数据对象，满足多样化业务流程需求。
 - **全面测试覆盖**：示例和模块均附有单元测试，保证执行逻辑可靠。
 
 ---
@@ -118,13 +120,14 @@ func main() {
 ```
 
 ### 更多实例
-- [单任务](https://github.com/olive-io/bpmn/tree/main/examples/basic): 最简单的任务
-- [用户任务](https://github.com/olive-io/bpmn/tree/main/examples/user_task): 执行用户任务
-- [网关](https://github.com/olive-io/bpmn/tree/main/examples/gateway): 执行带网关实例
-- [排他网关](https://github.com/olive-io/bpmn/tree/main/examples/gateway_expr): 带条件的排他网关
-- [自定义参数](https://github.com/olive-io/bpmn/tree/main/examples/properties): 支持自定义任务参数
-- [捕获事件](https://github.com/olive-io/bpmn/tree/main/examples/catch_event): 捕获事件实例
-- [子进程](https://github.com/olive-io/bpmn/tree/main/examples/subprocess): 执行子进程
+- [基础任务](https://github.com/olive-io/bpmn/tree/main/examples/basic): 简单活动执行示例
+- [用户任务](https://github.com/olive-io/bpmn/tree/main/examples/user_task): 实现用户任务活动
+- [网关](https://github.com/olive-io/bpmn/tree/main/examples/gateway): 网关流程控制示例
+- [网关表达式](https://github.com/olive-io/bpmn/tree/main/examples/gateway_expr): 包容网关与表达式计算
+- [自定义属性](https://github.com/olive-io/bpmn/tree/main/examples/properties): 流程特定数据属性和自定义参数
+- [捕获事件](https://github.com/olive-io/bpmn/tree/main/examples/catch_event): 中间捕获事件和边界事件示例
+- [抛出事件](https://github.com/olive-io/bpmn/tree/main/examples/collaboration): 中间抛出事件和泳池示例
+- [子流程](https://github.com/olive-io/bpmn/tree/main/examples/subprocess): 嵌入式子流程执行
 
 ## 许可协议
 

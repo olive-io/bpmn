@@ -19,6 +19,7 @@ package bpmn
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/event"
@@ -42,7 +43,7 @@ type startEvent struct {
 	element     *schema.StartEvent
 	mch         chan imessage
 	once        sync.Once
-	activated   bool
+	activated   atomic.Bool
 	idGenerator id.IGenerator
 	satisfier   *logic.CatchEventSatisfier
 }
@@ -64,7 +65,7 @@ func newStartEvent(wr *wiring, element *schema.StartEvent, idGenerator id.IGener
 		wiring:      wr,
 		element:     element,
 		mch:         make(chan imessage, len(wr.incoming)*2+1),
-		activated:   false,
+		activated:   atomic.Bool{},
 		idGenerator: idGenerator,
 		satisfier:   logic.NewCatchEventSatisfier(element, wr.eventDefinitionInstanceBuilder),
 	}
@@ -83,8 +84,8 @@ func (evt *startEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 		case msg := <-evt.mch:
 			switch m := msg.(type) {
 			case nextActionMessage:
-				if !evt.activated {
-					evt.activated = true
+				if !evt.activated.Load() {
+					evt.activated.Store(true)
 					m.response <- flowAction{sequenceFlows: allSequenceFlows(&evt.outgoing)}
 				} else {
 					m.response <- completeAction{}
@@ -92,7 +93,7 @@ func (evt *startEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 			case startMessage:
 				evt.flow(ctx)
 			case eventMessage:
-				if !evt.activated {
+				if !evt.activated.Load() {
 					if satisfied, _ := evt.satisfier.Satisfy(m.event); satisfied {
 						evt.flow(ctx)
 					}

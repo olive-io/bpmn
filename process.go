@@ -309,6 +309,23 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 		}
 	}
 
+	for i := range *processElem.IntermediateThrowEvents() {
+		element := &(*processElem.IntermediateThrowEvents())[i]
+		wr, err = wiringMaker(&element.FlowNode)
+		if err != nil {
+			return
+		}
+		var intermediateThrowEvent *throwEvent
+		intermediateThrowEvent, err = newThrowEvent(wr, &element.ThrowEvent)
+		if err != nil {
+			return
+		}
+		err = process.flowNodeMapping.RegisterElementToFlowNode(element, intermediateThrowEvent)
+		if err != nil {
+			return
+		}
+	}
+
 	for i := range *processElem.Tasks() {
 		element := &(*processElem.Tasks())[i]
 		wr, err = wiringMaker(&element.FlowNode)

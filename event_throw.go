@@ -23,34 +23,25 @@ import (
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/event"
-	"github.com/olive-io/bpmn/v2/pkg/logic"
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
-type processEventMessage struct {
-	event event.IEvent
-}
-
-func (m processEventMessage) message() {}
-
-type catchEvent struct {
+type throwEvent struct {
 	*wiring
-	element         *schema.CatchEvent
+	element         *schema.ThrowEvent
 	mch             chan imessage
 	activated       atomic.Bool
 	awaitingActions []chan IAction
 	once            sync.Once
-	satisfier       *logic.CatchEventSatisfier
 }
 
-func newCatchEvent(wiring *wiring, element *schema.CatchEvent) (evt *catchEvent, err error) {
-	evt = &catchEvent{
+func newThrowEvent(wiring *wiring, element *schema.ThrowEvent) (evt *throwEvent, err error) {
+	evt = &throwEvent{
 		wiring:          wiring,
 		element:         element,
 		mch:             make(chan imessage, len(wiring.incoming)*2+1),
 		activated:       atomic.Bool{},
 		awaitingActions: make([]chan IAction, 0),
-		satisfier:       logic.NewCatchEventSatisfier(element, wiring.eventDefinitionInstanceBuilder),
 	}
 
 	err = evt.eventEgress.RegisterEventConsumer(evt)
@@ -60,7 +51,7 @@ func newCatchEvent(wiring *wiring, element *schema.CatchEvent) (evt *catchEvent,
 	return
 }
 
-func (evt *catchEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
+func (evt *throwEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 	defer sender.Done()
 
 	for {
@@ -68,23 +59,13 @@ func (evt *catchEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 		case msg := <-evt.mch:
 			switch m := msg.(type) {
 			case processEventMessage:
-				if evt.activated.Load() {
-					evt.tracer.Send(EventObservedTrace{Node: evt.element, Event: m.event})
-					if satisfied, _ := evt.satisfier.Satisfy(m.event); satisfied {
-						awaitingActions := evt.awaitingActions
-						for _, actionChan := range awaitingActions {
-							actionChan <- flowAction{sequenceFlows: allSequenceFlows(&evt.outgoing)}
-						}
-						evt.awaitingActions = make([]chan IAction, 0)
-						evt.activated.Store(false)
-					}
-				}
 			case nextActionMessage:
 				if !evt.activated.Load() {
 					evt.activated.Store(true)
-					evt.tracer.Send(ActiveListeningTrace{Node: evt.element})
+					m.response <- flowAction{sequenceFlows: allSequenceFlows(&evt.outgoing)}
+				} else {
+					m.response <- completeAction{}
 				}
-				evt.awaitingActions = append(evt.awaitingActions, m.response)
 			default:
 			}
 		case <-ctx.Done():
@@ -94,13 +75,13 @@ func (evt *catchEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 	}
 }
 
-func (evt *catchEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
+func (evt *throwEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
 	evt.mch <- processEventMessage{event: ev}
 	result = event.Consumed
 	return
 }
 
-func (evt *catchEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
+func (evt *throwEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
 	evt.once.Do(func() {
 		sender := evt.tracer.RegisterSender()
 		go evt.run(ctx, sender)
@@ -111,21 +92,6 @@ func (evt *catchEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
 	return response
 }
 
-func (evt *catchEvent) Element() schema.FlowNodeInterface {
+func (evt *throwEvent) Element() schema.FlowNodeInterface {
 	return evt.element
 }
-
-type ActiveListeningTrace struct {
-	Node *schema.CatchEvent
-}
-
-func (t ActiveListeningTrace) Unpack() any { return t.Node }
-
-// EventObservedTrace signals the fact that a particular event
-// has in fact observed by the node
-type EventObservedTrace struct {
-	Node  *schema.CatchEvent
-	Event event.IEvent
-}
-
-func (t EventObservedTrace) Unpack() any { return t.Node }

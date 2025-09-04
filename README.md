@@ -1,7 +1,7 @@
 Introduce ｜ [中文](https://github.com/olive-io/bpmn/tree/main/README_ZH.md)
 # github.com/olive-io/bpmn
 
-**Lightweight BPMN 2.0 workflow engine implemented purely in Go**
+**Lightweight Business Process Model and Notation (BPMN) 2.0 workflow engine implemented purely in Go**
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/olive-io/bpmn.svg)](https://pkg.go.dev/github.com/olive-io/bpmn)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache-blue.svg)](LICENSE.md)
@@ -12,18 +12,19 @@ Introduce ｜ [中文](https://github.com/olive-io/bpmn/tree/main/README_ZH.md)
 
 ## Introduction
 
-`github.com/olive-io/bpmn` is a lightweight **BPMN 2.0** workflow engine implemented in Go, designed to simplify modeling and execution of business processes embedded in Go applications.  
-It supports core BPMN elements, including task types (User Task, Service Task, Script Task), events (Start / End / Catch), gateways (Exclusive, Inclusive, Parallel, Event-based), sub-processes, flow control, and customizable attributes.
+`github.com/olive-io/bpmn` is a lightweight **Business Process Model and Notation (BPMN) 2.0** workflow engine implemented in Go, designed for modeling and executing business processes embedded in Go applications.  
+It supports core BPMN 2.0 elements including Activities (User Task, Service Task, Script Task), Events (Start Event, End Event, Intermediate Catch Event), Gateways (Exclusive Gateway, Inclusive Gateway, Parallel Gateway, Event-based Gateway), Sub-processes, Sequence Flows, and extensible process attributes.
 
 ---
 
 ## Key Features
 
-- **Native BPMN 2.0 Support** – Build workflows directly with standard BPMN elements, fully compliant with the specification.
-- **Lightweight & Simple** – Minimal dependencies; easily embedded into business systems with no extra services required.
-- **Multiple Task Types** – User tasks, script tasks, service tasks, and custom tasks.
-- **Rich Flow Control** – Sub-processes, parallel, exclusive, and event-based decision logic.
-- **Customizable Extensions** – Extend process attributes to meet diverse business scenarios.
+- **Standard BPMN 2.0 Compliance** – Build process models using standardized Business Process Model and Notation elements, fully compliant with OMG specification.
+- **Lightweight & Embeddable** – Minimal dependencies; easily embedded into business systems with zero external service requirements.
+- **Complete Activity Support** – User Tasks, Service Tasks, Script Tasks, Manual Tasks, Business Rule Tasks, and custom Activity implementations.
+- **Comprehensive Flow Control** – Sub-processes, Parallel Gateways, Exclusive Gateways, Inclusive Gateways, and Event-based Gateways for complex decision logic.
+- **Event-Driven Processing** – Start Events, End Events, Intermediate Catch Events, Timer Events, and Boundary Events.
+- **Extensible Process Attributes** – Custom properties and data objects to meet diverse business process requirements.
 - **Comprehensive Test Coverage** – Examples and modules come with unit tests to ensure reliable execution.
 
 ---
@@ -120,13 +121,14 @@ func main() {
 ```
 
 ### More Examples
-- [Basic Task](https://github.com/olive-io/bpmn/tree/main/examples/basic): Simplest task example
-- [User Task](https://github.com/olive-io/bpmn/tree/main/examples/user_task): Executing a user task
-- [Gateways](https://github.com/olive-io/bpmn/tree/main/examples/gateway): Gateway execution examples
-- [Gateways-expr](https://github.com/olive-io/bpmn/tree/main/examples/gateway_expr): Inclusive Gateway with Expr
-- [Custom Properties](https://github.com/olive-io/bpmn/tree/main/examples/properties): Support for custom task parameters
-- [Catch Event](https://github.com/olive-io/bpmn/tree/main/examples/catch_event): CatchEvent example
-- [Sub-process](https://github.com/olive-io/bpmn/tree/main/examples/subprocess): Executing a sub-process
+- [Basic Task](https://github.com/olive-io/bpmn/tree/main/examples/basic): Simple Activity execution example
+- [User Task](https://github.com/olive-io/bpmn/tree/main/examples/user_task): Implementing User Task Activities
+- [Gateways](https://github.com/olive-io/bpmn/tree/main/examples/gateway): Gateway flow control examples
+- [Gateways-expr](https://github.com/olive-io/bpmn/tree/main/examples/gateway_expr): Inclusive Gateway with expression evaluation
+- [Custom Properties](https://github.com/olive-io/bpmn/tree/main/examples/properties): Process-specific data attributes and custom parameters
+- [Catch Event](https://github.com/olive-io/bpmn/tree/main/examples/catch_event): Intermediate Catch Event and Boundary Event examples
+- [Throw Event and Collaboration](https://github.com/olive-io/bpmn/tree/main/examples/collaboration): Intermediate Catch Event and Collaboration examples
+- [Sub-process](https://github.com/olive-io/bpmn/tree/main/examples/subprocess): Embedded Sub-process execution
 
 ## License
 

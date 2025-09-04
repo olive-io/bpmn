@@ -150,6 +150,23 @@ func newSubProcess(eventBuilder event.IDefinitionInstanceBuilder, idGenerator id
 			}
 		}
 
+		for i := range *subProcessElement.IntermediateThrowEvents() {
+			element := &(*subProcessElement.IntermediateThrowEvents())[i]
+			wr, err = wiringMaker(&element.FlowNode)
+			if err != nil {
+				return
+			}
+			var intermediateThrowEvent *throwEvent
+			intermediateThrowEvent, err = newThrowEvent(wr, &element.ThrowEvent)
+			if err != nil {
+				return
+			}
+			err = process.flowNodeMapping.RegisterElementToFlowNode(element, intermediateThrowEvent)
+			if err != nil {
+				return
+			}
+		}
+
 		for i := range *subProcessElement.BusinessRuleTasks() {
 			element := &(*subProcessElement.BusinessRuleTasks())[i]
 			wr, err = wiringMaker(&element.FlowNode)
