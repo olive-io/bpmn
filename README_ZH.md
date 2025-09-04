@@ -123,6 +123,7 @@ func main() {
 - [网关](https://github.com/olive-io/bpmn/tree/main/examples/gateway): 执行带网关实例
 - [排他网关](https://github.com/olive-io/bpmn/tree/main/examples/gateway_expr): 带条件的排他网关
 - [自定义参数](https://github.com/olive-io/bpmn/tree/main/examples/properties): 支持自定义任务参数
+- [捕获事件](https://github.com/olive-io/bpmn/tree/main/examples/catch_event): 捕获事件实例
 - [子进程](https://github.com/olive-io/bpmn/tree/main/examples/subprocess): 执行子进程
 
 ## 许可协议
