@@ -18,6 +18,7 @@ package bpmn
 
 import (
 	"context"
+	"sync"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/event"
@@ -40,6 +41,7 @@ type startEvent struct {
 	*wiring
 	element     *schema.StartEvent
 	mch         chan imessage
+	once        sync.Once
 	activated   bool
 	idGenerator id.IGenerator
 	satisfier   *logic.CatchEventSatisfier
@@ -117,8 +119,10 @@ func (evt *startEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionRe
 }
 
 func (evt *startEvent) Trigger(ctx context.Context) {
-	sender := evt.tracer.RegisterSender()
-	go evt.run(ctx, sender)
+	evt.once.Do(func() {
+		sender := evt.tracer.RegisterSender()
+		go evt.run(ctx, sender)
+	})
 
 	evt.mch <- startMessage{}
 }

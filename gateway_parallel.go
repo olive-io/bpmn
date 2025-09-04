@@ -18,6 +18,7 @@ package bpmn
 
 import (
 	"context"
+	"sync"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
@@ -28,6 +29,7 @@ type parallelGateway struct {
 	element               *schema.ParallelGateway
 	mch                   chan imessage
 	reportedIncomingFlows int
+	once                  sync.Once
 	awaitingActions       []chan IAction
 	noOfIncomingFlows     int
 }
@@ -77,8 +79,10 @@ func (gw *parallelGateway) run(ctx context.Context, sender tracing.ISenderHandle
 }
 
 func (gw *parallelGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := gw.tracer.RegisterSender()
-	go gw.run(ctx, sender)
+	gw.once.Do(func() {
+		sender := gw.tracer.RegisterSender()
+		go gw.run(ctx, sender)
+	})
 
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}

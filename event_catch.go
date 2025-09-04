@@ -18,6 +18,7 @@ package bpmn
 
 import (
 	"context"
+	"sync"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/event"
@@ -37,6 +38,7 @@ type catchEvent struct {
 	mch             chan imessage
 	activated       bool
 	awaitingActions []chan IAction
+	once            sync.Once
 	satisfier       *logic.CatchEventSatisfier
 }
 
@@ -98,8 +100,10 @@ func (evt *catchEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionRe
 }
 
 func (evt *catchEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := evt.tracer.RegisterSender()
-	go evt.run(ctx, sender)
+	evt.once.Do(func() {
+		sender := evt.tracer.RegisterSender()
+		go evt.run(ctx, sender)
+	})
 
 	response := make(chan IAction)
 	evt.mch <- nextActionMessage{response: response, flow: flow}

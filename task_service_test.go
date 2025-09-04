@@ -176,7 +176,7 @@ func TestServiceTaskWithRetry(t *testing.T) {
 					runnum += 1
 					handler := make(chan bpmn.ErrHandler, 1)
 					go func() {
-						time.Sleep(time.Second * 1)
+						time.Sleep(time.Millisecond * 100)
 						retry := int32(1)
 						handler <- bpmn.ErrHandler{Mode: bpmn.RetryMode, Retries: retry}
 					}()

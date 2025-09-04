@@ -19,6 +19,7 @@ package bpmn
 import (
 	"context"
 	"fmt"
+	"sync"
 	"sync/atomic"
 
 	"github.com/olive-io/bpmn/schema"
@@ -29,6 +30,7 @@ import (
 type eventBasedGateway struct {
 	*wiring
 	element   *schema.EventBasedGateway
+	once      sync.Once
 	mch       chan imessage
 	activated bool
 }
@@ -99,8 +101,10 @@ func (gw *eventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 }
 
 func (gw *eventBasedGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := gw.tracer.RegisterSender()
-	go gw.run(ctx, sender)
+	gw.once.Do(func() {
+		sender := gw.tracer.RegisterSender()
+		go gw.run(ctx, sender)
+	})
 
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}

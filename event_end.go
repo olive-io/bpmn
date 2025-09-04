@@ -18,6 +18,7 @@ package bpmn
 
 import (
 	"context"
+	"sync"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/event"
@@ -29,6 +30,7 @@ type endEvent struct {
 	element              *schema.EndEvent
 	activated            bool
 	completed            bool
+	once                 sync.Once
 	mch                  chan imessage
 	startEventsActivated []*schema.StartEvent
 }
@@ -78,8 +80,10 @@ func (evt *endEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 }
 
 func (evt *endEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := evt.tracer.RegisterSender()
-	go evt.run(ctx, sender)
+	evt.once.Do(func() {
+		sender := evt.tracer.RegisterSender()
+		go evt.run(ctx, sender)
+	})
 
 	response := make(chan IAction, 1)
 	evt.mch <- nextActionMessage{response: response}

@@ -19,6 +19,7 @@ package bpmn
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/errors"
@@ -44,6 +45,7 @@ type exclusiveGateway struct {
 	mch                     chan imessage
 	defaultSequenceFlow     *SequenceFlow
 	nonDefaultSequenceFlows []*SequenceFlow
+	once                    sync.Once
 	probing                 map[id.Id]*chan IAction
 }
 
@@ -174,8 +176,10 @@ func (gw *exclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 }
 
 func (gw *exclusiveGateway) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := gw.tracer.RegisterSender()
-	go gw.run(ctx, sender)
+	gw.once.Do(func() {
+		sender := gw.tracer.RegisterSender()
+		go gw.run(ctx, sender)
+	})
 
 	response := make(chan IAction)
 	gw.mch <- nextActionMessage{response: response, flow: flow}

@@ -76,6 +76,13 @@ func (p *Payload) String() string {
 // QName XML qualified name (http://books.xmlschemata.org/relaxng/ch19-77287.html)
 type QName string
 
+func (t *QName) String() string {
+	if t == nil {
+		return ""
+	}
+	return string(*t)
+}
+
 func (t *QName) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	out := QName(*t)
 	start.Name = xml.Name{
@@ -309,6 +316,8 @@ func PostUnmarshal(element Element, decoder *xml.Decoder, start *xml.StartElemen
 }
 
 type ItemType string
+
+func (it ItemType) String() string { return string(it) }
 
 const (
 	ItemTypeObject  ItemType = "object"
