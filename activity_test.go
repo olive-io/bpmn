@@ -54,6 +54,7 @@ func TestInterruptingEvent(t *testing.T) {
 		assert.False(t, visited["uninterrupted"])
 		assert.True(t, visited["interrupted"])
 		assert.True(t, visited["end"])
+		t.Log(visited)
 	}, event.NewSignalEvent("sig1"))
 }
 
@@ -65,6 +66,7 @@ func TestNonInterruptingEvent(t *testing.T) {
 		assert.False(t, visited["interrupted"])
 		assert.True(t, visited["uninterrupted"])
 		assert.True(t, visited["end"])
+		t.Log(visited)
 	}, event.NewSignalEvent("sig2"))
 }
 
@@ -133,6 +135,9 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 				if id, present := trace.Node.Id(); present {
 					if *id == "uninterrupted" {
 						// we're here to we can release the task
+						ready <- true
+					}
+					if *id == "interrupted" {
 						ready <- true
 					}
 					visited[*id] = true

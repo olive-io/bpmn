@@ -18,6 +18,7 @@ package bpmn
 
 import (
 	"context"
+	"sync/atomic"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/data"
@@ -36,6 +37,7 @@ type genericTask struct {
 	*wiring
 	element      schema.FlowNodeInterface
 	activityType ActivityType
+	active       atomic.Int32
 	mch          chan imessage
 }
 
@@ -45,6 +47,7 @@ func newTask(element schema.FlowNodeInterface, activityType ActivityType) constr
 			wiring:       wr,
 			element:      element,
 			activityType: activityType,
+			active:       atomic.Int32{},
 			mch:          make(chan imessage, len(wr.incoming)*2+1),
 		}
 		activity = taskNode
@@ -58,9 +61,19 @@ func (task *genericTask) run(ctx context.Context) {
 		case msg := <-task.mch:
 			switch m := msg.(type) {
 			case cancelMessage:
-				m.response <- true
+				task.tracer.Send(CancellationFlowNodeTrace{Node: task.element})
+				if task.active.Load() > 1 {
+					m.response <- false
+				} else {
+					m.response <- true
+					task.active.Swap(0)
+					return
+				}
 			case nextTaskActionMessage:
 				go func() {
+					task.active.Add(1)
+					defer task.active.Add(-1)
+
 					rsp := &FlowActionResponse{
 						variables: map[string]data.IItem{},
 					}
@@ -107,7 +120,9 @@ func (task *genericTask) run(ctx context.Context) {
 }
 
 func (task *genericTask) NextAction(ctx context.Context, flow Flow) chan IAction {
-	go task.run(ctx)
+	if task.active.CompareAndSwap(0, 1) {
+		go task.run(ctx)
+	}
 
 	response := make(chan IAction, 1)
 

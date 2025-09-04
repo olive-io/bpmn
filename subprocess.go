@@ -47,7 +47,7 @@ type subProcess struct {
 	subTracer              tracing.ITracer
 	flowNodeMapping        *FlowNodeMapping
 	flowWaitGroup          sync.WaitGroup
-	active                 atomic.Bool
+	active                 atomic.Int32
 	complete               sync.RWMutex
 	idGenerator            id.IGenerator
 	eventDefinitionBuilder event.IDefinitionInstanceBuilder
@@ -74,6 +74,7 @@ func newSubProcess(eventBuilder event.IDefinitionInstanceBuilder, idGenerator id
 			eventDefinitionBuilder: eventBuilder,
 			idGenerator:            idGenerator,
 			flowNodeMapping:        flowNodeMapping,
+			active:                 atomic.Int32{},
 			mch:                    make(chan imessage, len(parentWiring.incoming)*2+1),
 		}
 
@@ -398,32 +399,32 @@ func newSubProcess(eventBuilder event.IDefinitionInstanceBuilder, idGenerator id
 	}
 }
 
-func (p *subProcess) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
-	p.eventConsumersLock.RLock()
+func (sp *subProcess) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
+	sp.eventConsumersLock.RLock()
 	// We're copying the list of consumers here to ensure that
 	// new consumers can subscribe during event forwarding
-	eventConsumers := p.eventConsumers
-	p.eventConsumersLock.RUnlock()
+	eventConsumers := sp.eventConsumers
+	sp.eventConsumersLock.RUnlock()
 	result, err = event.ForwardEvent(ev, &eventConsumers)
 	return
 }
 
-func (p *subProcess) RegisterEventConsumer(ev event.IConsumer) (err error) {
-	p.eventConsumersLock.Lock()
-	defer p.eventConsumersLock.Unlock()
-	p.eventConsumers = append(p.eventConsumers, ev)
+func (sp *subProcess) RegisterEventConsumer(ev event.IConsumer) (err error) {
+	sp.eventConsumersLock.Lock()
+	defer sp.eventConsumersLock.Unlock()
+	sp.eventConsumers = append(sp.eventConsumers, ev)
 	return
 }
 
 // startWith explicitly starts the subprocess by triggering a given start event
-func (p *subProcess) startWith(ctx context.Context, element schema.StartEventInterface) (err error) {
-	flowNode, found := p.flowNodeMapping.ResolveElementToFlowNode(element)
+func (sp *subProcess) startWith(ctx context.Context, element schema.StartEventInterface) (err error) {
+	flowNode, found := sp.flowNodeMapping.ResolveElementToFlowNode(element)
 	elementId := "<unnamed>"
 	if idPtr, present := element.Id(); present {
 		elementId = *idPtr
 	}
 	processId := "<unnamed>"
-	if idPtr, present := p.element.Id(); present {
+	if idPtr, present := sp.element.Id(); present {
 		processId = *idPtr
 	}
 	if !found {
@@ -443,9 +444,9 @@ func (p *subProcess) startWith(ctx context.Context, element schema.StartEventInt
 }
 
 // startAll explicitly starts the subprocess by triggering all start events, if any
-func (p *subProcess) startAll(ctx context.Context) (err error) {
-	for i := range *p.element.StartEvents() {
-		err = p.startWith(ctx, &(*p.element.StartEvents())[i])
+func (sp *subProcess) startAll(ctx context.Context) (err error) {
+	for i := range *sp.element.StartEvents() {
+		err = sp.startWith(ctx, &(*sp.element.StartEvents())[i])
 		if err != nil {
 			return
 		}
@@ -453,20 +454,20 @@ func (p *subProcess) startAll(ctx context.Context) (err error) {
 	return
 }
 
-func (p *subProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.Context, sender tracing.ISenderHandle) {
+func (sp *subProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.Context, sender tracing.ISenderHandle) {
 	// Subscribing to traces early as otherwise events produced
 	// after the goroutine below is started are not going to be
 	// sent to it.
 	traces := tracer.Subscribe()
-	p.complete.Lock()
+	sp.complete.Lock()
 	return func(ctx context.Context, sender tracing.ISenderHandle) {
 		defer sender.Done()
-		defer p.complete.Unlock()
+		defer sp.complete.Unlock()
 
 		startEventsActivated := make([]*schema.StartEvent, 0)
 
 		for {
-			if len(startEventsActivated) == len(*p.element.StartEvents()) {
+			if len(startEventsActivated) == len(*sp.element.StartEvents()) {
 				break
 			}
 
@@ -499,13 +500,13 @@ func (p *subProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.C
 		// Then, we're waiting for (2) to occur
 		waitIsOver := make(chan struct{})
 		go func() {
-			p.flowWaitGroup.Wait()
+			sp.flowWaitGroup.Wait()
 			close(waitIsOver)
 		}()
 		select {
 		case <-waitIsOver:
 			// Send out a cease flow trace
-			tracer.Send(CeaseFlowTrace{Process: p.element})
+			tracer.Send(CeaseFlowTrace{Process: sp.element})
 		case <-ctx.Done():
 
 		}
@@ -513,27 +514,29 @@ func (p *subProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.C
 	}
 }
 
-func (p *subProcess) run(ctx context.Context, out tracing.ITracer) {
-	defer p.cancel()
+func (sp *subProcess) run(ctx context.Context, out tracing.ITracer) {
+	defer sp.cancel()
 	for {
 		select {
-		case msg := <-p.mch:
+		case msg := <-sp.mch:
 			switch m := msg.(type) {
 			case cancelMessage:
-				m.response <- true
-				return
-			case nextActionMessage:
-				if p.active.Load() {
-					continue
+				sp.wr.tracer.Send(CancellationFlowNodeTrace{Node: sp.element})
+				if sp.active.Load() > 1 {
+					m.response <- false
+				} else {
+					m.response <- true
+					sp.active.Swap(0)
+					return
 				}
-
-				p.active.Store(true)
+			case nextActionMessage:
 				go func() {
-					defer p.active.Store(false)
+					sp.active.Add(1)
+					defer sp.active.Add(-1)
 
-					if err := p.startAll(ctx); err != nil {
+					if err := sp.startAll(ctx); err != nil {
 						subProcessId := ""
-						if pid, present := p.element.Id(); present {
+						if pid, present := sp.element.Id(); present {
 							subProcessId = *pid
 						}
 						out.Send(ErrorTrace{Error: &errors.SubProcessError{
@@ -543,22 +546,22 @@ func (p *subProcess) run(ctx context.Context, out tracing.ITracer) {
 						return
 					}
 
-					traces := p.subTracer.Subscribe()
-					defer p.subTracer.Unsubscribe(traces)
+					traces := sp.subTracer.Subscribe()
+					defer sp.subTracer.Unsubscribe(traces)
 				loop:
 					for {
 						var trace tracing.ITrace
 						select {
 						case trace = <-traces:
 						case <-ctx.Done():
-							p.wr.tracer.Send(CancellationFlowNodeTrace{Node: p.element})
+							sp.wr.tracer.Send(CancellationFlowNodeTrace{Node: sp.element})
 							return
 						}
 
 						trace = tracing.Unwrap(trace)
 						switch tr := trace.(type) {
 						case CeaseFlowTrace:
-							out.Send(ProcessLandMarkTrace{Node: p.element})
+							out.Send(ProcessLandMarkTrace{Node: sp.element})
 							break loop
 						case CompletionTrace:
 							// ignore end event of subprocess
@@ -569,41 +572,43 @@ func (p *subProcess) run(ctx context.Context, out tracing.ITracer) {
 						}
 					}
 
-					action := flowAction{sequenceFlows: allSequenceFlows(&p.wr.outgoing)}
+					action := flowAction{sequenceFlows: allSequenceFlows(&sp.wr.outgoing)}
 					m.response <- action
 				}()
 			default:
 			}
 		case <-ctx.Done():
-			p.wr.tracer.Send(CancellationFlowNodeTrace{Node: p.element})
+			sp.wr.tracer.Send(CancellationFlowNodeTrace{Node: sp.element})
 			return
 		}
 	}
 }
 
-func (p *subProcess) NextAction(ctx context.Context, flow Flow) chan IAction {
-	// flow nodes
-	// StartAll cease flow monitor
-	sender := p.subTracer.RegisterSender()
-	go p.ceaseFlowMonitor(p.wr.tracer)(ctx, sender)
+func (sp *subProcess) NextAction(ctx context.Context, flow Flow) chan IAction {
+	if sp.active.CompareAndSwap(0, 1) {
+		// flow nodes
+		// StartAll cease flow monitor
+		sender := sp.subTracer.RegisterSender()
+		go sp.ceaseFlowMonitor(sp.wr.tracer)(ctx, sender)
 
-	go p.run(ctx, p.wr.tracer)
+		go sp.run(ctx, sp.wr.tracer)
+	}
 
 	response := make(chan IAction, 1)
-	p.mch <- nextActionMessage{response: response}
+	sp.mch <- nextActionMessage{response: response}
 	return response
 }
 
-func (p *subProcess) Element() schema.FlowNodeInterface {
-	return p.element
+func (sp *subProcess) Element() schema.FlowNodeInterface {
+	return sp.element
 }
 
-func (p *subProcess) Type() ActivityType {
+func (sp *subProcess) Type() ActivityType {
 	return SubprocessActivity
 }
 
-func (p *subProcess) Cancel() <-chan bool {
+func (sp *subProcess) Cancel() <-chan bool {
 	response := make(chan bool)
-	p.mch <- cancelMessage{response: response}
+	sp.mch <- cancelMessage{response: response}
 	return response
 }

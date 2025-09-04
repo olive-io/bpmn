@@ -20,6 +20,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2"
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
@@ -69,6 +71,7 @@ func TestEmbedSubprocess(t *testing.T) {
 
 	engine := bpmn.NewEngine()
 	ctx := context.Background()
+	visited := make([]string, 0)
 	if instance, err := engine.NewProcess(&testTask); err == nil {
 		traces := instance.Tracer().Subscribe()
 		err := instance.StartAll(ctx)
@@ -82,6 +85,10 @@ func TestEmbedSubprocess(t *testing.T) {
 			case bpmn.FlowTrace:
 
 			case bpmn.TaskTrace:
+				name, ok := trace.GetActivity().Element().Name()
+				if ok {
+					visited = append(visited, *name)
+				}
 				trace.Do()
 				//t.Logf("%#v", trace)
 			case bpmn.CeaseFlowTrace:
@@ -98,4 +105,6 @@ func TestEmbedSubprocess(t *testing.T) {
 	} else {
 		t.Fatalf("failed to instantiate the process: %s", err)
 	}
+
+	assert.Equal(t, visited, []string{"t1", "t2"})
 }

@@ -19,7 +19,7 @@
       <bpmn:incoming>Flow_0535fbo</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_01oa3b2" sourceRef="task" targetRef="end" />
-    <bpmn:boundaryEvent id="sig1listener" attachedToRef="task">
+    <bpmn:boundaryEvent id="sig1listener" cancelActivity="true" attachedToRef="task">
       <bpmn:outgoing>Flow_07cj1c5</bpmn:outgoing>
       <bpmn:signalEventDefinition id="SignalEventDefinition_01rhxwg" signalRef="sig1" />
     </bpmn:boundaryEvent>
