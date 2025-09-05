@@ -37,50 +37,51 @@ func TestEventThrow(t *testing.T) {
 	engine := bpmn.NewEngine()
 	ctx := context.Background()
 	visited := make([]string, 0)
-	if instance, err := engine.NewProcess(&testTask); err == nil {
-		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll(ctx)
-		if err != nil {
-			t.Fatalf("failed to run the instance: %s", err)
-		}
-	loop:
-		for {
-			trace := tracing.Unwrap(<-traces)
-			switch trace := trace.(type) {
-			case bpmn.FlowTrace:
-
-			case bpmn.TaskTrace:
-				name, ok := trace.GetActivity().Element().Name()
-				if ok {
-					visited = append(visited, *name)
-				}
-				trace.Do()
-			case bpmn.ActiveListeningTrace:
-				for _, eventDefinition := range trace.Node.SignalEventDefinitionField {
-					ref, ok := eventDefinition.SignalRef()
-					if ok {
-						instance.ConsumeEvent(event.NewSignalEvent(string(*ref)))
-					}
-				}
-				for _, eventDefinition := range trace.Node.MessageEventDefinitionField {
-					ref, ok := eventDefinition.MessageRef()
-					if ok {
-						instance.ConsumeEvent(event.NewMessageEvent(string(*ref), (*string)(eventDefinition.OperationRefField)))
-					}
-				}
-			case bpmn.CeaseFlowTrace:
-				break loop
-			case bpmn.TerminationTrace:
-			//	t.Logf("%#v", trace)
-			case bpmn.ErrorTrace:
-				t.Fatalf("%#v", trace)
-			default:
-				//t.Logf("%#v", trace)
-			}
-		}
-		instance.Tracer().Unsubscribe(traces)
-	} else {
+	instance, err := engine.NewProcess(&testTask)
+	if err != nil {
 		t.Fatalf("failed to instantiate the process: %s", err)
+	}
+	traces := instance.Tracer().Subscribe()
+	defer instance.Tracer().Unsubscribe(traces)
+	err = instance.StartAll(ctx)
+	if err != nil {
+		t.Fatalf("failed to run the instance: %s", err)
+	}
+
+loop:
+	for {
+		trace := tracing.Unwrap(<-traces)
+		switch trace := trace.(type) {
+		case bpmn.FlowTrace:
+
+		case bpmn.TaskTrace:
+			name, ok := trace.GetActivity().Element().Name()
+			if ok {
+				visited = append(visited, *name)
+			}
+			trace.Do()
+		case bpmn.ActiveListeningTrace:
+			for _, eventDefinition := range trace.Node.SignalEventDefinitionField {
+				ref, ok := eventDefinition.SignalRef()
+				if ok {
+					instance.ConsumeEvent(event.NewSignalEvent(string(*ref)))
+				}
+			}
+			for _, eventDefinition := range trace.Node.MessageEventDefinitionField {
+				ref, ok := eventDefinition.MessageRef()
+				if ok {
+					instance.ConsumeEvent(event.NewMessageEvent(string(*ref), (*string)(eventDefinition.OperationRefField)))
+				}
+			}
+		case bpmn.CeaseFlowTrace:
+			break loop
+		case bpmn.TerminationTrace:
+		//	t.Logf("%#v", trace)
+		case bpmn.ErrorTrace:
+			t.Fatalf("%#v", trace)
+		default:
+			//t.Logf("%#v", trace)
+		}
 	}
 
 	sort.Strings(visited)

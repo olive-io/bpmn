@@ -129,6 +129,11 @@ func (evt *startEvent) Trigger(ctx context.Context) {
 }
 
 func (evt *startEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
+	evt.once.Do(func() {
+		sender := evt.tracer.RegisterSender()
+		go evt.run(ctx, sender)
+	})
+
 	response := make(chan IAction)
 	evt.mch <- nextActionMessage{response: response, flow: flow}
 	return response

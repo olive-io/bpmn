@@ -157,7 +157,7 @@ func newSubProcess(eventBuilder event.IDefinitionInstanceBuilder, idGenerator id
 				return
 			}
 			var intermediateThrowEvent *throwEvent
-			intermediateThrowEvent, err = newThrowEvent(wr, &element.ThrowEvent)
+			intermediateThrowEvent, err = newThrowEvent(wr, &element.ThrowEvent, idGenerator)
 			if err != nil {
 				return
 			}
@@ -434,7 +434,7 @@ func (sp *subProcess) RegisterEventConsumer(ev event.IConsumer) (err error) {
 }
 
 // startWith explicitly starts the subprocess by triggering a given start event
-func (sp *subProcess) startWith(ctx context.Context, element schema.StartEventInterface) (err error) {
+func (sp *subProcess) startWith(ctx context.Context, element schema.FlowNodeInterface) (err error) {
 	flowNode, found := sp.flowNodeMapping.ResolveElementToFlowNode(element)
 	elementId := "<unnamed>"
 	if idPtr, present := element.Id(); present {
@@ -448,27 +448,40 @@ func (sp *subProcess) startWith(ctx context.Context, element schema.StartEventIn
 		err = errors.NotFoundError{Expected: fmt.Sprintf("start event %s in process %s", elementId, processId)}
 		return
 	}
-	startEventNode, ok := flowNode.(*startEvent)
-	if !ok {
+	switch eventNode := flowNode.(type) {
+	case *startEvent:
+		eventNode.Trigger(ctx)
+	case *throwEvent:
+		eventNode.Trigger(ctx)
+	default:
 		err = errors.RequirementExpectationError{
-			Expected: fmt.Sprintf("start event %s flow node in process %s to be of type start.Node", elementId, processId),
-			Actual:   fmt.Sprintf("%sFlow", flowNode),
+			Expected: fmt.Sprintf("event %s flow node in process %s is not StartEvent or ThrowEvent", elementId, processId),
+			Actual:   fmt.Sprintf("%s Flow", flowNode),
 		}
-		return
 	}
-	startEventNode.Trigger(ctx)
 	return
 }
 
-// startAll explicitly starts the subprocess by triggering all start events, if any
-func (sp *subProcess) startAll(ctx context.Context) (err error) {
-	for i := range *sp.element.StartEvents() {
-		err = sp.startWith(ctx, &(*sp.element.StartEvents())[i])
-		if err != nil {
-			return
+// startAll explicitly starts the subprocess by triggering all start events and throw events.
+func (sp *subProcess) startAll(ctx context.Context) error {
+	if len(sp.element.StartEventField) == 0 && len(sp.element.IntermediateThrowEventField) == 0 {
+		return errors.NotFoundError{
+			Expected: fmt.Errorf("subProcess %s no start event or throw event", sp.id),
 		}
 	}
-	return
+	for i := range *sp.element.StartEvents() {
+		err := sp.startWith(ctx, &(*sp.element.StartEvents())[i])
+		if err != nil {
+			return err
+		}
+	}
+	for i := range *sp.element.IntermediateThrowEvents() {
+		err := sp.startWith(ctx, &(*sp.element.IntermediateThrowEvents())[i])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (sp *subProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.Context, sender tracing.ISenderHandle) {

@@ -21,6 +21,7 @@ import (
 	"fmt"
 
 	"github.com/olive-io/bpmn/schema"
+	"github.com/olive-io/bpmn/v2/pkg/errors"
 	"github.com/olive-io/bpmn/v2/pkg/event"
 	"github.com/olive-io/bpmn/v2/pkg/id"
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
@@ -114,7 +115,7 @@ func (engine *Engine) NewProcess(definitions *schema.Definitions, opts ...Option
 	if idGenerator == nil {
 		idGenerator, err = engine.idGeneratorBuilder.NewIdGenerator(engine.ctx, tracer)
 		if err != nil {
-			return nil, fmt.Errorf("create id generator: %w", err)
+			return nil, errors.RequirementExpectationError{Expected: fmt.Errorf("create id generator: %w", err)}
 		}
 		opts = append(opts, WithIdGenerator(idGenerator))
 	}
@@ -125,4 +126,49 @@ func (engine *Engine) NewProcess(definitions *schema.Definitions, opts ...Option
 	}
 
 	return
+}
+
+func (engine *Engine) NewProcessSet(definitions *schema.Definitions, opts ...Option) (*ProcessSet, error) {
+	executes := make([]*schema.Process, 0)
+	waitings := make([]*schema.Process, 0)
+	for _, element := range *definitions.Processes() {
+		able, ok := element.IsExecutable()
+		if !ok || !able {
+			waitings = append(waitings, &element)
+		} else {
+			executes = append(executes, &element)
+		}
+
+	}
+
+	if executes == nil {
+		return nil, fmt.Errorf("no executionable process in definitions")
+	}
+
+	options := NewOptions(opts...)
+	if options.ctx == nil {
+		options.ctx = engine.ctx
+	}
+
+	tracer := options.tracer
+	if tracer == nil {
+		tracer = tracing.NewTracer(engine.ctx)
+		opts = append(opts, WithTracer(tracer))
+	}
+
+	idGenerator := options.idGenerator
+	if idGenerator == nil {
+		var err error
+		idGenerator, err = engine.idGeneratorBuilder.NewIdGenerator(engine.ctx, tracer)
+		if err != nil {
+			return nil, errors.RequirementExpectationError{Expected: fmt.Errorf("create id generator: %w", err)}
+		}
+		opts = append(opts, WithIdGenerator(idGenerator))
+	}
+
+	ps, err := NewProcessSet(executes, waitings, definitions, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return ps, nil
 }

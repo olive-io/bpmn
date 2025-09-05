@@ -23,25 +23,31 @@ import (
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/event"
+	"github.com/olive-io/bpmn/v2/pkg/id"
+	"github.com/olive-io/bpmn/v2/pkg/logic"
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
 type throwEvent struct {
 	*wiring
 	element         *schema.ThrowEvent
+	idGenerator     id.IGenerator
 	mch             chan imessage
 	activated       atomic.Bool
 	awaitingActions []chan IAction
 	once            sync.Once
+	satisfier       *logic.ThrowEventSatisfier
 }
 
-func newThrowEvent(wiring *wiring, element *schema.ThrowEvent) (evt *throwEvent, err error) {
+func newThrowEvent(wr *wiring, element *schema.ThrowEvent, idGenerator id.IGenerator) (evt *throwEvent, err error) {
 	evt = &throwEvent{
-		wiring:          wiring,
+		wiring:          wr,
 		element:         element,
-		mch:             make(chan imessage, len(wiring.incoming)*2+1),
+		idGenerator:     idGenerator,
+		mch:             make(chan imessage, len(wr.incoming)*2+1),
 		activated:       atomic.Bool{},
 		awaitingActions: make([]chan IAction, 0),
+		satisfier:       logic.NewThrowEventSatisfier(element, wr.eventDefinitionInstanceBuilder),
 	}
 
 	err = evt.eventEgress.RegisterEventConsumer(evt)
@@ -58,7 +64,14 @@ func (evt *throwEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 		select {
 		case msg := <-evt.mch:
 			switch m := msg.(type) {
-			case processEventMessage:
+			case eventMessage:
+				if !evt.activated.Load() {
+					if satisfied, _ := evt.satisfier.Satisfy(m.event); satisfied {
+						evt.flow(ctx)
+					}
+				}
+			case startMessage:
+				evt.flow(ctx)
 			case nextActionMessage:
 				if !evt.activated.Load() {
 					evt.activated.Store(true)
@@ -76,9 +89,24 @@ func (evt *throwEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 }
 
 func (evt *throwEvent) ConsumeEvent(ev event.IEvent) (result event.ConsumptionResult, err error) {
-	evt.mch <- processEventMessage{event: ev}
+	evt.mch <- eventMessage{event: ev}
 	result = event.Consumed
 	return
+}
+
+func (evt *throwEvent) flow(ctx context.Context) {
+	flowable := newFlow(evt.wiring.definitions, evt, evt.wiring.tracer,
+		evt.wiring.flowNodeMapping, evt.wiring.flowWaitGroup, evt.idGenerator, nil, evt.locator)
+	flowable.Start(ctx)
+}
+
+func (evt *throwEvent) Trigger(ctx context.Context) {
+	evt.once.Do(func() {
+		sender := evt.tracer.RegisterSender()
+		go evt.run(ctx, sender)
+	})
+
+	evt.mch <- startMessage{}
 }
 
 func (evt *throwEvent) NextAction(ctx context.Context, flow Flow) chan IAction {

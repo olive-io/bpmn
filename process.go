@@ -169,6 +169,7 @@ type Process struct {
 	complete           sync.RWMutex
 	eventConsumersLock sync.RWMutex
 	eventConsumers     []event.IConsumer
+	subTracer          tracing.ITracer
 }
 
 func (p *Process) Id() id.Id { return p.id }
@@ -316,7 +317,7 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 			return
 		}
 		var intermediateThrowEvent *throwEvent
-		intermediateThrowEvent, err = newThrowEvent(wr, &element.ThrowEvent)
+		intermediateThrowEvent, err = newThrowEvent(wr, &element.ThrowEvent, idGenerator)
 		if err != nil {
 			return
 		}
@@ -575,17 +576,13 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 	}
 
 	process.flowNodeMapping.Finalize()
-
-	// StartAll cease flow monitor
-	sender := process.tracer.RegisterSender()
-	go process.ceaseFlowMonitor(subTracer)(ctx, sender)
-	process.tracer.Send(InstantiationTrace{InstanceId: process.id})
+	process.subTracer = subTracer
 
 	return
 }
 
-// StartWith explicitly starts the instance by triggering a given start event
-func (p *Process) StartWith(ctx context.Context, element schema.StartEventInterface) (err error) {
+// StartWith explicitly starts the instance by triggering a given start event or throw event
+func (p *Process) StartWith(ctx context.Context, element schema.FlowNodeInterface) (err error) {
 	flowNode, found := p.flowNodeMapping.ResolveElementToFlowNode(element)
 	elementId := "<unnamed>"
 	if idPtr, present := element.Id(); present {
@@ -599,27 +596,56 @@ func (p *Process) StartWith(ctx context.Context, element schema.StartEventInterf
 		err = errors.NotFoundError{Expected: fmt.Sprintf("start event %s in process %s", elementId, processId)}
 		return
 	}
-	startEventNode, ok := flowNode.(*startEvent)
-	if !ok {
+	switch eventNode := flowNode.(type) {
+	case *startEvent:
+		eventNode.Trigger(ctx)
+
+		// StartAll cease flow monitor
+		sender := p.tracer.RegisterSender()
+		go p.ceaseFlowMonitor(p.subTracer)(ctx, sender)
+		p.tracer.Send(InstantiationTrace{InstanceId: p.id})
+
+	case *throwEvent:
+		eventNode.Trigger(ctx)
+	default:
 		err = errors.RequirementExpectationError{
-			Expected: fmt.Sprintf("start event %s flow node in process %s to be of type start.Node", elementId, processId),
-			Actual:   fmt.Sprintf("%sFlow", flowNode),
+			Expected: fmt.Sprintf("event %s flow node in process %s is not StartEvent or ThrowEvent", elementId, processId),
+			Actual:   fmt.Sprintf("%s Flow", flowNode),
 		}
-		return
 	}
-	startEventNode.Trigger(ctx)
 	return
 }
 
-// StartAll explicitly starts the instance by triggering all start events, if any
-func (p *Process) StartAll(ctx context.Context) (err error) {
-	for i := range *p.element.StartEvents() {
-		err = p.StartWith(ctx, &(*p.element.StartEvents())[i])
-		if err != nil {
-			return
+// StartAll explicitly starts the instance by triggering all start events
+func (p *Process) StartAll(ctx context.Context) error {
+	if len(p.element.StartEventField) == 0 {
+		return errors.NotFoundError{
+			Expected: fmt.Errorf("process %s no start event", p.id.String()),
 		}
 	}
-	return
+	for i := range *p.element.StartEvents() {
+		err := p.StartWith(ctx, &(*p.element.StartEvents())[i])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ThrowAll explicitly starts the instance by triggering all intermediate throw events.
+func (p *Process) ThrowAll(ctx context.Context) error {
+	if len(p.element.IntermediateThrowEventField) == 0 {
+		return errors.NotFoundError{
+			Expected: fmt.Errorf("process %s no throw event", p.id),
+		}
+	}
+	for i := range *p.element.IntermediateThrowEvents() {
+		err := p.StartWith(ctx, &(*p.element.IntermediateThrowEvents())[i])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (p *Process) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.Context, sender tracing.ISenderHandle) {

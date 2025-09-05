@@ -41,7 +41,16 @@ type NotFoundError struct {
 }
 
 func (e NotFoundError) Error() string {
-	return fmt.Sprintf("%v not found", e.Expected)
+	switch ev := e.Expected.(type) {
+	case string:
+		return fmt.Sprintf("not found: %s", ev)
+	case error:
+		return ev.Error()
+	case struct{}:
+		return fmt.Sprintf("not found object: %v", ev)
+	default:
+		return fmt.Sprintf("not found: %v", e.Expected)
+	}
 }
 
 type RequirementExpectationError struct {

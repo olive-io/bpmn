@@ -43,14 +43,14 @@ type catchEvent struct {
 	satisfier       *logic.CatchEventSatisfier
 }
 
-func newCatchEvent(wiring *wiring, element *schema.CatchEvent) (evt *catchEvent, err error) {
+func newCatchEvent(wr *wiring, element *schema.CatchEvent) (evt *catchEvent, err error) {
 	evt = &catchEvent{
-		wiring:          wiring,
+		wiring:          wr,
 		element:         element,
-		mch:             make(chan imessage, len(wiring.incoming)*2+1),
+		mch:             make(chan imessage, len(wr.incoming)*2+1),
 		activated:       atomic.Bool{},
 		awaitingActions: make([]chan IAction, 0),
-		satisfier:       logic.NewCatchEventSatisfier(element, wiring.eventDefinitionInstanceBuilder),
+		satisfier:       logic.NewCatchEventSatisfier(element, wr.eventDefinitionInstanceBuilder),
 	}
 
 	err = evt.eventEgress.RegisterEventConsumer(evt)
@@ -111,9 +111,7 @@ func (evt *catchEvent) NextAction(ctx context.Context, flow Flow) chan IAction {
 	return response
 }
 
-func (evt *catchEvent) Element() schema.FlowNodeInterface {
-	return evt.element
-}
+func (evt *catchEvent) Element() schema.FlowNodeInterface { return evt.element }
 
 type ActiveListeningTrace struct {
 	Node *schema.CatchEvent

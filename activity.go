@@ -76,6 +76,7 @@ type harness struct {
 	eventConsumers     []event.IConsumer
 	eventConsumersLock sync.RWMutex
 
+	once  sync.Once
 	flows []*flow
 }
 
@@ -201,12 +202,14 @@ func (node *harness) run(ctx context.Context, sender tracing.ISenderHandle) {
 }
 
 func (node *harness) NextAction(ctx context.Context, flow Flow) chan IAction {
-	sender := node.tracer.RegisterSender()
-	go node.run(ctx, sender)
-	for i := range node.flows {
-		flowable := node.flows[i]
-		flowable.Start(ctx)
-	}
+	node.once.Do(func() {
+		sender := node.tracer.RegisterSender()
+		go node.run(ctx, sender)
+		for i := range node.flows {
+			flowable := node.flows[i]
+			flowable.Start(ctx)
+		}
+	})
 
 	response := make(chan chan IAction, 1)
 	node.mch <- nextHarnessActionMessage{flow: flow, response: response}
