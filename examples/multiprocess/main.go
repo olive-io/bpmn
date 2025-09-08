@@ -26,11 +26,9 @@ import (
 	"embed"
 	"encoding/xml"
 	"log"
-	"time"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2"
-	"github.com/olive-io/bpmn/v2/pkg/event"
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
@@ -53,7 +51,7 @@ func main() {
 	engine := bpmn.NewEngine()
 	options := []bpmn.Option{}
 	ctx := context.Background()
-	ins, err := engine.NewProcess(&definitions, options...)
+	ins, err := engine.NewProcessSet(&definitions, options...)
 	if err != nil {
 		log.Fatalf("failed to instantiate the process: %s", err)
 		return
@@ -80,38 +78,21 @@ func main() {
 				ele := act.Element()
 				name, _ := ele.Name()
 				log.Printf("Do Task [%s]", *name)
-				if *name == "s2" {
-					time.Sleep(2 * time.Second)
-					trace.Do()
-				} else {
-					trace.Do()
-				}
-			case bpmn.FlowTrace:
-				switch evt := trace.Source.(type) {
-				case *schema.ThrowEvent:
-					evt.Id()
-				}
-			case bpmn.ActiveListeningTrace:
-				for _, eventDefinition := range trace.Node.SignalEventDefinitionField {
-					ref, ok := eventDefinition.SignalRef()
-					if ok {
-						ins.ConsumeEvent(event.NewSignalEvent(string(*ref)))
-					}
-				}
-				for _, eventDefinition := range trace.Node.MessageEventDefinitionField {
-					ref, ok := eventDefinition.MessageRef()
-					if ok {
-						ins.ConsumeEvent(event.NewMessageEvent(string(*ref), (*string)(eventDefinition.OperationRefField)))
-					}
-				}
-			case bpmn.EventObservedTrace:
-				log.Printf("Event Observed Trace: %#v", trace)
+				trace.Do()
 			case bpmn.ErrorTrace:
 				log.Fatalf("%#v", trace)
-			case bpmn.CeaseFlowTrace:
+			case bpmn.CeaseProcessSetTrace:
 				return
 			default:
-				log.Printf("%#v", trace)
+				var name string
+				v, ok := trace.Unpack().(schema.FlowNodeInterface)
+				if ok {
+					value, found := v.Name()
+					if found {
+						name = *value
+					}
+				}
+				log.Printf("%#v: %s", trace, name)
 			}
 		}
 	}()

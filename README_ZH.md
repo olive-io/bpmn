@@ -128,6 +128,7 @@ func main() {
 - [捕获事件](https://github.com/olive-io/bpmn/tree/main/examples/catch_event): 中间捕获事件和边界事件示例
 - [抛出事件](https://github.com/olive-io/bpmn/tree/main/examples/collaboration): 中间抛出事件和泳池示例
 - [子流程](https://github.com/olive-io/bpmn/tree/main/examples/subprocess): 嵌入式子流程执行
+- [多通道](https://github.com/olive-io/bpmn/tree/main/examples/multiprocess): 多通道流程的示例
 
 ## 许可协议
 

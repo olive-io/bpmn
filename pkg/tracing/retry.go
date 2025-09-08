@@ -32,6 +32,7 @@ func NewRelay(ctx context.Context, in, out ITracer, transformer Transformer) {
 			select {
 			case <-in.Done():
 				handle.Done()
+				in.Unsubscribe(ch)
 				return
 			case <-ctx.Done():
 				// wait until `in` Tracer is done

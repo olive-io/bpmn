@@ -121,3 +121,9 @@ func (t InstanceTrace) Unwrap() tracing.ITrace {
 }
 
 func (t InstanceTrace) Unpack() any { return t.InstanceId }
+
+type CeaseProcessSetTrace struct {
+	Definitions *schema.Definitions
+}
+
+func (t CeaseProcessSetTrace) Unpack() any { return t.Definitions }

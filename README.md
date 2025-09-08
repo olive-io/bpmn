@@ -129,6 +129,7 @@ func main() {
 - [Catch Event](https://github.com/olive-io/bpmn/tree/main/examples/catch_event): Intermediate Catch Event and Boundary Event examples
 - [Throw Event and Collaboration](https://github.com/olive-io/bpmn/tree/main/examples/collaboration): Intermediate Catch Event and Collaboration examples
 - [Sub-process](https://github.com/olive-io/bpmn/tree/main/examples/subprocess): Embedded Sub-process execution
+- [Multiprocess](https://github.com/olive-io/bpmn/tree/main/examples/multiprocess): Executes multiprocess in an definitions
 
 ## License
 
