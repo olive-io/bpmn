@@ -12,7 +12,7 @@ require (
 	github.com/expr-lang/expr v1.17.6
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/muyo/sno v1.2.1
-	github.com/olive-io/bpmn/schema v1.4.2
+	github.com/olive-io/bpmn/schema v1.5.4
 	github.com/qri-io/iso8601 v0.1.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/sys v0.30.0
