@@ -48,7 +48,6 @@ import (
 	"os"
 
 	"github.com/olive-io/bpmn/schema"
-	"github.com/olive-io/bpmn/v2"
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
@@ -87,28 +86,28 @@ func main() {
 	}
 	go func() {
 		for {
-			var trace tracing.ITrace
 			select {
-			case trace = <-traces:
-			}
-
-			trace = tracing.Unwrap(trace)
-			switch trace := trace.(type) {
-			case bpmn.FlowTrace:
-			case bpmn.TaskTrace:
-				trace.Do(bpmn.DoWithResults(
-					map[string]any{
-						"c": map[string]string{"name": "cc1"},
-						"a": 2,
-					}),
-				)
-			case bpmn.ErrorTrace:
-				log.Fatalf("%#v", trace)
-				return
-			case bpmn.CeaseFlowTrace:
-				return
+			case trace := <-traces:
+				trace = tracing.Unwrap(trace)
+				switch trace := trace.(type) {
+				case bpmn.FlowTrace:
+				case bpmn.TaskTrace:
+					trace.Do(bpmn.DoWithResults(
+						map[string]any{
+							"c": map[string]string{"name": "cc1"},
+							"a": 2,
+						}),
+					)
+				case bpmn.ErrorTrace:
+					log.Fatalf("%#v", trace)
+					return
+				case bpmn.CeaseFlowTrace:
+					return
+				default:
+					log.Printf("%#v", trace)
+				}
 			default:
-				log.Printf("%#v", trace)
+
 			}
 		}
 	}()
@@ -117,6 +116,7 @@ func main() {
 	pros := ins.Locator().CloneVariables()
 	log.Printf("%#v", pros)
 }
+
 ```
 
 ### 更多实例

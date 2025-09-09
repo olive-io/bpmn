@@ -29,7 +29,7 @@
     <bpmn:intermediateCatchEvent id="Event_0k3kgul" name="recv">
       <bpmn:incoming>Flow_12c3085</bpmn:incoming>
       <bpmn:outgoing>Flow_1iwyazr</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="MessageEventDefinition_1k21vyn" messageRef="msg" />
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1k21vyn" />
     </bpmn:intermediateCatchEvent>
   </bpmn:process>
   <bpmn:process id="Process_0ifg0dl" isExecutable="false">
@@ -104,7 +104,7 @@
         <di:waypoint x="622" y="200" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Participant_0afboe7_di" bpmnElement="Participant_0afboe7" isHorizontal="true">
-        <dc:Bounds x="152" y="360" width="600" height="250" />
+        <dc:Bounds x="152" y="360" width="600" height="200" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1i7emja_di" bpmnElement="Event_1i7emja">
