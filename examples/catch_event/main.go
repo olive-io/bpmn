@@ -1,5 +1,5 @@
 /*
-   Copyright 2025 The  Authors
+   Copyright 2025 The bpmn Authors
 
    This program is offered under a commercial and under the AGPL license.
    For AGPL licensing, see below.
