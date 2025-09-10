@@ -619,9 +619,9 @@ func (sp *subProcess) NextAction(ctx context.Context, flow Flow) chan IAction {
 		// flow nodes
 		// StartAll cease flow monitor
 		sender := sp.subTracer.RegisterSender()
-		go sp.ceaseFlowMonitor(sp.wr.tracer)(ctx, sender)
-
-		go sp.run(ctx, sp.wr.tracer)
+		tracer := sp.wr.tracer
+		go sp.ceaseFlowMonitor(tracer)(ctx, sender)
+		go sp.run(ctx, tracer)
 	}
 
 	response := make(chan IAction, 1)

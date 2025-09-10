@@ -56,10 +56,7 @@ func newExclusiveGateway(wr *wiring, element *schema.ExclusiveGateway) (gw *excl
 		if gwe, found := wr.process.FindBy(schema.ExactId(*seqFlow).
 			And(schema.ElementType((*schema.SequenceFlow)(nil)))); found {
 			defaultSequenceFlow = new(SequenceFlow)
-			*defaultSequenceFlow = MakeSequenceFlow(
-				gwe.(*schema.SequenceFlow),
-				wr.process,
-			)
+			*defaultSequenceFlow = MakeSequenceFlow(gwe.(*schema.SequenceFlow), wr.process)
 		} else {
 			err = errors.NotFoundError{
 				Expected: fmt.Sprintf("default sequence flow with ID %s", *seqFlow),
@@ -100,9 +97,7 @@ func (gw *exclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 				if response, ok := gw.probing[m.flowId]; ok {
 					if response == nil {
 						// Reschedule, there's no next action yet
-						go func() {
-							gw.mch <- m
-						}()
+						go func() { gw.mch <- m }()
 						continue
 					}
 					delete(gw.probing, m.flowId)
@@ -181,7 +176,7 @@ func (gw *exclusiveGateway) NextAction(ctx context.Context, flow Flow) chan IAct
 		go gw.run(ctx, sender)
 	})
 
-	response := make(chan IAction)
+	response := make(chan IAction, 1)
 	gw.mch <- nextActionMessage{response: response, flow: flow}
 	return response
 }

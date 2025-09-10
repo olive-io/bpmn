@@ -1,4 +1,3 @@
-# github.com/olive-io/bpmn
 
 **纯 Go 实现的轻量级业务流程建模与标记(BPMN) 2.0 工作流引擎**
 

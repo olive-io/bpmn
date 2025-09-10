@@ -1,5 +1,4 @@
 Introduce ｜ [中文](https://github.com/olive-io/bpmn/tree/main/README_ZH.md)
-# github.com/olive-io/bpmn
 
 **Lightweight Business Process Model and Notation (BPMN) 2.0 workflow engine implemented purely in Go**
 
