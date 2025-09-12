@@ -94,7 +94,6 @@ func (t *QName) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 
 type Double = float64
 
-// Id Identifier (http://books.xmlschemata.org/relaxng/ch19-77151.html)
 type Id = string
 
 // IdRef Reference to identifiers (http://books.xmlschemata.org/relaxng/ch19-77159.html)

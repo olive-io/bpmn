@@ -168,8 +168,7 @@ func (f *flow) executeSequenceFlow(ctx context.Context, sequenceFlow *SequenceFl
 	return
 }
 
-func (f *flow) handleSequenceFlow(ctx context.Context, sequenceFlow *SequenceFlow, unconditional bool,
-	actionTransformer ActionTransformer, terminate Terminate) (flowed bool) {
+func (f *flow) handleSequenceFlow(ctx context.Context, sequenceFlow *SequenceFlow, unconditional bool, actionTransformer ActionTransformer, terminate Terminate) (flowed bool) {
 	ok, err := f.executeSequenceFlow(ctx, sequenceFlow, unconditional)
 	if err != nil {
 		f.tracer.Send(ErrorTrace{Error: err})

@@ -20,6 +20,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2"
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
@@ -62,4 +64,51 @@ func TestTask(t *testing.T) {
 	} else {
 		t.Fatalf("failed to instantiate the process: %s", err)
 	}
+}
+
+func TestTaskWithBuilder(t *testing.T) {
+	db := schema.NewDefinitionsBuilder()
+	pb := schema.NewProcessBuilder()
+	task := schema.Task{}
+	task.SetName(schema.NewStringP("t1"))
+	pb.AddActivity(&task)
+	script := schema.ScriptTask{}
+	script.SetName(schema.NewStringP("s1"))
+	pb.AddActivity(&script)
+
+	db.AddProcess(*pb.Out())
+
+	def := db.Out()
+
+	engine := bpmn.NewEngine()
+	ctx := context.TODO()
+	instance, err := engine.NewProcess(def)
+	if err != nil {
+		t.Fatalf("failed to run the instance: %s", err)
+	}
+	traces := instance.Tracer().Subscribe()
+	defer instance.Tracer().Unsubscribe(traces)
+	err = instance.StartAll(ctx)
+	if err != nil {
+		t.Fatalf("failed to run the instance: %s", err)
+	}
+
+	visited := make([]string, 0)
+loop:
+	for {
+		trace := tracing.Unwrap(<-traces)
+		switch tr := trace.(type) {
+		case bpmn.TaskTrace:
+			name, _ := tr.GetActivity().Element().Name()
+			visited = append(visited, *name)
+			tr.Do()
+		case bpmn.ErrorTrace:
+			t.Errorf("%#v\n", trace)
+		case bpmn.CeaseFlowTrace:
+			break loop
+		default:
+		}
+	}
+
+	assert.Equal(t, []string{"t1", "s1"}, visited)
 }

@@ -150,6 +150,7 @@ func TestSnoId_Consistency(t *testing.T) {
 	str2 := id.String()
 	bytes2 := id.Bytes()
 
+	t.Log("id: " + str2)
 	assert.Equal(t, str1, str2)
 	assert.Equal(t, bytes1, bytes2)
 }
