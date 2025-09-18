@@ -148,7 +148,6 @@ func (gw *exclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 			case nextActionMessage:
 				if _, ok := gw.probing[m.flow.Id()]; ok {
 					gw.probing[m.flow.Id()] = &m.response
-					// and now we wait until the probe has returned
 				} else {
 					gw.probing[m.flow.Id()] = nil
 					m.response <- probeAction{

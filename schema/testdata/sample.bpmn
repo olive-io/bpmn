@@ -30,9 +30,9 @@
       <bpmn:incoming>x3</bpmn:incoming>
       <bpmn:outgoing>x5</bpmn:outgoing>
       <bpmn:extensionElements>
-        <olive:taskDefinition type="service"/>
+        <olive:taskDefinition type="service" metadata="{&#34;a&#34;: &#34;b&#34;}"/>
         <olive:taskHeaders>
-          <olive:header name="contentType" value="aplication/json"/>
+          <olive:header name="contentType" value="application/json"/>
         </olive:taskHeaders>
         <olive:properties>
           <olive:property name="a" value="1" type="integer"/>

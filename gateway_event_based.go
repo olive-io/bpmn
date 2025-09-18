@@ -18,7 +18,6 @@ package bpmn
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"sync/atomic"
 
@@ -61,7 +60,7 @@ func (gw *eventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 						terminationChannels[*idPtr] = make(chan bool)
 					} else {
 						err := errors.NotFoundError{
-							Expected: fmt.Sprintf("id for %#v", sequenceFlow),
+							Expected: sequenceFlow,
 						}
 						gw.tracer.Send(ErrorTrace{Error: err})
 					}

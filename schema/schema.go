@@ -31,7 +31,7 @@ const (
 	BpmnDINS = "bpmndi:"
 	DINS     = "di:"
 	DCNS     = "dc:"
-	OliveNS  = "olive:"
+	OliveNS  = "olive:" // olive consumer namespace
 )
 
 var mapping = map[string]string{
@@ -356,6 +356,39 @@ type TaskDefinition struct {
 	Timeout string `xml:"timeout,attr"`
 	Retries int32  `xml:"retries,attr"`
 	Target  string `xml:"target,attr"`
+	// more task definition data (json format)
+	Metadata string `xml:"metadata,attr"`
+}
+
+func (t *TaskDefinition) SetMetadata(name string, value any) {
+	if t.Metadata == "" {
+		t.Metadata = "{}"
+	}
+	metadata := map[string]any{}
+	_ = json.Unmarshal([]byte(t.Metadata), &metadata)
+	metadata[name] = value
+	data, _ := json.Marshal(metadata)
+	t.Metadata = string(data)
+}
+
+func (t *TaskDefinition) GetMetadata(name string) (any, bool) {
+	metadata := t.GetMetadatas()
+	value, ok := metadata[name]
+	return value, ok
+}
+
+func (t *TaskDefinition) SetMetadatas(metadata map[string]any) {
+	data, _ := json.Marshal(metadata)
+	t.Metadata = string(data)
+}
+
+func (t *TaskDefinition) GetMetadatas() map[string]any {
+	if t.Metadata == "" {
+		return map[string]any{}
+	}
+	metadata := map[string]any{}
+	_ = json.Unmarshal([]byte(t.Metadata), &metadata)
+	return metadata
 }
 
 func (t *TaskDefinition) MarshalXML(e *xml.Encoder, start xml.StartElement) error {

@@ -44,7 +44,7 @@ type ProcessSet struct {
 
 	definitions *schema.Definitions
 
-	sourceMessageFlows map[string]*schema.MessageFlow
+	messageFlows map[string]*schema.MessageFlow
 
 	cmu     sync.RWMutex
 	catchCh map[string]chan struct{}
@@ -94,25 +94,23 @@ func NewProcessSet(executeProcesses, waitingProcesses []*schema.Process, definit
 		executes = append(executes, process)
 	}
 
-	sourceMessageFlows := make(map[string]*schema.MessageFlow)
+	messageFlows := make(map[string]*schema.MessageFlow)
 	for _, collaboration := range *definitions.Collaborations() {
 		for _, msg := range *collaboration.MessageFlows() {
-			sourceMessageFlows[string(msg.SourceRefField)] = &msg
+			messageFlows[string(msg.SourceRefField)] = &msg
 		}
 	}
 
 	ps := &ProcessSet{
-		Options:            options,
-		sourceOptions:      opts,
-		executes:           executes,
-		waitings:           waitingProcesses,
-		definitions:        definitions,
-		sourceMessageFlows: sourceMessageFlows,
-
-		catchCh: make(map[string]chan struct{}),
-
-		mch:  make(chan imessage, len(executes)+1),
-		done: make(chan struct{}, 1),
+		Options:       options,
+		sourceOptions: opts,
+		executes:      executes,
+		waitings:      waitingProcesses,
+		definitions:   definitions,
+		messageFlows:  messageFlows,
+		catchCh:       make(map[string]chan struct{}),
+		mch:           make(chan imessage, len(executes)+1),
+		done:          make(chan struct{}, 1),
 	}
 
 	return ps, nil
@@ -160,7 +158,7 @@ func (ps *ProcessSet) run(ctx context.Context) {
 		case ch := <-ps.mch:
 			switch msg := ch.(type) {
 			case throwMessage:
-				sourceRef, ok := ps.sourceMessageFlows[msg.Id]
+				sourceRef, ok := ps.messageFlows[msg.Id]
 				if ok {
 					startFlowNode, waitingProcess, found := ps.resolveWaitingProcessAndEvent(string(sourceRef.TargetRefField))
 					if found {
@@ -184,9 +182,9 @@ func (ps *ProcessSet) run(ctx context.Context) {
 						ps.wg.Add(1)
 						go ps.tracerProcess(ctx, process, &ps.wg)
 					}
-					trigger, found := ps.triggerCatch(string(sourceRef.TargetRefField))
+					cancel, found := ps.triggerCatch(string(sourceRef.TargetRefField))
 					if found {
-						trigger()
+						cancel()
 					}
 				}
 			}

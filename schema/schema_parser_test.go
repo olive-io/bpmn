@@ -71,10 +71,10 @@ func TestParseSample(t *testing.T) {
 	if !assert.True(t, ok) {
 		return
 	}
-
-	_ = extension
-	t.Log(extension.TaskHeaderField.Header[0])
-	t.Log(extension.TaskDefinitionField.Type)
+	metadata := extension.TaskDefinitionField.GetMetadatas()
+	assert.Equal(t, map[string]any{"a": "b"}, metadata)
+	assert.Equal(t, "application/json", extension.TaskHeaderField.Header[0].Value)
+	assert.Equal(t, "service", extension.TaskDefinitionField.Type)
 }
 
 func TestParseSampleNs(t *testing.T) {
