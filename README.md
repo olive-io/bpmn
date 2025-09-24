@@ -12,6 +12,7 @@ Introduce ｜ [中文](https://github.com/olive-io/bpmn/tree/main/README_ZH.md)
 ## Introduction
 
 `github.com/olive-io/bpmn` is a lightweight **Business Process Model and Notation (BPMN) 2.0** workflow engine implemented in Go, designed for modeling and executing business processes embedded in Go applications.  
+
 It supports core BPMN 2.0 elements including Activities (User Task, Service Task, Script Task), Events (Start Event, End Event, Intermediate Catch Event), Gateways (Exclusive Gateway, Inclusive Gateway, Parallel Gateway, Event-based Gateway), Sub-processes, Sequence Flows, and extensible process attributes.
 
 ---
