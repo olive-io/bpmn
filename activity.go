@@ -305,7 +305,7 @@ func (b *taskTraceBuilder) Activity(activity Activity) *taskTraceBuilder {
 	return b
 }
 
-func (b *taskTraceBuilder) DataObjects(dataObjects map[string]any) *taskTraceBuilder {
+func (b *taskTraceBuilder) DataObjects(dataObjects map[string]data.IItem) *taskTraceBuilder {
 	b.t.dataObjects = dataObjects
 	return b
 }
@@ -315,7 +315,7 @@ func (b *taskTraceBuilder) Headers(headers map[string]string) *taskTraceBuilder 
 	return b
 }
 
-func (b *taskTraceBuilder) Properties(properties map[string]any) *taskTraceBuilder {
+func (b *taskTraceBuilder) Properties(properties map[string]data.IItem) *taskTraceBuilder {
 	b.t.properties = properties
 	return b
 }
@@ -330,9 +330,9 @@ type TaskTrace interface {
 	Unpack() any
 	Context() context.Context
 	GetActivity() Activity
-	GetDataObjects() map[string]any
+	GetDataObjects() map[string]data.IItem
 	GetHeaders() map[string]string
-	GetProperties() map[string]any
+	GetProperties() map[string]data.IItem
 	Do(options ...DoOption)
 }
 
@@ -341,8 +341,8 @@ type taskTrace struct {
 	timeout     time.Duration
 	activity    Activity
 	headers     map[string]string
-	properties  map[string]any
-	dataObjects map[string]any
+	properties  map[string]data.IItem
+	dataObjects map[string]data.IItem
 	forward     chan DoResponse
 	response    chan DoResponse
 	done        chan struct{}
@@ -353,8 +353,8 @@ func newTaskTrace() *taskTrace {
 		ctx:         context.TODO(),
 		timeout:     DefaultTaskExecTimeout,
 		headers:     make(map[string]string),
-		properties:  make(map[string]any),
-		dataObjects: make(map[string]any),
+		properties:  make(map[string]data.IItem),
+		dataObjects: make(map[string]data.IItem),
 		forward:     make(chan DoResponse, 1),
 		response:    make(chan DoResponse, 1),
 		done:        make(chan struct{}, 1),
@@ -372,15 +372,15 @@ func (t *taskTrace) GetActivity() Activity {
 	return t.activity
 }
 
-func (t *taskTrace) GetDataObjects() map[string]any {
-	return t.dataObjects
-}
-
 func (t *taskTrace) GetHeaders() map[string]string {
 	return t.headers
 }
 
-func (t *taskTrace) GetProperties() map[string]any {
+func (t *taskTrace) GetDataObjects() map[string]data.IItem {
+	return t.dataObjects
+}
+
+func (t *taskTrace) GetProperties() map[string]data.IItem {
 	return t.properties
 }
 
@@ -430,11 +430,11 @@ func (t *taskTrace) process() {
 	}
 }
 
-func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElementInterface) (headers map[string]string, properties, dataObjects map[string]any) {
+func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElementInterface) (headers map[string]string, properties, dataObjects map[string]data.IItem) {
 	variables := locator.CloneVariables()
 	headers = map[string]string{}
-	properties = map[string]any{}
-	dataObjects = map[string]any{}
+	properties = map[string]data.IItem{}
+	dataObjects = map[string]data.IItem{}
 	if extension, found := element.ExtensionElements(); found {
 		if header := extension.TaskHeaderField; header != nil {
 			fields := header.Header
@@ -445,10 +445,10 @@ func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElemen
 		if property := extension.PropertiesField; property != nil {
 			fields := property.Property
 			for _, field := range fields {
-				value := field.ValueFor()
-				if len(strings.TrimSpace(field.Value)) == 0 {
+				value := field.ToValue()
+				if len(strings.TrimSpace(value.ItemValue)) == 0 {
 					if vv, ok := variables[field.Name]; ok {
-						value = vv
+						value.ValueFrom(vv)
 					}
 				}
 				properties[field.Name] = value
@@ -489,7 +489,7 @@ func ApplyTaskDataOutput(element schema.BaseElementInterface, dataOutputs map[st
 		for _, dataOutput := range extension.DataOutput {
 			value, ok := dataOutputs[dataOutput.Name]
 			if ok {
-				outputs[dataOutput.Name] = value
+				outputs[dataOutput.Name] = schema.NewValue(value)
 			}
 		}
 	}
@@ -503,7 +503,7 @@ func ApplyTaskResult(element schema.BaseElementInterface, results map[string]any
 			for _, item := range extension.ResultsField.Field {
 				value, ok := results[item.Name]
 				if ok {
-					outputs[item.Name] = value
+					outputs[item.Name] = schema.NewValue(value)
 				}
 			}
 			return outputs

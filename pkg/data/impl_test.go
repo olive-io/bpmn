@@ -20,6 +20,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/olive-io/bpmn/schema"
 )
 
 func TestFlowDataLocator_Merge(t *testing.T) {
@@ -28,24 +30,28 @@ func TestFlowDataLocator_Merge(t *testing.T) {
 	l1.SetVariable("a", "b")
 	l2.Merge(l1)
 
-	assert.Equal(t, l1.CloneVariables(), l2.CloneVariables())
+	v1 := l1.CloneVariables()["a"]
+	v2 := l2.CloneVariables()["a"]
+	assert.Equal(t, v1.Value(), v2.Value())
 
 	locator := NewPropertyContainer()
 	c1 := NewContainer(nil)
-	c1.Put("aa")
+	c1.Put(schema.NewValue("aa"))
 	locator.PutItemAwareByName("a", c1)
 	l1.PutIItemAwareLocator(LocatorProperty, locator)
 
 	l2.Merge(l1)
 
 	l2Locator, _ := l2.FindIItemAwareLocator(LocatorProperty)
-	assert.Equal(t, l2Locator.Clone()["a"], "aa")
+	cloned := l2Locator.Clone()
+	value := cloned["a"].Value()
+	assert.Equal(t, value, "aa")
 }
 
 func TestFlowDataLocator_CloneItems(t *testing.T) {
 	l := NewFlowDataLocator()
 	aware := NewContainer(nil)
-	aware.Put("hello")
+	aware.Put(schema.NewValue("hello"))
 	container := NewDataObjectContainer()
 	container.PutItemAwareById("id", aware)
 	container.PutItemAwareByName("in", aware)
@@ -69,10 +75,10 @@ func TestFlowDataLocator_CloneItems(t *testing.T) {
 		return
 	}
 
-	awareOut.Put("hello")
+	awareOut.Put(schema.NewValue("hello"))
 
 	items := l.CloneItems(LocatorObject)
-	if !assert.Equal(t, items["id"], "hello") {
+	if !assert.Equal(t, items["id"], schema.NewValue("hello")) {
 		return
 	}
 }

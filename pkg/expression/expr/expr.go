@@ -43,8 +43,8 @@ func (engine *Expr) SetItemAwareLocator(name string, itemAwareLocator data.IItem
 	engine.itemAwareLocators[name] = itemAwareLocator
 }
 
-func (engine *Expr) fetchItem(pool string) func(args ...string) data.IItem {
-	return func(args ...string) data.IItem {
+func (engine *Expr) fetchItem(pool string) func(args ...string) any {
+	return func(args ...string) any {
 		var name string
 		if len(args) == 1 {
 			name = args[0]
@@ -59,7 +59,7 @@ func (engine *Expr) fetchItem(pool string) func(args ...string) data.IItem {
 			return nil
 		}
 		item := itemAware.Get()
-		return item
+		return item.Value()
 	}
 }
 

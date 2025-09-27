@@ -120,7 +120,7 @@ func TestCondDataObject(t *testing.T) {
 					locator, _ := instance.Locator().FindIItemAwareLocator(data.LocatorObject)
 					aware, found := locator.FindItemAwareByName(k)
 					require.True(t, found)
-					aware.Put(k == cond)
+					aware.Put(schema.NewValue(k == cond))
 				}
 				err = instance.StartAll(ctx)
 				if err != nil {

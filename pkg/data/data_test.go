@@ -21,21 +21,23 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/olive-io/bpmn/schema"
 )
 
 func TestSliceIterator_ItemIterator(t *testing.T) {
-	items := SliceIterator([]IItem{1, "hello"})
+	items := NewSlice([]IItem{schema.NewValue(1), schema.NewValue("hello")})
 	ctx := context.Background()
 	iterator, _ := items.ItemIterator(ctx)
-	newItems := SliceIterator(make([]IItem, 0, len(items)))
+	newItems := make([]IItem, 0)
 	for e := range iterator {
 		newItems = append(newItems, e)
 	}
-	assert.Equal(t, items, newItems)
+	assert.Equal(t, items.items, newItems)
 }
 
 func TestSliceIterator_ItemIterator_Stopping(t *testing.T) {
-	items := SliceIterator([]IItem{1, "hello"})
+	items := NewSlice([]IItem{schema.NewValue(1), schema.NewValue("hello")})
 	ctx := context.Background()
 	iterator, stopper := items.ItemIterator(ctx)
 	stopper.Stop()
@@ -45,7 +47,7 @@ func TestSliceIterator_ItemIterator_Stopping(t *testing.T) {
 }
 
 func TestSliceIterator_ItemIterator_ContextDone(t *testing.T) {
-	items := SliceIterator([]IItem{1, "hello"})
+	items := NewSlice([]IItem{schema.NewValue(1), schema.NewValue("hello")})
 	ctx, cancel := context.WithCancel(context.Background())
 	iterator, stop := items.ItemIterator(ctx)
 	cancel()

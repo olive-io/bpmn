@@ -18,9 +18,7 @@ package schema
 
 import (
 	"encoding/xml"
-	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 
 	json "github.com/bytedance/sonic"
@@ -314,19 +312,6 @@ func PostUnmarshal(element Element, decoder *xml.Decoder, start *xml.StartElemen
 	return
 }
 
-type ItemType string
-
-func (it ItemType) String() string { return string(it) }
-
-const (
-	ItemTypeObject  ItemType = "object"
-	ItemTypeArray   ItemType = "array"
-	ItemTypeInteger ItemType = "integer"
-	ItemTypeString  ItemType = "string"
-	ItemTypeBoolean ItemType = "boolean"
-	ItemTypeFloat   ItemType = "float"
-)
-
 type ExtensionElementsType struct {
 	DataObjectBody      *ExtensionDataObjectBody `xml:"http://olive.io/spec/BPMN/MODEL dataObjectBody"`
 	TaskDefinitionField *TaskDefinition          `xml:"http://olive.io/spec/BPMN/MODEL taskDefinition"`
@@ -407,111 +392,6 @@ func (t *TaskDefinition) UnmarshalXML(d *xml.Decoder, start xml.StartElement) er
 		return nil
 	}
 	*t = TaskDefinition(out)
-	return nil
-}
-
-type Item struct {
-	Name  string   `xml:"name,attr"`
-	Value string   `xml:"value,attr"`
-	Type  ItemType `xml:"type,attr"`
-}
-
-func (i *Item) ValueFor() any {
-	switch i.Type {
-	case ItemTypeString:
-		return i.Value
-	case ItemTypeInteger:
-		integer, _ := strconv.ParseInt(i.Value, 10, 64)
-		return int(integer)
-	case ItemTypeBoolean:
-		return i.Value == "true"
-	case ItemTypeFloat:
-		f, _ := strconv.ParseFloat(i.Value, 64)
-		return f
-	case ItemTypeArray:
-		var arr []any
-		_ = json.Unmarshal([]byte(i.Value), &arr)
-		return arr
-	case ItemTypeObject:
-		obj := map[string]any{}
-		_ = json.Unmarshal([]byte(i.Value), &obj)
-		return obj
-	default:
-		return i.Value
-	}
-}
-
-func (i *Item) ValueTo(dst any) error {
-	rv := reflect.ValueOf(dst)
-	if rv.Kind() == reflect.Ptr {
-		rv = rv.Elem()
-	}
-
-	if rv.Kind() == reflect.String && i.Type == ItemTypeString {
-		rv.SetString(i.Value)
-	} else if rv.Kind() == reflect.Map && i.Type == ItemTypeObject {
-		if err := json.Unmarshal([]byte(i.Value), &dst); err != nil {
-			return err
-		}
-	} else if rv.Kind() == reflect.Struct && i.Type == ItemTypeObject {
-		if err := json.Unmarshal([]byte(i.Value), &dst); err != nil {
-			return err
-		}
-	} else if rv.Kind() == reflect.Slice && i.Type == ItemTypeArray {
-		if err := json.Unmarshal([]byte(i.Value), &dst); err != nil {
-			return err
-		}
-	} else if rv.CanInt() && i.Type == ItemTypeInteger {
-		n, err := strconv.ParseInt(i.Value, 10, 64)
-		if err != nil {
-			return err
-		}
-		rv.SetInt(n)
-	} else if rv.CanUint() && i.Type == ItemTypeInteger {
-		n, err := strconv.ParseUint(i.Value, 10, 64)
-		if err != nil {
-			return err
-		}
-		rv.SetUint(n)
-	} else if rv.CanFloat() && i.Type == ItemTypeFloat {
-		f, err := strconv.ParseFloat(i.Value, 10)
-		if err != nil {
-			return err
-		}
-		rv.SetFloat(f)
-	}
-
-	return fmt.Errorf("not matched")
-}
-
-func (i *Item) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	out := Item(*i)
-	start.Name = xml.Name{
-		Local: OliveNS + start.Name.Local,
-	}
-
-	if out.Type == "" {
-		out.Type = ItemTypeString
-	}
-
-	if err := e.EncodeElement(out, start); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (i *Item) UnmarshalXML(de *xml.Decoder, start xml.StartElement) error {
-	type ItemUnmarshaler Item
-	out := ItemUnmarshaler{}
-	if err := de.DecodeElement(&out, &start); err != nil {
-		return err
-	}
-
-	*i = Item(out)
-	if i.Type == "" {
-		i.Type = ItemTypeString
-	}
 	return nil
 }
 

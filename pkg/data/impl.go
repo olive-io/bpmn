@@ -124,8 +124,8 @@ func (do *ObjectContainer) PutItemAwareByName(name string, itemAware IItemAware)
 	do.dataObjectsByName[name] = itemAware
 }
 
-func (do *ObjectContainer) Clone() map[string]any {
-	out := make(map[string]any)
+func (do *ObjectContainer) Clone() map[string]IItem {
+	out := make(map[string]IItem)
 	for name, item := range do.dataObjects {
 		value := item.Get()
 		if value != nil {
@@ -185,8 +185,8 @@ func (h *HeaderContainer) FindItemAwareByName(name string) (IItemAware, bool) {
 	return item, true
 }
 
-func (h *HeaderContainer) Clone() map[string]any {
-	out := make(map[string]any)
+func (h *HeaderContainer) Clone() map[string]IItem {
+	out := make(map[string]IItem)
 	for name, item := range h.items {
 		value := item.Get()
 		if value != nil {
@@ -238,8 +238,8 @@ func (p *PropertyContainer) PutItemAwareByName(name string, itemAware IItemAware
 	p.items[name] = itemAware
 }
 
-func (p *PropertyContainer) Clone() map[string]any {
-	out := make(map[string]any)
+func (p *PropertyContainer) Clone() map[string]IItem {
+	out := make(map[string]IItem)
 	for name, item := range p.items {
 		value := item.Get()
 		if value != nil {
@@ -303,7 +303,7 @@ func ElementToLocator(locator IFlowDataLocator, idGenerator id.IGenerator, eleme
 					}
 				}
 			}
-			container.Put(dataObjectBody)
+			container.Put(schema.NewValue(dataObjectBody))
 			dataObjectContainer.dataObjectsByName[name] = container
 			if idPtr, present := dataObject.Id(); present {
 				dataObjectContainer.dataObjects[*idPtr] = container
@@ -394,14 +394,14 @@ func ElementToLocator(locator IFlowDataLocator, idGenerator id.IGenerator, eleme
 			if headers := extensionElements.TaskHeaderField; headers != nil {
 				for _, item := range headers.Header {
 					container := NewContainer(nil)
-					container.Put(item.ValueFor())
+					container.Put(item.ToValue())
 					headerContainer.PutItemAwareByName(item.Name, container)
 				}
 			}
 			if properties := extensionElements.PropertiesField; properties != nil {
 				for _, property := range properties.Property {
 					container := NewContainer(nil)
-					container.Put(property.ValueFor())
+					container.Put(property.ToValue())
 					propertyContainer.PutItemAwareByName(property.Name, container)
 				}
 			}
@@ -445,8 +445,8 @@ func (f *FlowDataLocator) PutIItemAwareLocator(name string, locator IItemAwareLo
 	f.locators[name] = locator
 }
 
-func (f *FlowDataLocator) CloneItems(name string) map[string]any {
-	out := make(map[string]any)
+func (f *FlowDataLocator) CloneItems(name string) map[string]IItem {
+	out := make(map[string]IItem)
 
 	f.vmu.RLock()
 	locator, ok := f.locators[name]
@@ -459,23 +459,32 @@ func (f *FlowDataLocator) CloneItems(name string) map[string]any {
 	return locator.Clone()
 }
 
-func (f *FlowDataLocator) GetVariable(name string) (value any, found bool) {
+func (f *FlowDataLocator) GetVariable(name string) (any, bool) {
 	f.vmu.RLock()
 	defer f.vmu.RUnlock()
-	value, found = f.variables[name]
-	return
+	value, found := f.variables[name]
+	if !found {
+		return nil, found
+	}
+	return value.Value(), true
 }
 
 func (f *FlowDataLocator) SetVariable(name string, value any) {
 	f.vmu.Lock()
 	defer f.vmu.Unlock()
-	f.variables[name] = value
+
+	sv, ok := value.(*schema.Value)
+	if !ok {
+		sv = schema.NewValue(value)
+	}
+
+	f.variables[name] = sv
 }
 
-func (f *FlowDataLocator) CloneVariables() map[string]any {
+func (f *FlowDataLocator) CloneVariables() map[string]IItem {
 	f.vmu.RLock()
 	defer f.vmu.RUnlock()
-	out := make(map[string]any)
+	out := make(map[string]IItem)
 	for key, value := range f.variables {
 		out[key] = value
 	}

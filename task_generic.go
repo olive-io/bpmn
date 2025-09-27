@@ -26,8 +26,8 @@ import (
 
 type nextTaskActionMessage struct {
 	headers     map[string]string
-	properties  map[string]any
-	dataObjects map[string]any
+	properties  map[string]data.IItem
+	dataObjects map[string]data.IItem
 	response    chan IAction
 }
 

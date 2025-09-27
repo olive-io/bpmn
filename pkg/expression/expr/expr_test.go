@@ -80,16 +80,16 @@ func (d dataObjects) FindItemAwareByName(name string) (itemAware data.IItemAware
 	return
 }
 
-func (d dataObjects) Clone() map[string]any {
-	return map[string]any{}
+func (d dataObjects) Clone() map[string]data.IItem {
+	return map[string]data.IItem{}
 }
 
 func TestExpr_getDataObject(t *testing.T) {
 	var engine = New(context.Background())
 	container := data.NewContainer(nil)
-	container.Put(1)
+	container.Put(schema.NewValue(1))
 	container1 := data.NewContainer(nil)
-	container1.Put(map[string]string{"msg": "hello"})
+	container1.Put(schema.NewValue(map[string]string{"msg": "hello"}))
 	var objs dataObjects = map[string]data.IItemAware{
 		"dataObject":  container,
 		"dataObject1": container1,
@@ -97,14 +97,14 @@ func TestExpr_getDataObject(t *testing.T) {
 	engine.SetItemAwareLocator(data.LocatorObject, objs)
 
 	h1 := data.NewContainer(nil)
-	h1.Put(2)
+	h1.Put(schema.NewValue(2))
 	var headers dataObjects = map[string]data.IItemAware{
 		"a": h1,
 	}
 	engine.SetItemAwareLocator(data.LocatorHeader, headers)
 
 	p1 := data.NewContainer(nil)
-	p1.Put("bar")
+	p1.Put(schema.NewValue("bar"))
 	var properties dataObjects = map[string]data.IItemAware{
 		"foo": p1,
 	}

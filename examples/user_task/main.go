@@ -86,7 +86,7 @@ func main() {
 				cache[*id] = struct{}{}
 
 				uid := trace.GetProperties()["uid"]
-				users[uid.(string)] = "waiting"
+				users[uid.Value().(string)] = "waiting"
 
 				//TODO: waiting for client requesting
 

@@ -153,7 +153,7 @@ func WithDataObjects(dataObjects map[string]any) Option {
 				opt.locator.PutIItemAwareLocator(data.LocatorObject, locator)
 			}
 			container := data.NewContainer(nil)
-			container.Put(dataObject)
+			container.Put(schema.NewValue(dataObject))
 			locator.PutItemAwareById(dataObjectId, container)
 		}
 	}

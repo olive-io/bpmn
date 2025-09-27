@@ -235,7 +235,7 @@ func TestServiceTaskWithDataInput(t *testing.T) {
 				switch trace := trace.(type) {
 				case bpmn.FlowTrace:
 				case bpmn.TaskTrace:
-					assert.Equal(t, trace.GetDataObjects()["in"], map[string]any{"a": "ac"})
+					assert.Equal(t, trace.GetDataObjects()["in"].Value(), map[string]any{"a": "ac"})
 					trace.Do(bpmn.DoWithResults(map[string]any{"out": map[string]any{"a": "cc"}}))
 					//t.Logf("%#v", trace)
 				case bpmn.ErrorTrace:

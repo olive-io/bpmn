@@ -23,7 +23,10 @@ import (
 )
 
 // IItem is an abstract interface for a piece of data
-type IItem interface{}
+type IItem interface {
+	Type() schema.ItemType
+	Value() any
+}
 
 // IIteratorStopper stops Collection iterator and releases resources
 // associated with it
@@ -60,7 +63,25 @@ type ICollection interface {
 	ItemIterator(ctx context.Context) (chan IItem, IIteratorStopper)
 }
 
-type SliceIterator []IItem
+type SliceIterator struct {
+	items []IItem
+}
+
+func NewSlice(items []IItem) *SliceIterator {
+	return &SliceIterator{items: items}
+}
+
+func (s *SliceIterator) Type() schema.ItemType {
+	return schema.ItemTypeArray
+}
+
+func (s *SliceIterator) Value() any {
+	arr := make([]any, len(s.items))
+	for i, item := range s.items {
+		arr[i] = item.Value()
+	}
+	return arr
+}
 
 func (s *SliceIterator) ItemIterator(ctx context.Context) (items chan IItem, stop IIteratorStopper) {
 	items = make(chan IItem)
@@ -68,13 +89,13 @@ func (s *SliceIterator) ItemIterator(ctx context.Context) (items chan IItem, sto
 	stop = stopper
 	go func() {
 	loop:
-		for i := range *s {
+		for i := range s.items {
 			select {
 			case <-ctx.Done():
 				break loop
 			case <-stopper.ch:
 				break loop
-			case items <- (*s)[i]:
+			case items <- s.items[i]:
 			}
 		}
 		close(items)
@@ -93,7 +114,8 @@ func ItemOrCollection(items ...IItem) (item IItem) {
 	case 1:
 		item = items[0]
 	default:
-		item = SliceIterator(items)
+		iter := &SliceIterator{items: items}
+		item = iter
 	}
 	return
 }
@@ -122,7 +144,7 @@ type IItemAwareLocator interface {
 	// PutItemAwareByName puts ItemAware by its name (where applicable)
 	PutItemAwareByName(name string, itemAware IItemAware)
 	// Clone clones all IItem to the specified target
-	Clone() map[string]any
+	Clone() map[string]IItem
 }
 
 type DefaultItemAwareLocator struct{}
@@ -145,9 +167,9 @@ func (d DefaultItemAwareLocator) PutItemAwareByName(name string, itemAware IItem
 type IFlowDataLocator interface {
 	FindIItemAwareLocator(name string) (locator IItemAwareLocator, found bool)
 	PutIItemAwareLocator(name string, locator IItemAwareLocator)
-	CloneItems(name string) map[string]any
+	CloneItems(name string) map[string]IItem
 	GetVariable(name string) (value any, found bool)
 	SetVariable(name string, value any)
-	CloneVariables() map[string]any
+	CloneVariables() map[string]IItem
 	Merge(other IFlowDataLocator)
 }

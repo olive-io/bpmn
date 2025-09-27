@@ -133,7 +133,7 @@ func (f *flow) executeSequenceFlow(ctx context.Context, sequenceFlow *SequenceFl
 			}
 
 			for key, item := range f.locator.CloneVariables() {
-				properties[key] = item
+				properties[key] = item.Value()
 			}
 
 			source := *e.TextPayload()

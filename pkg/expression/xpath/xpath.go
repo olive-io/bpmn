@@ -27,6 +27,7 @@ import (
 	"github.com/ChrisTrenkamp/xsel/store"
 	"github.com/Chronokeeper/anyxml"
 
+	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/data"
 	"github.com/olive-io/bpmn/v2/pkg/errors"
 	"github.com/olive-io/bpmn/v2/pkg/expression"
@@ -164,13 +165,13 @@ func (engine *XPath) getDataObject() func(context exec.Context, args ...exec.Res
 		if item == nil {
 			return nil, nil
 		}
-		switch tt := item.(type) {
-		case string:
-			return exec.String(tt), nil
-		case float64:
-			return exec.Number(tt), nil
-		case bool:
-			return exec.Bool(tt), nil
+		switch item.Type() {
+		case schema.ItemTypeString:
+			return exec.String(item.Value().(string)), nil
+		case schema.ItemTypeFloat:
+			return exec.Number(item.Value().(float64)), nil
+		case schema.ItemTypeBoolean:
+			return exec.Bool(item.Value().(bool)), nil
 		default:
 			// Until we have own data type to represent XML nodes, we'll piggy-back
 			// on xsel's parser and datum.AsXML interface. This is not very efficient,

@@ -59,7 +59,7 @@ func TestNoneEvent(t *testing.T) {
 
 func TestSignalEvent(t *testing.T) {
 	signalRef := "test-signal"
-	item := "test-data"
+	item := schema.NewValue("test-data")
 
 	t.Run("MakeSignalEvent", func(t *testing.T) {
 		event := MakeSignalEvent(signalRef, item)
@@ -197,7 +197,7 @@ func TestCompensationEvent(t *testing.T) {
 func TestMessageEvent(t *testing.T) {
 	messageRef := "test-message"
 	operationRef := "test-operation"
-	item := "test-data"
+	item := schema.NewValue("test-data")
 
 	t.Run("MakeMessageEvent", func(t *testing.T) {
 		event := MakeMessageEvent(messageRef, &operationRef, item)
@@ -285,7 +285,7 @@ func TestMessageEvent(t *testing.T) {
 
 func TestEscalationEvent(t *testing.T) {
 	escalationRef := "test-escalation"
-	item := "test-data"
+	item := schema.NewValue("test-data")
 
 	t.Run("MakeEscalationEvent", func(t *testing.T) {
 		event := MakeEscalationEvent(escalationRef, item)
@@ -324,7 +324,7 @@ func TestEscalationEvent(t *testing.T) {
 
 func TestErrorEvent(t *testing.T) {
 	errorRef := "test-error"
-	item := "test-data"
+	item := schema.NewValue("test-data")
 
 	t.Run("MakeErrorEvent", func(t *testing.T) {
 		event := MakeErrorEvent(errorRef, item)
