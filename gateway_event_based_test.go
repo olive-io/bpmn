@@ -93,7 +93,14 @@ func testEventBasedGateway(t *testing.T, test func(map[string]int), events ...ev
 		go func() {
 			reached := make(map[string]int)
 			for {
-				trace := tracing.Unwrap(<-traces)
+				var trace tracing.ITrace
+
+				select {
+				case trace = <-traces:
+					trace = tracing.Unwrap(trace)
+				default:
+					continue
+				}
 				switch trace := trace.(type) {
 				case bpmn.VisitTrace:
 					if id, present := trace.Node.Id(); present {

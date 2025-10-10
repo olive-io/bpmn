@@ -97,7 +97,14 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 			if listening && activeBoundary {
 				break
 			}
-			trace := tracing.Unwrap(<-traces)
+			var trace tracing.ITrace
+
+			select {
+			case trace = <-traces:
+				trace = tracing.Unwrap(trace)
+			default:
+				continue
+			}
 			//t.Logf("%#v", trace)
 			switch trace := trace.(type) {
 			case bpmn.ActiveListeningTrace:
@@ -129,7 +136,15 @@ func testBoundaryEvent(t *testing.T, boundary string, test func(visited map[stri
 		visited := make(map[string]bool)
 	loop1:
 		for {
-			trace := tracing.Unwrap(<-traces)
+			var trace tracing.ITrace
+
+			select {
+			case trace = <-traces:
+				trace = tracing.Unwrap(trace)
+			default:
+				continue
+			}
+
 			switch trace := trace.(type) {
 			case bpmn.VisitTrace:
 				if id, present := trace.Node.Id(); present {

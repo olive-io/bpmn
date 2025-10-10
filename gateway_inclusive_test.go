@@ -46,7 +46,14 @@ func TestInclusiveGateway(t *testing.T) {
 		endReached := 0
 	loop:
 		for {
-			trace := tracing.Unwrap(<-traces)
+			var trace tracing.ITrace
+
+			select {
+			case trace = <-traces:
+				trace = tracing.Unwrap(trace)
+			default:
+				continue
+			}
 			switch trace := trace.(type) {
 			case bpmn.FlowTrace:
 				for _, f := range trace.Flows {
@@ -99,7 +106,14 @@ func TestInclusiveGatewayDefault(t *testing.T) {
 		endReached := 0
 	loop:
 		for {
-			trace := tracing.Unwrap(<-traces)
+			var trace tracing.ITrace
+
+			select {
+			case trace = <-traces:
+				trace = tracing.Unwrap(trace)
+			default:
+				continue
+			}
 			switch trace := trace.(type) {
 			case bpmn.FlowTrace:
 				for _, f := range trace.Flows {
@@ -153,7 +167,14 @@ func TestInclusiveGatewayNoDefault(t *testing.T) {
 		}
 	loop:
 		for {
-			trace := tracing.Unwrap(<-traces)
+			var trace tracing.ITrace
+
+			select {
+			case trace = <-traces:
+				trace = tracing.Unwrap(trace)
+			default:
+				continue
+			}
 			switch trace := trace.(type) {
 			case bpmn.ErrorTrace:
 				var target bpmn.InclusiveNoEffectiveSequenceFlows

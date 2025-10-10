@@ -351,7 +351,6 @@ type taskTrace struct {
 func newTaskTrace() *taskTrace {
 	trace := taskTrace{
 		ctx:         context.TODO(),
-		timeout:     DefaultTaskExecTimeout,
 		headers:     make(map[string]string),
 		properties:  make(map[string]data.IItem),
 		dataObjects: make(map[string]data.IItem),
@@ -400,10 +399,22 @@ func (t *taskTrace) Do(options ...DoOption) {
 }
 
 func (t *taskTrace) process() {
-	duration := t.timeout
-	if duration == 0 {
-		duration = DefaultTaskExecTimeout
-	}
+	timeoutCh := make(chan struct{}, 1)
+	go func() {
+		duration := t.timeout
+		if duration == 0 {
+			return
+		}
+
+		after := time.After(duration)
+		select {
+		case <-t.done:
+			return
+		case <-t.ctx.Done():
+		case <-after:
+			close(timeoutCh)
+		}
+	}()
 
 	select {
 	case <-t.done:
@@ -411,7 +422,7 @@ func (t *taskTrace) process() {
 	case <-t.ctx.Done():
 		rsp := newDoOption(DoWithErr(t.ctx.Err()))
 		t.response <- *rsp
-	case <-time.After(duration):
+	case <-timeoutCh:
 		var tid string
 		if v, ok := t.activity.Element().Id(); ok {
 			tid = *v
@@ -476,9 +487,6 @@ func FetchTaskTimeout(element schema.BaseElementInterface) time.Duration {
 		if field := extension.TaskDefinitionField; field != nil {
 			timeout, _ = time.ParseDuration(field.Timeout)
 		}
-	}
-	if timeout == 0 {
-		timeout = DefaultTaskExecTimeout
 	}
 	return timeout
 }

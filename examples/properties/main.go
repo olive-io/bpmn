@@ -20,6 +20,7 @@ import (
 	"context"
 	"embed"
 	"log"
+	"time"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2"
@@ -57,21 +58,27 @@ func main() {
 
 	ctx := context.Background()
 	traces := ins.Tracer().Subscribe()
+	defer ins.Tracer().Unsubscribe(traces)
 	err = ins.StartAll(ctx)
 	if err != nil {
 		log.Fatalf("failed to run the instance: %s", err)
 	}
+	done := make(chan struct{}, 1)
 	go func() {
+		defer close(done)
 		for {
 			var trace tracing.ITrace
 			select {
 			case trace = <-traces:
+				trace = tracing.Unwrap(trace)
+			default:
+				continue
 			}
 
-			trace = tracing.Unwrap(trace)
 			switch trace := trace.(type) {
 			case bpmn.FlowTrace:
 			case bpmn.TaskTrace:
+				time.Sleep(1 * time.Second)
 				trace.Do(bpmn.DoWithResults(
 					map[string]any{
 						"c": map[string]string{"name": "cc1"},
@@ -88,9 +95,11 @@ func main() {
 			}
 		}
 	}()
-	ins.WaitUntilComplete(ctx)
+	completed := ins.WaitUntilComplete(ctx)
+	select {
+	case <-done:
+	}
 
 	pros := ins.Locator().CloneVariables()
-	log.Printf("%#v", pros)
-	ins.Tracer().Unsubscribe(traces)
+	log.Printf("%#v: completed: %v", pros["c"].Value(), completed)
 }

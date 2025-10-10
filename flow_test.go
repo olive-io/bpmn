@@ -44,7 +44,14 @@ func TestTrueFormalExpression(t *testing.T) {
 		}
 	loop:
 		for {
-			trace := tracing.Unwrap(<-traces)
+			var trace tracing.ITrace
+
+			select {
+			case trace = <-traces:
+				trace = tracing.Unwrap(trace)
+			default:
+				continue
+			}
 			switch trace := trace.(type) {
 			case bpmn.CompletionTrace:
 				if id, present := trace.Node.Id(); present {
@@ -81,7 +88,14 @@ func TestFalseFormalExpression(t *testing.T) {
 		}
 	loop:
 		for {
-			trace := tracing.Unwrap(<-traces)
+			var trace tracing.ITrace
+
+			select {
+			case trace = <-traces:
+				trace = tracing.Unwrap(trace)
+			default:
+				continue
+			}
 			switch trace := trace.(type) {
 			case bpmn.CompletionTrace:
 				if id, present := trace.Node.Id(); present {
@@ -128,7 +142,14 @@ func TestCondDataObject(t *testing.T) {
 				}
 			loop:
 				for {
-					trace := tracing.Unwrap(<-traces)
+					var trace tracing.ITrace
+
+					select {
+					case trace = <-traces:
+						trace = tracing.Unwrap(trace)
+					default:
+						continue
+					}
 					switch trace := trace.(type) {
 					case bpmn.VisitTrace:
 						if id, present := trace.Node.Id(); present {

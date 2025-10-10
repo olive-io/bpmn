@@ -47,7 +47,14 @@ package model_test
 //	c.Add(1 * time.Minute)
 //loop1:
 //	for {
-//		trace := tracing.Unwrap(<-traces)
+//		var trace tracing.ITrace
+
+//select {
+//case trace = <-traces:
+//trace = tracing.Unwrap(trace)
+//default:
+//continue
+//}
 //		switch trace := trace.(type) {
 //		case bpmn.VisitTrace:
 //			if idPtr, present := trace.Node.Id(); present {
@@ -95,7 +102,14 @@ package model_test
 //	//	c.Add(1 * time.Minute)
 //	//loop1:
 //	//	for {
-//	//		trace := tracing.Unwrap(<-traces)
+//	//		var trace tracing.ITrace
+//
+//select {
+//case trace = <-traces:
+//trace = tracing.Unwrap(trace)
+//default:
+//continue
+//}
 //	//		switch trace := trace.(type) {
 //	//		case bpmn.VisitTrace:
 //	//			if idPtr, present := trace.Node.Id(); present {

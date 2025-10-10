@@ -40,7 +40,14 @@ func TestStartEvent(t *testing.T) {
 		}
 	loop:
 		for {
-			trace := tracing.Unwrap(<-traces)
+			var trace tracing.ITrace
+
+			select {
+			case trace = <-traces:
+				trace = tracing.Unwrap(trace)
+			default:
+				continue
+			}
 			switch trace := trace.(type) {
 			case bpmn.FlowTrace:
 				if id, present := trace.Source.Id(); present {

@@ -48,7 +48,14 @@ package model_test
 //	require.Nil(t, err)
 //loop1:
 //	for {
-//		trace := tracing.Unwrap(<-traces)
+//		var trace tracing.ITrace
+
+//select {
+//case trace = <-traces:
+//	trace = tracing.Unwrap(trace)
+//default:
+//	continue
+//}
 //		switch trace := trace.(type) {
 //		case bpmn.VisitTrace:
 //			if idPtr, present := trace.Node.Id(); present {
@@ -88,7 +95,14 @@ package model_test
 //	require.Nil(t, err)
 //loop1:
 //	for {
-//		trace := tracing.Unwrap(<-traces)
+//		var trace tracing.ITrace
+//
+//			select {
+//			case trace = <-traces:
+//				trace = tracing.Unwrap(trace)
+//			default:
+//				continue
+//			}
 //		switch trace := trace.(type) {
 //		case bpmn.VisitTrace:
 //			if idPtr, present := trace.Node.Id(); present {
@@ -130,7 +144,14 @@ package model_test
 //	sig3sent := false
 //loop1:
 //	for {
-//		trace := tracing.Unwrap(<-traces)
+//		var trace tracing.ITrace
+//
+//			select {
+//			case trace = <-traces:
+//				trace = tracing.Unwrap(trace)
+//			default:
+//				continue
+//			}
 //		switch trace := trace.(type) {
 //		case model.EventInstantiationAttemptedTrace:
 //			if !sig3sent && signalEvent == trace.Event {
