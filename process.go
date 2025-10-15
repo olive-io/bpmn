@@ -152,8 +152,17 @@ func WithDataObjects(dataObjects map[string]any) Option {
 				locator = data.NewDataObjectContainer()
 				opt.locator.PutIItemAwareLocator(data.LocatorObject, locator)
 			}
+
+			var value *schema.Value
+			switch tv := dataObject.(type) {
+			case *schema.Value:
+				value = tv
+			default:
+				value = schema.NewValue(dataObject)
+			}
+
 			container := data.NewContainer(nil)
-			container.Put(schema.NewValue(dataObject))
+			container.Put(value)
 			locator.PutItemAwareById(dataObjectId, container)
 		}
 	}

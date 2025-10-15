@@ -44,6 +44,7 @@ func main() {
 
 	options := []bpmn.Option{
 		bpmn.WithVariables(map[string]any{
+			"d": "hello",
 			"c": map[string]string{"name": "cc"},
 		}),
 		bpmn.WithDataObjects(map[string]any{

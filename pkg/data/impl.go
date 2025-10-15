@@ -478,6 +478,18 @@ func (f *FlowDataLocator) SetVariable(name string, value any) {
 		sv = schema.NewValue(value)
 	}
 
+	switch tv := value.(type) {
+	case *schema.Value:
+		f.variables[name] = tv
+	case IItem:
+		sv = &schema.Value{}
+		sv.ItemType = tv.Type()
+		sv.ValueFrom(tv.Value())
+		f.variables[name] = sv
+	default:
+		f.variables[name] = schema.NewValue(value)
+	}
+
 	f.variables[name] = sv
 }
 

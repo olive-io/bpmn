@@ -24,15 +24,30 @@ import (
 	"github.com/olive-io/bpmn/schema"
 )
 
+type DataItem struct {
+	value string
+}
+
+func (di *DataItem) Type() schema.ItemType {
+	return schema.ItemTypeObject
+}
+
+func (di *DataItem) Value() any {
+	return map[string]interface{}{"name": di.value}
+}
+
 func TestFlowDataLocator_Merge(t *testing.T) {
 	l1 := NewFlowDataLocator()
 	l2 := NewFlowDataLocator()
 	l1.SetVariable("a", "b")
+	l1.SetVariable("c", &DataItem{value: "dd"})
 	l2.Merge(l1)
 
 	v1 := l1.CloneVariables()["a"]
 	v2 := l2.CloneVariables()["a"]
 	assert.Equal(t, v1.Value(), v2.Value())
+	vv, _ := l1.GetVariable("c")
+	assert.Equal(t, vv, map[string]any{"name": "dd"})
 
 	locator := NewPropertyContainer()
 	c1 := NewContainer(nil)
