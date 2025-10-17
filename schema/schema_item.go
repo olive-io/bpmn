@@ -81,7 +81,8 @@ func (iv *Value) ValueFor() any {
 func (iv *Value) ValueFrom(value any) {
 	vv, ok := value.(*Value)
 	if ok {
-		*iv = *vv
+		iv.ItemType = vv.ItemType
+		iv.ItemValue = vv.ItemValue
 		return
 	}
 
