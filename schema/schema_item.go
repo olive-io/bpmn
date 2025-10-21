@@ -58,8 +58,8 @@ func (iv *Value) ValueFor() any {
 	case ItemTypeString:
 		return iv.ItemValue
 	case ItemTypeInteger:
-		integer, _ := strconv.ParseInt(iv.ItemValue, 10, 64)
-		return int(integer)
+		n, _ := strconv.ParseInt(iv.ItemValue, 10, 64)
+		return n
 	case ItemTypeBoolean:
 		return iv.ItemValue == "true"
 	case ItemTypeFloat:

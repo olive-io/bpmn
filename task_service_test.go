@@ -85,7 +85,7 @@ func TestServiceTask(t *testing.T) {
 		}
 
 		foo, _ := ins.Locator().GetVariable("foo")
-		assert.Equal(t, foo, 1)
+		assert.Equal(t, foo, int64(1))
 		_, ok := ins.Locator().GetVariable("bar")
 		assert.True(t, !ok)
 		ins.Tracer().Unsubscribe(traces)

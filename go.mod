@@ -7,7 +7,7 @@ replace github.com/olive-io/bpmn/schema => ./schema
 require (
 	github.com/ChrisTrenkamp/xsel v0.9.16
 	github.com/Chronokeeper/anyxml v0.0.0-20160530174208-54457d8e98c6
-	github.com/bits-and-blooms/bitset v1.24.0
+	github.com/bits-and-blooms/bitset v1.24.1
 	github.com/bytedance/sonic v1.14.1
 	github.com/expr-lang/expr v1.17.6
 	github.com/hashicorp/go-multierror v1.1.1
