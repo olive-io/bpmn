@@ -547,5 +547,5 @@ func Parse(data []byte) (*Definitions, error) {
 
 // Generate schema files:
 
-//go:generate saxon-he BPMN20.xsd schema-codegen.xsl
-//go:generate saxon-he BPMNDI.xsd schema-di-codegen.xsl
+//go:generate saxon-he spec/BPMN20.xsd spec/schema-codegen.xsl
+//go:generate saxon-he spec/BPMNDI.xsd spec/schema-di-codegen.xsl
