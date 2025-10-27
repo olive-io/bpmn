@@ -23,6 +23,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	json "github.com/bytedance/sonic"
+	"github.com/tidwall/gjson"
+
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/data"
 	"github.com/olive-io/bpmn/v2/pkg/errors"
@@ -442,7 +445,6 @@ func (t *taskTrace) process() {
 }
 
 func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElementInterface) (headers map[string]string, properties, dataObjects map[string]data.IItem) {
-	variables := locator.CloneVariables()
 	headers = map[string]string{}
 	properties = map[string]data.IItem{}
 	dataObjects = map[string]data.IItem{}
@@ -451,6 +453,15 @@ func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElemen
 			fields := header.Header
 			for _, field := range fields {
 				headers[field.Name] = field.Value
+				if field.Ref != "" {
+					value, ok := locatorJSONGet(locator, field.Ref)
+					if ok {
+						text, match := value.(string)
+						if match {
+							headers[field.Name] = text
+						}
+					}
+				}
 			}
 		}
 		if property := extension.PropertiesField; property != nil {
@@ -458,8 +469,16 @@ func FetchTaskDataInput(locator data.IFlowDataLocator, element schema.BaseElemen
 			for _, field := range fields {
 				value := field.ToValue()
 				if len(strings.TrimSpace(value.ItemValue)) == 0 {
-					if vv, ok := variables[field.Name]; ok {
-						value.ValueFrom(vv)
+					if field.Ref != "" {
+						vv, ok := locatorJSONGet(locator, field.Ref)
+						if ok {
+							value.ValueFrom(vv)
+						}
+					} else {
+						vv, ok := locator.GetVariable(field.Name)
+						if ok {
+							value.ValueFrom(vv)
+						}
 					}
 				}
 				properties[field.Name] = value
@@ -522,4 +541,29 @@ func ApplyTaskResult(element schema.BaseElementInterface, results map[string]any
 	//	outputs[key] = value
 	//}
 	return outputs
+}
+
+func locatorJSONGet(locator data.IFlowDataLocator, ref string) (any, bool) {
+	if len(ref) <= 1 || (len(ref) > 0 && ref[0] != '$') {
+		return nil, false
+	}
+
+	ref = ref[1:]
+	before, after, matched := strings.Cut(ref, ".")
+	if !matched {
+		return nil, false
+	}
+
+	value, ok := locator.GetVariable(before)
+	if !ok {
+		return nil, false
+	}
+
+	b, err := json.Marshal(value)
+	if err != nil {
+		return nil, false
+	}
+
+	r := gjson.Get(string(b), after)
+	return r.Value(), true
 }

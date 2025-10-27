@@ -82,7 +82,7 @@ func main() {
 				time.Sleep(1 * time.Second)
 				trace.Do(bpmn.DoWithResults(
 					map[string]any{
-						"c": map[string]string{"name": "cc1"},
+						//"c": map[string]string{"name": "cc1"},
 						"a": 2,
 					}),
 				)
@@ -101,6 +101,10 @@ func main() {
 	case <-done:
 	}
 
-	pros := ins.Locator().CloneVariables()
-	log.Printf("%#v: completed: %v", pros["c"].Value(), completed)
+	target := map[string]any{}
+	err = ins.Locator().ApplyTo(&target)
+	if err != nil {
+		log.Fatalf("Can't locate target: %v", err)
+	}
+	log.Printf("%#v: completed: %v", target["c"], completed)
 }

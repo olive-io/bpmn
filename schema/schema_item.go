@@ -249,6 +249,7 @@ type Item struct {
 	Name  string   `xml:"name,attr"`
 	Value string   `xml:"value,attr"`
 	Type  ItemType `xml:"type,attr"`
+	Ref   string   `xml:"ref,attr"`
 }
 
 func (i *Item) ToValue() *Value {

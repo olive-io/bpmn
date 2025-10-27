@@ -172,4 +172,5 @@ type IFlowDataLocator interface {
 	SetVariable(name string, value any)
 	CloneVariables() map[string]IItem
 	Merge(other IFlowDataLocator)
+	ApplyTo(target any) error
 }

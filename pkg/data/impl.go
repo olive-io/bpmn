@@ -21,6 +21,7 @@ import (
 	"sync"
 
 	json "github.com/bytedance/sonic"
+	"github.com/tidwall/sjson"
 
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/errors"
@@ -501,6 +502,22 @@ func (f *FlowDataLocator) CloneVariables() map[string]IItem {
 		out[key] = value
 	}
 	return out
+}
+
+func (f *FlowDataLocator) ApplyTo(target any) error {
+	f.vmu.RLock()
+	defer f.vmu.RUnlock()
+
+	var err error
+	data := []byte("")
+	for key, value := range f.variables {
+		data, err = sjson.SetBytes(data, key, value.Value())
+		if err != nil {
+			return fmt.Errorf("load variable %s: %w", key, err)
+		}
+	}
+
+	return json.Unmarshal(data, &target)
 }
 
 func cloneItemAwareMap(in map[string]IItemAware, out *map[string]IItemAware) {
