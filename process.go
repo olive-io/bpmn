@@ -267,7 +267,6 @@ func NewProcess(processElem *schema.Process, definitions *schema.Definitions, op
 	}
 
 	var wr *wiring
-
 	for i := range *processElem.StartEvents() {
 		element := &(*processElem.StartEvents())[i]
 		wr, err = wiringMaker(&element.FlowNode)

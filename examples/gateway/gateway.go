@@ -44,7 +44,7 @@ func main() {
 	}
 
 	engine := bpmn.NewEngine()
-	options := []bpmn.Option{}
+	var options []bpmn.Option
 	ctx := context.Background()
 	ins, err := engine.NewProcess(&definitions, options...)
 	if err != nil {
