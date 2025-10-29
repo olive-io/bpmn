@@ -34,10 +34,6 @@ import (
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
-var (
-	DefaultTaskExecTimeout = time.Second * 3
-)
-
 type ActivityType string
 
 const (

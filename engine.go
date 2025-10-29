@@ -138,7 +138,6 @@ func (engine *Engine) NewProcessSet(definitions *schema.Definitions, opts ...Opt
 		} else {
 			executes = append(executes, &element)
 		}
-
 	}
 
 	if executes == nil {
