@@ -46,7 +46,7 @@ type subProcess struct {
 	element                *schema.SubProcess
 	subTracer              tracing.ITracer
 	flowNodeMapping        *FlowNodeMapping
-	flowWaitGroup          sync.WaitGroup
+	flowWaitGroup          *sync.WaitGroup
 	active                 atomic.Int32
 	complete               sync.RWMutex
 	idGenerator            id.IGenerator
@@ -74,6 +74,7 @@ func newSubProcess(eventBuilder event.IDefinitionInstanceBuilder, idGenerator id
 			eventDefinitionBuilder: eventBuilder,
 			idGenerator:            idGenerator,
 			flowNodeMapping:        flowNodeMapping,
+			flowWaitGroup:          new(sync.WaitGroup),
 			active:                 atomic.Int32{},
 			mch:                    make(chan imessage, len(parentWiring.incoming)*2+1),
 		}
@@ -90,10 +91,12 @@ func newSubProcess(eventBuilder event.IDefinitionInstanceBuilder, idGenerator id
 				subProcessElement,
 				parentWiring.definitions,
 				element,
-				parentWiring.eventIngress, process,
+				parentWiring.eventIngress,
+				process,
 				subTracer,
 				process.flowNodeMapping,
-				&process.flowWaitGroup, process.eventDefinitionBuilder,
+				process.flowWaitGroup,
+				process.eventDefinitionBuilder,
 				locator)
 		}
 
