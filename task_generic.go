@@ -74,9 +74,7 @@ func (task *genericTask) run(ctx context.Context) {
 					task.active.Add(1)
 					defer task.active.Add(-1)
 
-					rsp := &FlowActionResponse{
-						variables: map[string]data.IItem{},
-					}
+					rsp := &FlowActionResponse{}
 
 					headers := m.headers
 					properties := m.properties

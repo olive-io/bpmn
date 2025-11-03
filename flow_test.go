@@ -38,7 +38,7 @@ func TestTrueFormalExpression(t *testing.T) {
 	ctx := context.TODO()
 	if instance, err := engine.NewProcess(&testCondExpr); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll(ctx)
+		err = instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
@@ -82,7 +82,7 @@ func TestFalseFormalExpression(t *testing.T) {
 	ctx := context.TODO()
 	if instance, err := engine.NewProcess(&testCondExprFalse); err == nil {
 		traces := instance.Tracer().Subscribe()
-		err := instance.StartAll(ctx)
+		err = instance.StartAll(ctx)
 		if err != nil {
 			t.Fatalf("failed to run the instance: %s", err)
 		}
