@@ -1,6 +1,6 @@
-Introduce ｜ [中文](https://github.com/olive-io/bpmn/tree/main/README_ZH.md)
+Introduce | [中文](https://github.com/olive-io/bpmn/tree/main/README_ZH.md)
 
-**Lightweight Business Process Model and Notation (BPMN) 2.0 workflow engine implemented purely in Go**
+**Lightweight BPMN 2.0 workflow engine written in Go**
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/olive-io/bpmn.svg)](https://pkg.go.dev/github.com/olive-io/bpmn)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache-blue.svg)](LICENSE.md)
@@ -9,36 +9,36 @@ Introduce ｜ [中文](https://github.com/olive-io/bpmn/tree/main/README_ZH.md)
 
 ---
 
-## Introduction
+## What Is This?
 
-`github.com/olive-io/bpmn` is a lightweight **Business Process Model and Notation (BPMN) 2.0** workflow engine implemented in Go, designed for modeling and executing business processes embedded in Go applications.  
+`github.com/olive-io/bpmn` is an embeddable BPMN 2.0 runtime for Go applications.
 
-It supports core BPMN 2.0 elements including Activities (User Task, Service Task, Script Task), Events (Start Event, End Event, Intermediate Catch Event), Gateways (Exclusive Gateway, Inclusive Gateway, Parallel Gateway, Event-based Gateway), Sub-processes, Sequence Flows, and extensible process attributes.
+Use it when you want to:
 
----
+- Execute BPMN process definitions inside your Go service.
+- Handle user/service/script tasks with your own business logic.
+- Track process runtime via trace streams for debugging and observability.
 
-## Key Features
+It includes two modules:
 
-- **Standard BPMN 2.0 Compliance** – Build process models using standardized Business Process Model and Notation elements, fully compliant with OMG specification.
-- **Lightweight & Embeddable** – Minimal dependencies; easily embedded into business systems with zero external service requirements.
-- **Complete Activity Support** – User Tasks, Service Tasks, Script Tasks, Manual Tasks, Business Rule Tasks, and custom Activity implementations.
-- **Comprehensive Flow Control** – Sub-processes, Parallel Gateways, Exclusive Gateways, Inclusive Gateways, and Event-based Gateways for complex decision logic.
-- **Event-Driven Processing** – Start Events, End Events, Intermediate Catch Events, Timer Events, and Boundary Events.
-- **Extensible Process Attributes** – Custom properties and data objects to meet diverse business process requirements.
-- **Comprehensive Test Coverage** – Examples and modules come with unit tests to ensure reliable execution.
+- Runtime module: `github.com/olive-io/bpmn/v2`
+- BPMN schema module: `github.com/olive-io/bpmn/schema`
 
 ---
 
-## Getting Started
-
-### Installation
+## Installation
 
 ```bash
 go get -u github.com/olive-io/bpmn/schema
 go get -u github.com/olive-io/bpmn/v2
 ```
 
-### Quick Start Example
+---
+
+## Quick Start
+
+This example loads a BPMN file, starts a process, handles task traces, and waits for completion.
+
 ```go
 package main
 
@@ -53,84 +53,156 @@ import (
 )
 
 func main() {
-
-	var err error
 	data, err := os.ReadFile("task.bpmn")
 	if err != nil {
-		log.Fatalf("Can't read bpmn: %v", err)
+		log.Fatalf("read bpmn file: %v", err)
 	}
+
 	definitions, err := schema.Parse(data)
 	if err != nil {
-		log.Fatalf("XML unmarshalling error: %v", err)
+		log.Fatalf("parse bpmn xml: %v", err)
 	}
 
 	engine := bpmn.NewEngine()
-	options := []bpmn.Option{
-		bpmn.WithVariables(map[string]any{
-			"c": map[string]string{"name": "cc"},
-		}),
-		bpmn.WithDataObjects(map[string]any{
-			"a": struct{}{},
-		}),
-	}
 	ctx := context.Background()
-	ins, err := engine.NewProcess(&definitions, options...)
+
+	proc, err := engine.NewProcess(definitions,
+		bpmn.WithVariables(map[string]any{"customer": "alice"}),
+	)
 	if err != nil {
-		log.Fatalf("failed to instantiate the process: %s", err)
-		return
+		log.Fatalf("create process: %v", err)
 	}
-	traces := ins.Tracer().Subscribe()
-	defer ins.Tracer().Unsubscribe(traces)
-	err = ins.StartAll(ctx)
-	if err != nil {
-		log.Fatalf("failed to run the instance: %s", err)
+
+	traces := proc.Tracer().Subscribe()
+	defer proc.Tracer().Unsubscribe(traces)
+
+	if err := proc.StartAll(ctx); err != nil {
+		log.Fatalf("start process: %v", err)
 	}
+
 	go func() {
-		for {
-			select {
-			case trace := <-traces:
-				trace = tracing.Unwrap(trace)
-				switch trace := trace.(type) {
-				case bpmn.FlowTrace:
-				case bpmn.TaskTrace:
-					trace.Do(bpmn.DoWithResults(
-						map[string]any{
-							"c": map[string]string{"name": "cc1"},
-							"a": 2,
-						}),
-					)
-				case bpmn.ErrorTrace:
-					log.Fatalf("%#v", trace)
-					return
-				case bpmn.CeaseFlowTrace:
-					return
-				default:
-					log.Printf("%#v", trace)
-				}
-			default:
-                
+		for trace := range traces {
+			trace = tracing.Unwrap(trace)
+			switch t := trace.(type) {
+			case bpmn.TaskTrace:
+				// Complete user/service/script task with results.
+				t.Do(bpmn.DoWithResults(map[string]any{"approved": true}))
+			case bpmn.ErrorTrace:
+				log.Printf("process error: %v", t.Error)
 			}
 		}
 	}()
-	ins.WaitUntilComplete(ctx)
 
-	pros := ins.Locator().CloneVariables()
-	log.Printf("%#v", pros)
+	if ok := proc.WaitUntilComplete(ctx); !ok {
+		log.Printf("process cancelled")
+	}
+
+	log.Printf("variables: %#v", proc.Locator().CloneVariables())
 }
-
 ```
 
-### More Examples
-- [Basic Task](https://github.com/olive-io/bpmn/tree/main/examples/basic): Simple Activity execution example
-- [User Task](https://github.com/olive-io/bpmn/tree/main/examples/user_task): Implementing User Task Activities
-- [Gateways](https://github.com/olive-io/bpmn/tree/main/examples/gateway): Gateway flow control examples
-- [Gateways-expr](https://github.com/olive-io/bpmn/tree/main/examples/gateway_expr): Inclusive Gateway with expression evaluation
-- [Custom Properties](https://github.com/olive-io/bpmn/tree/main/examples/properties): Process-specific data attributes and custom parameters
-- [Catch Event](https://github.com/olive-io/bpmn/tree/main/examples/catch_event): Intermediate Catch Event and Boundary Event examples
-- [Throw Event and Collaboration](https://github.com/olive-io/bpmn/tree/main/examples/collaboration): Intermediate Catch Event and Collaboration examples
-- [Sub-process](https://github.com/olive-io/bpmn/tree/main/examples/subprocess): Embedded Sub-process execution
-- [Multiprocess](https://github.com/olive-io/bpmn/tree/main/examples/multiprocess): Executes multiprocess in an definitions
+---
+
+## Core Concepts
+
+- `Engine`: creates process instances from BPMN definitions.
+- `Process`: executes one executable process.
+- `ProcessSet`: executes multiple executable processes in one definition.
+- `Tracer`: runtime event stream; all traces are accessible via subscribe/unsubscribe.
+- `TaskTrace`: callback point to provide task result, data objects, headers, and errors.
+
+---
+
+## Single Process vs Process Set
+
+Use `NewProcess` when your BPMN definitions contain exactly one executable process.
+
+Use `NewProcessSet` when definitions contain multiple executable processes.
+
+```go
+proc, err := engine.NewProcess(definitions)
+// Returns an error if multiple executable processes are present.
+
+set, err := engine.NewProcessSet(&definitions)
+// Runs all executable processes in the same definitions.
+```
+
+---
+
+## Observability and Runtime Errors
+
+Subscribe tracer events to inspect runtime behavior:
+
+- `FlowTrace`: sequence flow transitions.
+- `TaskTrace`: task is waiting for external decision/result.
+- `ErrorTrace`: runtime error happened.
+- `CeaseFlowTrace` / `CeaseProcessSetTrace`: process or process set completed.
+
+ID generator fallback behavior:
+
+- Runtime attempts to initialize the default SNO-based ID generator.
+- If initialization fails, runtime falls back to a local generator.
+- A warning trace is emitted to make this visible in observability pipelines.
+
+---
+
+## BPMN Coverage
+
+This engine supports core BPMN elements used by most service workflows, including:
+
+- Tasks: User, Service, Script, Manual, Business Rule, Call Activity.
+- Events: Start, End, Intermediate Catch/Throw, Timer-related flows.
+- Gateways: Exclusive, Inclusive, Parallel, Event-based.
+- Sub-processes and sequence flows.
+
+For concrete usage patterns, see examples and tests in this repository.
+
+---
+
+## Development Commands
+
+From repository root:
+
+```bash
+# all runtime tests
+go test -v ./...
+
+# schema module tests
+go test -v ./schema
+
+# static analysis
+go vet ./...
+
+# run one test by name
+go test -v ./... -run 'TestUserTask'
+
+# run one test in a package, bypass cache
+go test -v ./pkg/data -run '^TestContainer$' -count=1
+```
+
+---
+
+## Examples
+
+- [quickstart](https://github.com/olive-io/bpmn/tree/main/examples/readme_quickstart)
+- [basic](https://github.com/olive-io/bpmn/tree/main/examples/basic)
+- [user_task](https://github.com/olive-io/bpmn/tree/main/examples/user_task)
+- [gateway](https://github.com/olive-io/bpmn/tree/main/examples/gateway)
+- [gateway_expr](https://github.com/olive-io/bpmn/tree/main/examples/gateway_expr)
+- [properties](https://github.com/olive-io/bpmn/tree/main/examples/properties)
+- [catch_event](https://github.com/olive-io/bpmn/tree/main/examples/catch_event)
+- [collaboration](https://github.com/olive-io/bpmn/tree/main/examples/collaboration)
+- [subprocess](https://github.com/olive-io/bpmn/tree/main/examples/subprocess)
+- [multiprocess](https://github.com/olive-io/bpmn/tree/main/examples/multiprocess)
+
+---
+
+## Contributing
+
+PRs are welcome. For contributor/agent workflow guidance, see `AGENTS.md`.
+
+---
 
 ## License
 
-This project is licensed under the Apache-2.0 License. Commercial and derivative works are welcome.
+Apache-2.0

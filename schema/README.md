@@ -55,6 +55,54 @@ func main() {
 
 ```
 
+#### Building Definitions and Auto Layout (BPMN DI)
+
+```go
+package main
+
+import (
+	"encoding/xml"
+	"fmt"
+
+	"github.com/olive-io/bpmn/schema"
+)
+
+func main() {
+	// Build process graph with fluent builders.
+	pb := schema.NewProcessBuilder()
+	task1 := schema.Task{}
+	task2 := schema.ScriptTask{}
+	pb.AddActivity(&task1).AddActivity(&task2)
+
+	db := schema.NewDefinitionsBuilder()
+	db.AddProcess(*pb.Out())
+
+	// Generate BPMN DI (BPMNShape/BPMNEdge/Bounds/waypoints).
+	// The default layout keeps node centers and sequence-flow lines aligned.
+	db.AutoLayout(schema.DefaultAutoLayoutConfig())
+
+	// Optional: customize start point and spacing.
+	db.AutoLayout(&schema.AutoLayoutConfig{
+		StartX:     96,
+		StartY:     96,
+		ColumnGap:  220,
+		RowGap:     140,
+		ProcessGap: 180,
+	})
+
+	definitions := db.Out()
+	data, _ := xml.MarshalIndent(definitions, "", "  ")
+	fmt.Println(string(data))
+}
+```
+
+Notes:
+
+- Auto layout writes `definitions.DiagramField` with `BPMNDiagram/BPMNPlane`.
+- For each flow node, a `BPMNShape` with `dc:Bounds` is generated.
+- For each sequence flow, a `BPMNEdge` with aligned `di:waypoint` list is generated.
+- If multiple processes are added, participants are generated under one collaboration.
+
 #### Element Lookup
 
 ```go
