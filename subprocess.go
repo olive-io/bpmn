@@ -512,15 +512,12 @@ func (sp *subProcess) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.
 					switch flowNode := t.Source.(type) {
 					case *schema.StartEvent:
 						startEventsActivated = append(startEventsActivated, flowNode)
-					default:
 					}
 				case FlowTrace:
 					switch flowNode := t.Source.(type) {
 					case *schema.StartEvent:
 						startEventsActivated = append(startEventsActivated, flowNode)
-					default:
 					}
-				default:
 				}
 			case <-ctx.Done():
 				tracer.Unsubscribe(traces)
@@ -608,7 +605,6 @@ func (sp *subProcess) run(ctx context.Context, out tracing.ITracer) {
 					action := flowAction{sequenceFlows: allSequenceFlows(&sp.wr.outgoing)}
 					m.response <- action
 				}()
-			default:
 			}
 		case <-ctx.Done():
 			sp.wr.tracer.Send(CancellationFlowNodeTrace{Node: sp.element})

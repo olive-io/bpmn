@@ -108,7 +108,6 @@ func (task *genericTask) run(ctx context.Context) {
 						sequenceFlows: allSequenceFlows(&task.outgoing),
 					}
 				}()
-			default:
 			}
 		case <-ctx.Done():
 			task.tracer.Send(CancellationFlowNodeTrace{Node: task.element})

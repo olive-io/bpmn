@@ -85,7 +85,6 @@ func (evt *catchEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 					evt.tracer.Send(ActiveListeningTrace{Node: evt.element})
 				}
 				evt.awaitingActions = append(evt.awaitingActions, m.response)
-			default:
 			}
 		case <-ctx.Done():
 			evt.tracer.Send(CancellationFlowNodeTrace{Node: evt.element})

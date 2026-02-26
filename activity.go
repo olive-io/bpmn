@@ -191,7 +191,6 @@ func (node *harness) run(ctx context.Context, sender tracing.ISenderHandle) {
 					}
 				}(ctx)
 				m.response <- out
-			default:
 			}
 		case <-ctx.Done():
 			node.tracer.Send(CancellationFlowNodeTrace{Node: node.activity.Element()})

@@ -90,7 +90,6 @@ func (gw *eventBasedGateway) run(ctx context.Context, sender tracing.ISenderHand
 				}
 
 				m.response <- action
-			default:
 			}
 		case <-ctx.Done():
 			gw.tracer.Send(CancellationFlowNodeTrace{Node: gw.element})

@@ -82,7 +82,7 @@ func (builder *DefinitionBuilder) AddProcess(p Process) *DefinitionBuilder {
 	if len(builder.ProcessField) == 0 {
 		builder.ProcessField = make([]Process, 0)
 	}
-	if p.IdField != nil || *p.IdField == "" {
+	if p.IdField == nil || *p.IdField == "" {
 		p.IdField = NewStringP("Process_" + string(RandBytes(7)))
 	}
 	if len(builder.ProcessField) == 0 {

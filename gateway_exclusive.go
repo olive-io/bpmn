@@ -160,7 +160,6 @@ func (gw *exclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 						},
 					}
 				}
-			default:
 			}
 		case <-ctx.Done():
 			gw.tracer.Send(CancellationFlowNodeTrace{Node: gw.element})

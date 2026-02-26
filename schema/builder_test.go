@@ -54,3 +54,19 @@ func TestDefinitionsWithProcess(t *testing.T) {
 	data, _ := xml.MarshalIndent(def, "", " ")
 	t.Log(string(data))
 }
+
+func TestDefinitionsBuilderAddProcessWithNilId(t *testing.T) {
+	db := NewDefinitionsBuilder()
+	p := DefaultProcess()
+	p.IdField = nil
+
+	assert.NotPanics(t, func() {
+		db.AddProcess(p)
+	})
+
+	def := db.Out()
+	if assert.Len(t, def.ProcessField, 1) {
+		assert.NotNil(t, def.ProcessField[0].IdField)
+		assert.NotEqual(t, "", *def.ProcessField[0].IdField)
+	}
+}

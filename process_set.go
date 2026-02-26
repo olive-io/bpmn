@@ -24,7 +24,6 @@ import (
 	"github.com/olive-io/bpmn/schema"
 	"github.com/olive-io/bpmn/v2/pkg/data"
 	"github.com/olive-io/bpmn/v2/pkg/event"
-	"github.com/olive-io/bpmn/v2/pkg/id"
 	"github.com/olive-io/bpmn/v2/pkg/tracing"
 )
 
@@ -55,23 +54,6 @@ func NewProcessSet(executeProcesses, waitingProcesses []*schema.Process, definit
 
 	var err error
 	ctx := options.ctx
-	tracer := options.tracer
-	if tracer == nil {
-		options.tracer = tracing.NewTracer(ctx)
-		opts = append(opts, WithTracer(options.tracer))
-	}
-
-	if options.idGenerator == nil {
-		options.idGenerator, err = id.GetSno().NewIdGenerator(ctx, tracer)
-		if err != nil {
-			return nil, err
-		}
-		opts = append(opts, WithIdGenerator(options.idGenerator))
-	}
-	if options.locator == nil {
-		options.locator = data.NewFlowDataLocator()
-		opts = append(opts, WithLocator(options.locator))
-	}
 
 	executes := make([]*Process, 0)
 	for _, executeProcess := range executeProcesses {
@@ -205,8 +187,6 @@ LOOP:
 		case trace = <-traces:
 		case <-ctx.Done():
 			return
-		default:
-			continue
 		}
 
 		trace = tracing.Unwrap(trace)
@@ -222,8 +202,8 @@ LOOP:
 		case ActiveListeningTrace:
 			ready := make(chan struct{}, 1)
 			ps.registerCatch(msg.Node, ready)
+			wg.Add(1)
 			go func() {
-				wg.Add(1)
 				defer wg.Done()
 
 				for {

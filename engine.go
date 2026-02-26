@@ -85,15 +85,22 @@ func NewEngine(opts ...EngineOption) *Engine {
 }
 
 func (engine *Engine) NewProcess(definitions *schema.Definitions, opts ...Option) (process *Process, err error) {
-
 	var processElement *schema.Process
-	for _, element := range *definitions.Processes() {
+	executableCount := 0
+	for i := range *definitions.Processes() {
+		element := &(*definitions.Processes())[i]
 		able, ok := element.IsExecutable()
 		if !ok || !able {
 			continue
 		}
+		executableCount++
+		if processElement == nil {
+			processElement = element
+		}
+	}
 
-		processElement = &element
+	if executableCount > 1 {
+		return nil, fmt.Errorf("multiple executable processes found (%d), use NewProcessSet", executableCount)
 	}
 
 	if processElement == nil {
@@ -131,16 +138,17 @@ func (engine *Engine) NewProcess(definitions *schema.Definitions, opts ...Option
 func (engine *Engine) NewProcessSet(definitions *schema.Definitions, opts ...Option) (*ProcessSet, error) {
 	executes := make([]*schema.Process, 0)
 	waitings := make([]*schema.Process, 0)
-	for _, element := range *definitions.Processes() {
+	for i := range *definitions.Processes() {
+		element := &(*definitions.Processes())[i]
 		able, ok := element.IsExecutable()
 		if !ok || !able {
-			waitings = append(waitings, &element)
+			waitings = append(waitings, element)
 		} else {
-			executes = append(executes, &element)
+			executes = append(executes, element)
 		}
 	}
 
-	if executes == nil {
+	if len(executes) == 0 {
 		return nil, fmt.Errorf("no executionable process in definitions")
 	}
 

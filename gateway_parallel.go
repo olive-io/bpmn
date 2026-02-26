@@ -69,7 +69,6 @@ func (gw *parallelGateway) run(ctx context.Context, sender tracing.ISenderHandle
 				gw.awaitingActions = append(gw.awaitingActions, m.response)
 				gw.flowWhenReady()
 				gw.tracer.Send(IncomingFlowProcessedTrace{Node: gw.element, Flow: m.flow})
-			default:
 			}
 		case <-ctx.Done():
 			gw.tracer.Send(CancellationFlowNodeTrace{Node: gw.element})

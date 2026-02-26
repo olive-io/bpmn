@@ -437,7 +437,6 @@ func (f *flow) Start(ctx context.Context) {
 						Source: f.current.Element(),
 					})
 					return
-				default:
 				}
 			}
 		}

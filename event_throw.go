@@ -79,7 +79,6 @@ func (evt *throwEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 				} else {
 					m.response <- completeAction{}
 				}
-			default:
 			}
 		case <-ctx.Done():
 			evt.tracer.Send(CancellationFlowNodeTrace{Node: evt.element})

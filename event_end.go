@@ -68,7 +68,6 @@ func (evt *endEvent) run(ctx context.Context, sender tracing.ISenderHandle) {
 				} else {
 					evt.wiring.tracer.Send(ErrorTrace{Error: err})
 				}
-			default:
 			}
 		case <-ctx.Done():
 			evt.tracer.Send(CancellationFlowNodeTrace{Node: evt.element})

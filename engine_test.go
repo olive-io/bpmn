@@ -19,6 +19,7 @@ package bpmn_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -74,5 +75,73 @@ func TestCancellation(t *testing.T) {
 		// assert.NotEmpty(t, cancelledFlowNodes)
 	} else {
 		t.Fatalf("Can't find process `sample`")
+	}
+}
+
+func TestNewProcessRejectsMultipleExecutableProcesses(t *testing.T) {
+	definitions := schema.DefaultDefinitions()
+
+	p1 := schema.DefaultProcess()
+	p1.IdField = schema.NewStringP("process-1")
+	p1.IsExecutableField = schema.NewBoolP(true)
+
+	p2 := schema.DefaultProcess()
+	p2.IdField = schema.NewStringP("process-2")
+	p2.IsExecutableField = schema.NewBoolP(true)
+
+	definitions.ProcessField = []schema.Process{p1, p2}
+
+	engine := bpmn.NewEngine()
+	process, err := engine.NewProcess(&definitions)
+
+	assert.Nil(t, process)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "multiple executable processes")
+	}
+}
+
+func TestNewProcessSetStartsDistinctExecutableProcesses(t *testing.T) {
+	definitions := schema.DefaultDefinitions()
+
+	p1 := schema.NewProcessBuilder().Out()
+	p1.IdField = schema.NewStringP("process-1")
+	p1.IsExecutableField = schema.NewBoolP(true)
+
+	p2 := schema.NewProcessBuilder().Out()
+	p2.IdField = schema.NewStringP("process-2")
+	p2.IsExecutableField = schema.NewBoolP(true)
+
+	definitions.ProcessField = []schema.Process{*p1, *p2}
+
+	engine := bpmn.NewEngine()
+	ps, err := engine.NewProcessSet(&definitions)
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	traces := ps.Tracer().Subscribe()
+	defer ps.Tracer().Unsubscribe(traces)
+
+	if !assert.NoError(t, ps.StartAll(ctx)) {
+		return
+	}
+	assert.True(t, ps.WaitUntilComplete(ctx))
+
+	for {
+		select {
+		case trace := <-traces:
+			trace = tracing.Unwrap(trace)
+			switch msg := trace.(type) {
+			case bpmn.CeaseProcessSetTrace:
+				return
+			case bpmn.ErrorTrace:
+				t.Fatalf("unexpected error trace: %v", msg.Error)
+			}
+		case <-ctx.Done():
+			t.Fatalf("timed out waiting for process set termination traces")
+		}
 	}
 }

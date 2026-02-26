@@ -171,8 +171,6 @@ func (gw *inclusiveGateway) run(ctx context.Context, sender tracing.ISenderHandl
 					}
 					gw.trySync()
 				}
-
-			default:
 			}
 		case <-activity:
 			if !gw.synchronized && gw.activated != nil {
@@ -248,7 +246,7 @@ func newFlowTracker(tracer tracing.ITracer, element *schema.InclusiveGateway) *f
 		traces:     tracer.Subscribe(),
 		shutdownCh: make(chan bool),
 		flows:      make(map[id.Id]schema.Id),
-		activityCh: make(chan struct{}),
+		activityCh: make(chan struct{}, 1),
 		element:    element,
 	}
 	// Lock the tracker until it has caught up enough
@@ -287,7 +285,10 @@ func (tracker *flowTracker) run() {
 			if locked && reachedNode {
 				tracker.lock.Unlock()
 				if notify {
-					tracker.activityCh <- struct{}{}
+					select {
+					case tracker.activityCh <- struct{}{}:
+					default:
+					}
 					notify = false
 				}
 				locked = false

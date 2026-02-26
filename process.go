@@ -67,11 +67,7 @@ func NewOptions(opts ...Option) *Options {
 	}
 
 	if options.idGenerator == nil {
-		var err error
-		options.idGenerator, err = id.GetSno().NewIdGenerator(options.ctx, options.tracer)
-		if err != nil {
-			panic(err)
-		}
+		options.idGenerator = ensureDefaultIDGenerator(options.ctx, options.tracer, defaultIDGeneratorScopeProcess)
 	}
 	if options.eventDefinitionInstanceBuilder == nil {
 		options.eventDefinitionInstanceBuilder = event.WrappingDefinitionInstanceBuilder
@@ -699,15 +695,12 @@ func (p *Process) ceaseFlowMonitor(tracer tracing.ITracer) func(ctx context.Cont
 					switch flowNode := t.Source.(type) {
 					case *schema.StartEvent:
 						startEventsActivated = append(startEventsActivated, flowNode)
-					default:
 					}
 				case FlowTrace:
 					switch flowNode := t.Source.(type) {
 					case *schema.StartEvent:
 						startEventsActivated = append(startEventsActivated, flowNode)
-					default:
 					}
-				default:
 				}
 			case <-ctx.Done():
 				tracer.Unsubscribe(traces)
