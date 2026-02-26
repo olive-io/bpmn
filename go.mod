@@ -7,9 +7,9 @@ replace github.com/olive-io/bpmn/schema => ./schema
 require (
 	github.com/ChrisTrenkamp/xsel v0.9.16
 	github.com/Chronokeeper/anyxml v0.0.0-20160530174208-54457d8e98c6
-	github.com/bits-and-blooms/bitset v1.24.2
-	github.com/bytedance/sonic v1.14.1
-	github.com/expr-lang/expr v1.17.6
+	github.com/bits-and-blooms/bitset v1.24.4
+	github.com/bytedance/sonic v1.15.0
+	github.com/expr-lang/expr v1.17.8
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/muyo/sno v1.2.1
 	github.com/olive-io/bpmn/schema v1.6.1
@@ -22,7 +22,7 @@ require (
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect
-	github.com/bytedance/sonic/loader v0.3.0 // indirect
+	github.com/bytedance/sonic/loader v0.5.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/goccmack/goutil v1.2.3 // indirect
